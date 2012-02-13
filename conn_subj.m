@@ -1,7 +1,8 @@
 function conn_subj(cfg, subj)
 %SUBJ CONN connectivity on single-subject data
 
-mversion = 15;
+mversion = 16;
+%16 12/02/13 recreate sampleinfo which got lost (necessary for selfromraw)
 %15 12/02/02 renamed to conn_subj
 %14 12/01/18 do transpose of cca, to keep consistent with fieldtrip
 %13 12/01/15 use cca for time-domain granger
@@ -148,6 +149,8 @@ for k = 1:numel(cfg.test)
   if strcmp(cfg.conn.areas, 'erppeak') || strcmp(cfg.conn.areas, 'powpeak')
     data = pcadata(data, soupeak, cfg.conn.fixedmom);
   end
+  
+  data = ft_checkdata(data, 'hassampleinfo', 'yes'); % recreate sampleinfo which got lost (necessary for selfromraw)
   %-----------------%
   
   switch cfg.conn.type
