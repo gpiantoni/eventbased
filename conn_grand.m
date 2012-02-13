@@ -7,6 +7,7 @@ function grandconn(cfg)
 %   - char: 'any' : it takes every single frequency in the data
 %   - numeric: it takes every single frequency between the two limits ([8 12], means each frequency between 8 and 12, so 8 9 10 11 12, five values)
 %   - cell: average between the two limits ({[8 12]}, means average of all the frequencies between 8 and 12, one value)
+% $Rev$
 
 mversion = 8;
 %08 12/01/15 includes cca
