@@ -6,7 +6,8 @@ function gclean(cfg, subj)
 %only fixing the fields in data should not be parallel, but it should be
 %very fast
 
-mversion = 6;
+mversion = 7;
+%07 12/02/13 it should add data.sampleinfo(1) to artmat for offset
 %06 12/02/08 added emg and multiple filter for channel rejection
 %05 12/02/02 do interpolation, but keep track of bad channels and bad samples
 %04 12/02/02 using gtoolbox now (it keeps all the fields)
@@ -153,6 +154,7 @@ for i = 1:numel(allfile) % this can run in parallel
     bound = find(diff(badsmp)~=1);
     bound = [1 bound+1; bound numel(badsmp)]';
     artmat = badsmp(bound);
+    artmat = artmat + data.sampleinfo(1);
   else
     artmat = [];
   end
