@@ -1,7 +1,8 @@
 function powsource_grand(cfg)
 %POWSOURCE_GRAND grand pow source average
 
-mversion = 5;
+mversion = 6;
+%06 12/02/14 save source stat for average
 %05 12/02/03 renamed to powsource_grand
 %04 12/01/31 plot image with most significant voxels
 %03 12/01/11 find peaks with pos and areas for sources
@@ -52,19 +53,6 @@ for e = 1:numel(cfg.poweffect)
   
   clear sall spre
 end
-
-%-----------------%
-%-save (it's too big)
-[s1 s2] = size(gpowsource);
-
-for i1 = 1:s1
-  for i2 = 1:s2
-    souPre{i1,i2} = rmfield(gpowsouPre{i1,i2}, 'trial');
-    source{i1,i2} = rmfield(gpowsource{i1,i2}, 'trial');
-  end
-end
-save([cfg.dpow cfg.proj '_grandpowsource'], 'source', 'souPre', '-v7.3')
-%-----------------%
 %---------------------------%
 
 %---------------------------%
@@ -83,7 +71,7 @@ for p = 1:numel(powpeak)
   output = sprintf('%s\n%s:\n', output, powpeak(p).name);
   
   h = figure;
-  [soupos outtmp] = reportsource(gpowsource{cfg.poweffect, p}, gpowsouPre{cfg.poweffect, p});
+  [soupos powstat{p} outtmp] = reportsource(gpowsource{cfg.poweffect, p}, gpowsouPre{cfg.poweffect, p});
   soupeak(p).pos = soupos;
   soupeak(p).center = mean(soupos,1);
   soupeak(p).name = powpeak(p).name;
@@ -94,6 +82,11 @@ for p = 1:numel(powpeak)
 end
 
 save([cfg.dpow cfg.proj '_soupeak'], 'soupeak')
+
+%-----------------%
+%-save
+save([cfg.dpow cfg.proj '_grandpowsource'], 'powstat')
+%-----------------%
 %---------------------------%
 
 %---------------------------%

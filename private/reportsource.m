@@ -1,4 +1,4 @@
-function [soupeak output] = reportsource(gdat, gpre)
+function [soupeak stat output] = reportsource(gdat, gpre)
 %REPORTSOURCE get cluster which are different from baseline, even if not significant
 % The clusters to determine the main results of the analysis, for example
 % to concentrate the source reconstruction
@@ -7,6 +7,7 @@ function [soupeak output] = reportsource(gdat, gpre)
 % not make sense to have both (how can one TFR element be associated with
 % activation and disactivation from baseline?)
 
+%06 12/02/14 export stat as well
 %05 12/02/12 use absolute z-score threshold instead of cluster
 %04 12/01/31 plot image with most significant voxels
 %03 12/01/19 if there are no clusters at all, use [0 0 0]
@@ -15,7 +16,7 @@ function [soupeak output] = reportsource(gdat, gpre)
 
 addpath /data1/toolbox/helpers/ % mni2ba
 
-maxclust = 100;
+maxclust = 150;
 
 %-----------------%
 %-check data

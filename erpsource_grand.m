@@ -1,7 +1,8 @@
 function erpsource_grand(cfg)
 %ERPSOURCE_GRAND grand erp source average
 
-mversion = 4;
+mversion = 5;
+%05 12/02/14 save source stat for average
 %04 12/02/03 renamed to erpsource_grand
 %03 12/01/31 plot image with most significant voxels
 %02 12/01/12 compare against baseline
@@ -51,11 +52,6 @@ for e = 1:numel(cfg.erpeffect)
   
   clear sall spre
 end
-
-%-----------------%
-%-save (it's too big)
-% save([cfg.derp cfg.proj '_granderpsource'], 'gerpsource')
-%-----------------%
 %---------------------------%
 
 %---------------------------%
@@ -73,7 +69,7 @@ soupeak = [];
 for p = 1:numel(erppeak)
   output = sprintf('%s\n%s:\n', output, erppeak(p).name);
   h = figure;
-  [soupos outtmp] = reportsource(gerpsource{cfg.erpeffect, p}, gerpsouPre{cfg.erpeffect,p});
+  [soupos erpstat{p} outtmp] = reportsource(gerpsource{cfg.erpeffect, p}, gerpsouPre{cfg.erpeffect,p});
   soupeak(p).pos = soupos;
   soupeak(p).center = mean(soupos,1);
   soupeak(p).name = erppeak(p).name;
@@ -84,6 +80,11 @@ for p = 1:numel(erppeak)
 end
 
 save([cfg.derp cfg.proj '_soupeak'], 'soupeak')
+
+%-----------------%
+%-save
+save([cfg.derp cfg.proj '_granderpsource'], 'erpstat')
+%-----------------%
 %---------------------------%
 
 %---------------------------%
