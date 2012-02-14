@@ -3,7 +3,8 @@ function seldata(cfg, subj)
 % it recreates the gosd folder for each subject
 % you need to specify your own trialfun
 
-mversion = 14;
+mversion = 15;
+%15 12/02/14 subj-specific channels (necessary for neckersd)
 %14 12/02/03 read elec from mat as well and can force renaming of the channels
 %13 12/02/02 read elec from sfp file directly
 %12 12/02/02 renamed, massive changes: use own trialfun
@@ -81,12 +82,21 @@ for i = 1:numel(allfile)
   %-----------------%
   %-preprocessing
   cfg2.feedback = cfg.seldata.feedback;
-  cfg2.channel = cfg.seldata.channel;
+  if iscell(cfg.seldata.selchan)
+    cfg2.channel = cfg.seldata.selchan{subj};
+  else
+    cfg2.channel = cfg.seldata.selchan;
+  end
   
   data = ft_preprocessing(cfg2);
-  data.elec = sens; 
   %-----------------%
+  
+  %-----------------%
+  %-fix channels
+  data.elec = sens;   
 
+  %-----------------%
+  
   %-----------------%
   %-save data
   [~, filename] = fileparts(allfile(i).name);
