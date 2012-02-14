@@ -7,6 +7,7 @@ function [soupeak output] = reportsource(gdat, gpre)
 % not make sense to have both (how can one TFR element be associated with
 % activation and disactivation from baseline?)
 
+%05 12/02/12 use absolute z-score threshold instead of cluster
 %04 12/01/31 plot image with most significant voxels
 %03 12/01/19 if there are no clusters at all, use [0 0 0]
 %02 12/01/12 don't compare against zero, but against baseline
@@ -153,7 +154,8 @@ end
 %-------%
 %-prepare figure
 backgrnd = isnan(clusterslabelmat); % separate NaN to be used as background
-clmat = clusterslabelmat == 1; % only main cluster
+% clmat = clusterslabelmat == 1; % only main cluster
+clmat = abs(stat.stat) > 3; % only main cluster
 
 %-prepare axis 
 xpos = unique(stat.pos(:,1));
