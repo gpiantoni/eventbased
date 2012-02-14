@@ -1,6 +1,7 @@
 function export2csv(cfg)
 %EXPORT2CSV write results in csv file
 
+%06 12/02/14 more precision %1.f -> %f
 %05 12/02/13 small change to realignment
 %04 12/02/05 use struct2log on preproc and redef
 %03 12/02/02 renamed to export2csv
@@ -45,12 +46,12 @@ end
 output = [output ',,'];
 output = [output 'ERPsource,'];
 
-output = [output sprintf('%1.f,', cfg.gerp.bline(1))];
-output = [output sprintf('%1.f,', cfg.gerp.bline(2))];
+output = [output sprintf('%f,', cfg.gerp.bline(1))];
+output = [output sprintf('%f,', cfg.gerp.bline(2))];
 
 output = [output sprintf('%s,', cfg.erpsource.lambda)];
 output = [output sprintf('%s,', cfg.erpsource.powmethod)];
-output = [output sprintf('%1.f,', cfg.erpsource.bline)];
+output = [output sprintf('%f,', cfg.erpsource.bline)];
 
 output = [output sprintf('%s,', cfg.erpsource.areas )];
 output = [output ',,,,'];
@@ -133,25 +134,25 @@ output = [output sprintf('%s,', cfg.test{cfg.poweffect})];
 output = [output sprintf('%s,', cfg.pow.method)];
 output = [output sprintf('%s,', cfg.pow.taper)];
 
-output = [output sprintf('%1.f,', cfg.pow.foi(1))];
-output = [output sprintf('%1.f,', cfg.pow.foi(end))];
+output = [output sprintf('%f,', cfg.pow.foi(1))];
+output = [output sprintf('%f,', cfg.pow.foi(end))];
 
-output = [output sprintf('%1.f,', cfg.pow.t_ftimwin(1))];
-output = [output sprintf('%1.f,', cfg.pow.t_ftimwin(end))];
+output = [output sprintf('%f,', cfg.pow.t_ftimwin(1))];
+output = [output sprintf('%f,', cfg.pow.t_ftimwin(end))];
 
-output = [output sprintf('%1.f,', cfg.pow.toi(1))];
-output = [output sprintf('%1.f,', cfg.pow.toi(end))];
+output = [output sprintf('%f,', cfg.pow.toi(1))];
+output = [output sprintf('%f,', cfg.pow.toi(end))];
 
 output = [output sprintf('%s,', cfg.pow.bl.baselinetype)];
-output = [output sprintf('%1.f,', cfg.pow.bl.baseline(1))];
-output = [output sprintf('%1.f,', cfg.pow.bl.baseline(end))];
+output = [output sprintf('%f,', cfg.pow.bl.baseline(1))];
+output = [output sprintf('%f,', cfg.pow.bl.baseline(end))];
 
 output = [output ',,'];
 output = [output 'POWsource,'];
 
 output = [output sprintf('%s,', cfg.powsource.lambda)];
 output = [output sprintf('%s,', cfg.powsource.powmethod)];
-output = [output sprintf('%1.f,', cfg.powsource.bline)];
+output = [output sprintf('%f,', cfg.powsource.bline)];
 
 output = [output sprintf('%s,', cfg.powsource.areas )];
 output = [output ',,,,'];
@@ -245,10 +246,10 @@ if exist([cfg.log filesep 'connsum.mat'], 'file')
       output = [output ','];
   end
   
-  output = [output sprintf('%1.f,', cfg.conn.toi(1))];
-  output = [output sprintf('%1.f,', cfg.conn.toi(end))];
+  output = [output sprintf('%f,', cfg.conn.toi(1))];
+  output = [output sprintf('%f,', cfg.conn.toi(end))];
   
-  output = [output sprintf('%1.f,', cfg.conn.t_ftimwin)];
+  output = [output sprintf('%f,', cfg.conn.t_ftimwin)];
   
   output = [output sprintf('%s,', cfg.conn.type)];
   
