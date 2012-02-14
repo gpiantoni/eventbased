@@ -42,14 +42,9 @@ if isdir(ddir); rmdir(ddir, 's'); end
 mkdir(ddir)
 
 %-----------------%
-%-read sensors
-[~, ~, ext] = fileparts(cfg.sens.file);
-if strcmp(ext, '.mat')
-  load(cfg.sens.file, 'sens')
-else
-  sens = ft_read_sens(cfg.sens.file);
-  sens.label = upper(sens.label); % <- EGI labels are uppercase, but the elec file is lowercase
-end
+%-read sensors (can be sfp or mat)
+sens = ft_read_sens(cfg.sens.file);
+sens.label = upper(sens.label); % <- EGI labels are uppercase, but the elec file is lowercase
 %-----------------%
 %---------------------------%
 
@@ -93,8 +88,8 @@ for i = 1:numel(allfile)
   
   %-----------------%
   %-fix channels
-  data.elec = sens;   
-
+  data.label = cfg.seldata.label;
+  data.elec = sens;
   %-----------------%
   
   %-----------------%
