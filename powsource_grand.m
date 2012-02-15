@@ -85,6 +85,13 @@ save([cfg.dpow cfg.proj '_soupeak'], 'soupeak')
 
 %-----------------%
 %-save
+for p = 1:numel(powstat)
+  powstat{p} = rmfield(powstat{p}, ...
+    {'mask', 'ref', ...
+    'posclusters', 'posclusterslabelmat', 'posdistribution', ...
+    'negclusters', 'negclusterslabelmat', 'negdistribution'});
+  powstat{p}.cfg = []; % this is huge
+end
 save([cfg.dpow cfg.proj '_grandpowsource'], 'powstat', '-v7.3')
 %-----------------%
 %---------------------------%
