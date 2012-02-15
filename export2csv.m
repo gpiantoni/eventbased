@@ -144,8 +144,13 @@ output = [output sprintf('%f,', cfg.pow.toi(1))];
 output = [output sprintf('%f,', cfg.pow.toi(end))];
 
 output = [output sprintf('%s,', cfg.pow.bl.baselinetype)];
-output = [output sprintf('%f,', cfg.pow.bl.baseline(1))];
-output = [output sprintf('%f,', cfg.pow.bl.baseline(end))];
+
+if ~isempty(cfg.pow.bl.baseline)
+  output = [output sprintf('%f,', cfg.pow.bl.baseline(1))];
+  output = [output sprintf('%f,', cfg.pow.bl.baseline(end))];
+else
+  output = [output ',,'];
+end
 
 output = [output ',,'];
 output = [output 'POWsource,'];
