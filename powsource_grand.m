@@ -85,7 +85,7 @@ save([cfg.dpow cfg.proj '_soupeak'], 'soupeak')
 
 %-----------------%
 %-save
-save([cfg.dpow cfg.proj '_grandpowsource'], 'powstat')
+save([cfg.dpow cfg.proj '_grandpowsource'], 'powstat', '-v7.3')
 %-----------------%
 %---------------------------%
 

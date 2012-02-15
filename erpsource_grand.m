@@ -83,7 +83,7 @@ save([cfg.derp cfg.proj '_soupeak'], 'soupeak')
 
 %-----------------%
 %-save
-save([cfg.derp cfg.proj '_granderpsource'], 'erpstat')
+save([cfg.derp cfg.proj '_granderpsource'], 'erpstat', '-v7.3')
 %-----------------%
 %---------------------------%
 
