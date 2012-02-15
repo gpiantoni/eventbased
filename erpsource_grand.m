@@ -75,8 +75,15 @@ for p = 1:numel(erppeak)
   soupeak(p).name = erppeak(p).name;
   output = [output outtmp];  
   
-  saveas(h, [cfg.log filesep 'erp_' erppeak(p).name '.png'])
-  close(h)
+  %--------%
+  pngname = sprintf('gerppeak_%1.f_%s', cfg.poweffect, powpeak(p).name);
+  saveas(gcf, [cfg.log filesep pngname '.png'])
+  close(gcf); drawnow
+  
+  [~, logfile] = fileparts(cfg.log);
+  system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
+  %--------%
+      
 end
 
 save([cfg.derp cfg.proj '_soupeak'], 'soupeak')

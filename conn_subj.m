@@ -35,16 +35,6 @@ tic_t = tic;
 
 %---------------------------%
 %-dir and files
-% %-----------------%
-% %-add toolbox
-% if strcmp(cfg.conn.toolbox, 'bsmart')
-%   addpath /usr/local/toolbox/bsmart/
-% else
-%   addpath /usr/local/toolbox/biosig/t200_FileAccess/
-%   addpath /usr/local/toolbox/biosig/tsa/
-% end
-% %-----------------%
-
 ddir = sprintf('%s%04.f/%s/%s/', cfg.data, subj, cfg.mod, cfg.cond); % data
 
 %-----------------%
@@ -111,7 +101,7 @@ figure
 imagesc(mont.tra, [-1 1] * max(abs(mont.tra(:))))
 colorbar
 
-pngfile = [cfg.log filesep cfg.proj '_gosdconn_mont' sprintf('%03.f', subj) '.png'];
+pngfile = [cfg.log filesep 'montconn_' sprintf('%03.f', subj) '.png'];
 saveas(gcf, pngfile);
 close(gcf); drawnow
 %-----------------%

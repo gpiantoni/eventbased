@@ -107,12 +107,12 @@ if ~isempty(gpow)
       %--------%
       %-save and link
       condname = regexprep(cfg.test{t}, '*', '');
-      pngname = sprintf('_gpow_TFR_c%02.f_%s.png', c, condname);
-      saveas(gcf, [cfg.log filesep cfg.proj pngname])
+      pngname = sprintf('gpow_tfr_c%02.f_%s', c, condname);
+      saveas(gcf, [cfg.log filesep pngname '.png'])
       close(gcf); drawnow
       
       [~, logfile] = fileparts(cfg.log);
-      system(['ln ' cfg.log filesep cfg.proj pngname ' ' cfg.rslt logfile pngname]);
+      system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
       %--------%
       
     end
@@ -152,12 +152,12 @@ if ~isempty(gpow)
       
       %--------%
       %-save and link
-      pngname = sprintf('_gpow_ERP_c%02.f_%s.png', c, freqname);
-      saveas(gcf, [cfg.log filesep cfg.proj pngname])
+      pngname = sprintf('gpow_val_c%02.f_%s', c, freqname);
+      saveas(gcf, [cfg.log filesep pngname '.png'])
       close(gcf); drawnow
       
       [~, logfile] = fileparts(cfg.log);
-      system(['ln ' cfg.log filesep cfg.proj pngname ' ' cfg.rslt logfile pngname]);
+      system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
       %--------%
 
     end
@@ -200,12 +200,14 @@ if ~isempty(gpow)
       condname = regexprep(cfg.test{t}, '*', '');
       freqname = sprintf('f%02.f-%02.f', cfg.gpow.freq{f}(1), cfg.gpow.freq{f}(2));
 
-      pngname = sprintf('_gpow_topo_%s_%s.png', condname, freqname);
-      saveas(gcf, [cfg.log filesep cfg.proj pngname])
+      pngname = sprintf('gpow_topo_%s_%s', condname, freqname);
+      saveas(gcf, [cfg.log filesep pngname '.png'])
       close(gcf); drawnow
       
       [~, logfile] = fileparts(cfg.log);
-      system(['ln ' cfg.log filesep cfg.proj pngname ' ' cfg.rslt logfile pngname]);
+      system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
+      %--------%
+
       %--------%
     end
     %-----------------%

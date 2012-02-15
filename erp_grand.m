@@ -97,12 +97,12 @@ if ~isempty(gerp)
     
     %--------%
     %-save and link
-    pngname = sprintf('_gerp_ERP_c%02.f.png', c);
-    saveas(gcf, [cfg.log filesep cfg.proj pngname])
+    pngname = sprintf('gerp_erp_c%02.f', c);
+    saveas(gcf, [cfg.log filesep pngname '.png'])
     close(gcf); drawnow
     
     [~, logfile] = fileparts(cfg.log);
-    system(['ln ' cfg.log filesep cfg.proj pngname ' ' cfg.rslt logfile pngname]);
+    system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
     %--------%
     
   end
@@ -138,12 +138,12 @@ if ~isempty(gerp)
     %--------%
     %-save and link
     condname = regexprep(cfg.test{t}, '*', '');
-    pngname = sprintf('_gerp_topo_%s.png', condname);
-    saveas(gcf, [cfg.log filesep cfg.proj pngname])
+    pngname = sprintf('gerp_topo_%s', condname);
+    saveas(gcf, [cfg.log filesep pngname '.png'])
     close(gcf); drawnow
     
     [~, logfile] = fileparts(cfg.log);
-    system(['ln ' cfg.log filesep cfg.proj pngname ' ' cfg.rslt logfile pngname]);
+    system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
     %--------%
     
   end

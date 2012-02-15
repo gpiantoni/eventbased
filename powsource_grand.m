@@ -75,10 +75,17 @@ for p = 1:numel(powpeak)
   soupeak(p).pos = soupos;
   soupeak(p).center = mean(soupos,1);
   soupeak(p).name = powpeak(p).name;
-  output = [output outtmp];  
+  output = [output outtmp];
   
-  saveas(h, [cfg.log filesep 'pow_' powpeak(p).name '.png'])
-  close(h)
+  %--------%
+  pngname = sprintf('gpowpeak_%1.f_%s', cfg.poweffect, powpeak(p).name);
+  saveas(gcf, [cfg.log filesep pngname '.png'])
+  close(gcf); drawnow
+  
+  [~, logfile] = fileparts(cfg.log);
+  system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
+  %--------%
+
 end
 
 save([cfg.dpow cfg.proj '_soupeak'], 'soupeak')

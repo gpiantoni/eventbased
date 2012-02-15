@@ -1,4 +1,4 @@
-function statconn(cfg)
+function conn_stat(cfg)
 %STATCONN statistics on connectivity analysis
 
 mversion = 5;
@@ -113,12 +113,15 @@ for chan1 = 1:numel(gconn.label)
       end
       %-----------------%
       
-      %-----------------%
-      pngname = sprintf('%s/conn_%s_%s_%s.png', ...
-        cfg.log, cfg.conn.method, gconn.label{chan1}, gconn.label{chan2});
-      saveas(h, pngname);
-      close(h)
-      %-----------------%
+      %--------%
+      %-save and link
+      pngname = sprintf('gtrs_%s_%s_%s', cfg.conn.method, gconn.label{chan1}, gconn.label{chan2});
+      saveas(gcf, [cfg.log filesep pngname '.png'])
+      close(gcf); drawnow
+      
+      [~, logfile] = fileparts(cfg.log);
+      system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
+      %--------%
       
     end
   end
