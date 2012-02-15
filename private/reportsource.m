@@ -170,7 +170,7 @@ subplot(2,2,1)
 [~, imax] = max(sum(sum(clmat,2),3));
 toplot = nansum(cat(1, -1 * backgrnd(imax,:,:),  clmat(imax, :, :) .* abs(stat.stat(imax,:,:))), 1);
 
-imagesc(ypos, zpos, squeeze(toplot)', [-.5 5])
+imagesc(ypos, zpos, squeeze(toplot)', [-.5 7])
 axis xy equal
 colormap hot
 
@@ -183,7 +183,7 @@ subplot(2,2,2)
 [~, imax] = max(sum(sum(clmat,1),3));
 toplot = nansum(cat(2, -1 * backgrnd(:,imax,:),  clmat(:,imax,:) .* abs(stat.stat(:,imax,:))), 2);
 
-imagesc(xpos, zpos, squeeze(toplot)', [-.5 5])
+imagesc(xpos, zpos, squeeze(toplot)', [-.5 7])
 axis xy equal
 colormap hot
 
@@ -196,7 +196,7 @@ subplot(2,2,3)
 [~, imax] = max(sum(sum(clmat,1),2));
 toplot = nansum(cat(3, -1 * backgrnd(:,:,imax),  clmat(:,:,imax) .* abs(stat.stat(:,:,imax))), 3);
 
-imagesc(xpos, ypos, squeeze(toplot)', [-.5 5])
+imagesc(xpos, ypos, squeeze(toplot)', [-.5 7])
 axis xy equal
 colormap hot
 
