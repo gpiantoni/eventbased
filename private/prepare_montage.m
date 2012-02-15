@@ -8,9 +8,6 @@ function [mont] = prepare_montage(grpchan, label)
 % and label is data.label
 % Mont can be used for ft_apply_montage(data, mont)
 
-% 11/12/03 use chan instead of elec
-% 11/11/19 created
-
 %-----------------%
 %-prepare TRA
 nnew = numel(grpchan);

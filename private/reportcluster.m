@@ -18,16 +18,6 @@ function [clpeak output] = reportcluster(gdat, cfg)
 %
 % The sizes of the frequency band and time window are defined by FWHM
 
-%09 12/02/13 fix rare case when there are no significant positive cluster
-%08 12/02/03 calculate clusters on the fly
-%07 12/02/01 fixed bug when positive or negative clusters do not exist
-%06 12/01/16 extract p-values as well
-%05 12/01/13 no deltatime, the window can be 0 second long (only one time point)
-%04 12/01/12 fwhm for calculation of time and freq intervals
-%03 12/01/12 can deal with erp data as well
-%02 12/01/12 include toilim and freqlim for improved source reconstruction
-%01 12/01/10 created
-
 %-----------------%
 %-check data
 if ~isfield(gdat, 'powspctrm')

@@ -1,17 +1,10 @@
 function conn_stat(cfg)
 %STATCONN statistics on connectivity analysis
 
-mversion = 5;
-%05 12/01/18 fixed ylabel and duplicated chan name on title
-%04 12/01/16 prepare connsum, a summary of statistics for gosd2csv
-%03 12/01/13 previous version was deprecated, now it does not check for significant frequency/labelcmd, but it looks at all labelcmd (mean over frequency) to look at changes over time.
-%02 11/12/02 you should specify which tests are significant for selection
-%01 11/12/01 created
-
 %---------------------------%
 %-start log
-output = sprintf('%s (v%02.f) started at %s on %s\n', ...
-  mfilename,  mversion, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
+output = sprintf('%s started at %s on %s\n', ...
+  mfilename,  datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
 tic_t = tic;
 %---------------------------%
 
@@ -133,8 +126,8 @@ save([cfg.log filesep 'connsum'], 'connsum')
 %---------------------------%
 %-end log
 toc_t = toc(tic_t);
-outtmp = sprintf('%s (v%02.f) ended at %s on %s after %s\n\n', ...
-  mfilename, mversion, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'), ...
+outtmp = sprintf('%s ended at %s on %s after %s\n\n', ...
+  mfilename, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'), ...
   datestr( datenum(0, 0, 0, 0, 0, toc_t), 'HH:MM:SS'));
 output = [output outtmp];
 

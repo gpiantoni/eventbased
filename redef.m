@@ -4,17 +4,6 @@ function redef(cfg, subj)
 % Therefore, it does not do much, but it calls a function "event2trl_xxx"
 % and then it calls ft_redefinetrial
 
-mversion = 9;
-%09 12/02/06 trialinfo is a separate, optional field
-%08 12/02/03 check if trials are in the data and better output
-%07 12/02/02 now more flexible, depending on event2trl subfunction
-%06 11/12/01 write output to cfg.log (don't use cfg.fid)
-%05 11/09/15 function handles don't work with qsubcellfun
-%04 11/09/12 2nd argument for subj (and cfg.subj -> subj)
-%03 11/08/19 clear also with 'pre'
-%02 11/08/19 ddir -> ddir
-%01 11/07/22 created
-
 %-----------------%
 %-input
 if nargin == 1
@@ -24,8 +13,8 @@ end
 
 %---------------------------%
 %-start log
-output = sprintf('(p%02.f) %s (v%02.f) started at %s on %s\n', ...
-  subj, mfilename,  mversion, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
+output = sprintf('(p%02.f) %s started at %s on %s\n', ...
+  subj, mfilename,  datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
 tic_t = tic;
 %---------------------------%
 
@@ -120,8 +109,8 @@ end
 %---------------------------%
 %-end log
 toc_t = toc(tic_t);
-outtmp = sprintf('(p%02.f) %s (v%02.f) ended at %s on %s after %s\n\n', ...
-  subj, mfilename, mversion, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'), ...
+outtmp = sprintf('(p%02.f) %s ended at %s on %s after %s\n\n', ...
+  subj, mfilename, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'), ...
   datestr( datenum(0, 0, 0, 0, 0, toc_t), 'HH:MM:SS'));
 output = [output outtmp];
 

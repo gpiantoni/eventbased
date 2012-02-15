@@ -6,16 +6,6 @@ function gclean(cfg, subj)
 %only fixing the fields in data should not be parallel, but it should be
 %very fast
 
-mversion = 8;
-%08 12/02/13 percentile parameter in aar.node.bad_samples is not important
-%07 12/02/13 it should add data.sampleinfo(1) to artmat for offset
-%06 12/02/08 added emg and multiple filter for channel rejection
-%05 12/02/02 do interpolation, but keep track of bad channels and bad samples
-%04 12/02/02 using gtoolbox now (it keeps all the fields)
-%03 12/02/01 reject trials only if there are artifacts
-%02 12/02/01 fixed bug using i twice for two loops
-%01 12/01/31 created
-
 %-----------------%
 %-input
 if nargin == 1
@@ -25,8 +15,8 @@ end
 
 %---------------------------%
 %-start log
-output = sprintf('(p%02.f) %s (v%02.f) started at %s on %s\n', ...
-  subj, mfilename,  mversion, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
+output = sprintf('(p%02.f) %s started at %s on %s\n', ...
+  subj, mfilename,  datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
 tic_t = tic;
 %---------------------------%
 
@@ -201,8 +191,8 @@ end
 %---------------------------%
 %-end log
 toc_t = toc(tic_t);
-outtmp = sprintf('(p%02.f) %s (v%02.f) ended at %s on %s after %s\n\n', ...
-  subj, mfilename, mversion, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'), ...
+outtmp = sprintf('(p%02.f) %s ended at %s on %s after %s\n\n', ...
+  subj, mfilename, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'), ...
   datestr( datenum(0, 0, 0, 0, 0, toc_t), 'HH:MM:SS'));
 output = [output outtmp];
 

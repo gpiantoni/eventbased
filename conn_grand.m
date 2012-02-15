@@ -1,4 +1,4 @@
-function grandconn(cfg)
+function conn_grand(cfg)
 %GRANDCONN grand connectivity analysis
 % it only works with frequency-domain Granger data at the moment. It
 % creates a matrix (chan_chan_subj_freq) for further analysis
@@ -7,22 +7,11 @@ function grandconn(cfg)
 %   - char: 'any' : it takes every single frequency in the data
 %   - numeric: it takes every single frequency between the two limits ([8 12], means each frequency between 8 and 12, so 8 9 10 11 12, five values)
 %   - cell: average between the two limits ({[8 12]}, means average of all the frequencies between 8 and 12, one value)
-% $Rev$
-
-mversion = 8;
-%08 12/01/15 includes cca
-%07 12/01/13 create huge gconn struct/matrix with all the info we need
-%06 12/01/12 can deal with time in the 5th dimension
-%05 11/12/01 can use granger, dtf, coh
-%04 11/11/20 average across freq bands
-%03 11/10/05 simple average for connectivity
-%02 11/09/27 cfg.conn.cond -> cfg.test
-%01 11/08/17 created
 
 %---------------------------%
 %-start log
-output = sprintf('%s (v%02.f) started at %s on %s\n', ...
-  mfilename,  mversion, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
+output = sprintf('%s started at %s on %s\n', ...
+  mfilename,  datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
 tic_t = tic;
 %---------------------------%
 
@@ -150,8 +139,8 @@ save([cfg.dcon cfg.proj '_' cfg.conn.method '_grandconn'], 'gconn')
 %---------------------------%
 %-end log
 toc_t = toc(tic_t);
-outtmp = sprintf('%s (v%02.f) ended at %s on %s after %s\n\n', ...
-  mfilename, mversion, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'), ...
+outtmp = sprintf('%s ended at %s on %s after %s\n\n', ...
+  mfilename, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'), ...
   datestr( datenum(0, 0, 0, 0, 0, toc_t), 'HH:MM:SS'));
 output = [output outtmp];
 

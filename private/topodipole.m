@@ -10,11 +10,6 @@ function  mont = topodipole(dip, gerp)
 % and gerp is the average ERP for the condition of interest, cfg.erpeffect
 % Output mont can be used in ft_prepare_montage(data, mont)
 
-% 12/01/13 time window can have different sizes (wndw)
-% 12/01/13 read gerp outside of function
-% 11/12/06 allows for more flexible comparisons using functions in .cond
-% 11/12/02 create montage based on putative dipoles
-
 %-----------------%
 %-prepare TRA
 nnew = numel(dip);

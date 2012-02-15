@@ -1,15 +1,6 @@
 function erpsource_subj(cfg, subj)
 %LCMV on interesting parts, defined by cfg.erpsource.source
 
-mversion = 7;
-%07 12/02/02 renamed to  erpsource_subj
-%06 12/01/16 calculate only erpeffect (otherwise the file is too big)
-%05 12/01/13 calculates nai based on baseline
-%04 12/01/13 lcmv power depends on length of covariance window, now baseline and source have the same baseline duration
-%03 12/01/12 use template or subject-specific vol
-%02 12/01/12 save souPre as well, but don't calculate NAI
-%01 12/01/11 created from gosdpowsource
-
 %-----------------%
 %-input
 if nargin == 1
@@ -19,8 +10,8 @@ end
 
 %---------------------------%
 %-start log
-output = sprintf('(p%02.f) %s (v%02.f) started at %s on %s\n', ...
-  subj, mfilename,  mversion, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
+output = sprintf('(p%02.f) %s started at %s on %s\n', ...
+  subj, mfilename,  datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
 tic_t = tic;
 %---------------------------%
 
@@ -187,8 +178,8 @@ end
 %---------------------------%
 %-end log
 toc_t = toc(tic_t);
-outtmp = sprintf('(p%02.f) %s (v%02.f) ended at %s on %s after %s\n\n', ...
-  subj, mfilename, mversion, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'), ...
+outtmp = sprintf('(p%02.f) %s ended at %s on %s after %s\n\n', ...
+  subj, mfilename, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'), ...
   datestr( datenum(0, 0, 0, 0, 0, toc_t), 'HH:MM:SS'));
 output = [output outtmp];
 
@@ -198,6 +189,4 @@ fid = fopen([cfg.log '.txt'], 'a');
 fwrite(fid, output);
 fclose(fid);
 %-----------------%
-%---------------------------%  
-  
-
+%---------------------------%

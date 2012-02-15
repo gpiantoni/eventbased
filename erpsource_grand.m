@@ -1,17 +1,10 @@
 function erpsource_grand(cfg)
 %ERPSOURCE_GRAND grand erp source average
 
-mversion = 5;
-%05 12/02/14 save source stat for average
-%04 12/02/03 renamed to erpsource_grand
-%03 12/01/31 plot image with most significant voxels
-%02 12/01/12 compare against baseline
-%01 12/01/11 created from grandpowsource
-
 %---------------------------%
 %-start log
-output = sprintf('%s (v%02.f) started at %s on %s\n', ...
-  mfilename,  mversion, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
+output = sprintf('%s started at %s on %s\n', ...
+  mfilename,  datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
 tic_t = tic;
 %---------------------------%
 
@@ -104,8 +97,8 @@ save([cfg.derp cfg.proj '_granderpsource'], 'erpstat', '-v7.3')
 %---------------------------%
 %-end log
 toc_t = toc(tic_t);
-outtmp = sprintf('%s (v%02.f) ended at %s on %s after %s\n\n', ...
-  mfilename, mversion, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'), ...
+outtmp = sprintf('%s ended at %s on %s after %s\n\n', ...
+  mfilename, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'), ...
   datestr( datenum(0, 0, 0, 0, 0, toc_t), 'HH:MM:SS'));
 output = [output outtmp];
 

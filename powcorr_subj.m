@@ -3,9 +3,6 @@ function powcorr_subj(cfg, subj)
 % practically identical to pow_subj but it takes log and it correlates with
 % cfg.powcorr.info 
 
-mversion = 1;
-%01 12/02/05 created from pow_subj
-
 %-----------------%
 %-input
 if nargin == 1
@@ -15,8 +12,8 @@ end
 
 %---------------------------%
 %-start log
-output = sprintf('(p%02.f) %s (v%02.f) started at %s on %s\n', ...
-  subj, mfilename,  mversion, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
+output = sprintf('(p%02.f) %s started at %s on %s\n', ...
+  subj, mfilename,  datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
 tic_t = tic;
 %---------------------------%
 
@@ -113,8 +110,8 @@ end
 %---------------------------%
 %-end log
 toc_t = toc(tic_t);
-outtmp = sprintf('(p%02.f) %s (v%02.f) ended at %s on %s after %s\n\n', ...
-  subj, mfilename, mversion, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'), ...
+outtmp = sprintf('(p%02.f) %s ended at %s on %s after %s\n\n', ...
+  subj, mfilename, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'), ...
   datestr( datenum(0, 0, 0, 0, 0, toc_t), 'HH:MM:SS'));
 output = [output outtmp];
 

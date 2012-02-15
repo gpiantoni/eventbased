@@ -1,22 +1,6 @@
 function powsource_subj(cfg, subj)
 %POWSOURCE_SUBJ DICS on interesting parts, defined by powpeaks
 
-mversion = 14;
-%14 12/03/04 calculate max length of timelim based on baseline and beginning of trial
-%13 12/02/03 keep track of bad channels, use only good channels
-%12 12/02/02 renamed to powsource_subj
-%11 12/01/18 fixed small bug - -> + (begtrl = cfg.def.trialdef.prestim + cfg.powsource.bline;)
-%10 12/01/13 baseline can change
-%09 12/01/13 add cfg.pow.t_ftimwin to powpeak(f).wndw (which can be 0)
-%08 12/01/12 check that time window is long enough for dpss smoothing, otherwise hanning
-%07 12/01/12 use template or subject-specific vol
-%06 12/01/12 tfr using improved methods (dpss, better time window)
-%05 12/01/12 save both souPre and source
-%04 12/01/11 cfg.powsource.source -> cfg.powsource.powpeak
-%03 12/01/10 use predefined or power-peaks for areas of interest
-%02 12/01/10 save real filters
-%01 11/12/06 created from gosdpow
-
 %-----------------%
 %-input
 if nargin == 1
@@ -26,8 +10,8 @@ end
 
 %---------------------------%
 %-start log
-output = sprintf('(p%02.f) %s (v%02.f) started at %s on %s\n', ...
-  subj, mfilename,  mversion, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
+output = sprintf('(p%02.f) %s started at %s on %s\n', ...
+  subj, mfilename,  datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
 tic_t = tic;
 %---------------------------%
 
@@ -232,8 +216,8 @@ end
 %---------------------------%
 %-end log
 toc_t = toc(tic_t);
-outtmp = sprintf('(p%02.f) %s (v%02.f) ended at %s on %s after %s\n\n', ...
-  subj, mfilename, mversion, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'), ...
+outtmp = sprintf('(p%02.f) %s ended at %s on %s after %s\n\n', ...
+  subj, mfilename, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'), ...
   datestr( datenum(0, 0, 0, 0, 0, toc_t), 'HH:MM:SS'));
 output = [output outtmp];
 

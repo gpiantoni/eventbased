@@ -1,21 +1,10 @@
 function erp_grand(cfg)
 %ERP_GRAND grand time lock analysis
 
-mversion = 9;
-%09 12/02/08 nicer plots and link to results in cfg.rslt
-%08 12/02/06 deal with cases when gerp is empty
-%07 12/02/05 make topoplot as well
-%06 12/02/03 renamed to erp_grand
-%05 12/01/12 include reportcluster to get erppeak
-%04 11/11/21 also compute keepindividual = 'yes'
-%03 11/11/20 fix wild card in DIR
-%02 11/09/27 cfg.erp.cond -> cfg.test
-%01 11/07/21 created
-
 %---------------------------%
 %-start log
-output = sprintf('%s (v%02.f) started at %s on %s\n', ...
-  mfilename,  mversion, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
+output = sprintf('%s started at %s on %s\n', ...
+  mfilename,  datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
 tic_t = tic;
 %---------------------------%
 
@@ -154,8 +143,8 @@ end
 %---------------------------%
 %-end log
 toc_t = toc(tic_t);
-outtmp = sprintf('%s (v%02.f) ended at %s on %s after %s\n\n', ...
-  mfilename, mversion, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'), ...
+outtmp = sprintf('%s ended at %s on %s after %s\n\n', ...
+  mfilename, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'), ...
   datestr( datenum(0, 0, 0, 0, 0, toc_t), 'HH:MM:SS'));
 output = [output outtmp];
 

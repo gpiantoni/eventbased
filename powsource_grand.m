@@ -1,18 +1,10 @@
 function powsource_grand(cfg)
 %POWSOURCE_GRAND grand pow source average
 
-mversion = 6;
-%06 12/02/14 save source stat for average
-%05 12/02/03 renamed to powsource_grand
-%04 12/01/31 plot image with most significant voxels
-%03 12/01/11 find peaks with pos and areas for sources
-%02 12/01/10 similar to grandpow, it reports clusters
-%01 12/01/10 created from grandpow
-
 %---------------------------%
 %-start log
-output = sprintf('%s (v%02.f) started at %s on %s\n', ...
-  mfilename,  mversion, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
+output = sprintf('%s started at %s on %s\n', ...
+  mfilename,  datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
 tic_t = tic;
 %---------------------------%
 
@@ -106,8 +98,8 @@ save([cfg.dpow cfg.proj '_grandpowsource'], 'powstat', '-v7.3')
 %---------------------------%
 %-end log
 toc_t = toc(tic_t);
-outtmp = sprintf('%s (v%02.f) ended at %s on %s after %s\n\n', ...
-  mfilename, mversion, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'), ...
+outtmp = sprintf('%s ended at %s on %s after %s\n\n', ...
+  mfilename, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'), ...
   datestr( datenum(0, 0, 0, 0, 0, toc_t), 'HH:MM:SS'));
 output = [output outtmp];
 

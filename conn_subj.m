@@ -1,24 +1,6 @@
 function conn_subj(cfg, subj)
 %SUBJ CONN connectivity on single-subject data
 
-mversion = 16;
-%16 12/02/13 recreate sampleinfo which got lost (necessary for selfromraw)
-%15 12/02/02 renamed to conn_subj
-%14 12/01/18 do transpose of cca, to keep consistent with fieldtrip
-%13 12/01/15 use cca for time-domain granger
-%12 12/01/12 toi is implemented by subfunctions
-%11 12/01/11 toi looks at changes over time
-%10 12/01/11 added source2mont, with possibility for fixed mom
-%09 11/12/06 give feedback on topodipole (TODO: normalize)
-%08 11/12/02 added topodipole
-%07 11/12/01 do not use cfg.pow but simple mtmfft
-%06 11/11/19 redefine trials and apply montage
-%05 11/10/04 allows different types of connectivity methods
-%04 11/09/27 cfg.conn.cond -> cfg.test
-%03 11/09/12 2nd argument for subj (and cfg.subj -> subj)
-%02 11/05/20 datdir -> ddir
-%01 11/05/16 created
-
 %-----------------%
 %-input
 if nargin == 1
@@ -28,8 +10,8 @@ end
 
 %---------------------------%
 %-start log
-output = sprintf('(p%02.f) %s (v%02.f) started at %s on %s\n', ...
-  subj, mfilename,  mversion, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
+output = sprintf('(p%02.f) %s started at %s on %s\n', ...
+  subj, mfilename,  datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
 tic_t = tic;
 %---------------------------%
 
@@ -260,8 +242,8 @@ end
 %---------------------------%
 %-end log
 toc_t = toc(tic_t);
-outtmp = sprintf('(p%02.f) %s (v%02.f) ended at %s on %s after %s\n\n', ...
-  subj, mfilename, mversion, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'), ...
+outtmp = sprintf('(p%02.f) %s ended at %s on %s after %s\n\n', ...
+  subj, mfilename, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'), ...
   datestr( datenum(0, 0, 0, 0, 0, toc_t), 'HH:MM:SS'));
 output = [output outtmp];
 

@@ -5,9 +5,6 @@ function [mont output] = source2mont(source, soupeak)
 % per voxel (you can run pca on that afterwards).
 % At the moment, it does not keep the moment because it uses too much space
 
-%02 12/02/11 get orig channel labels from source{1} (it need not use all channels)
-%01 12/01/11 created
-
 %---------------------------%
 %-check input
 if numel(source) ~= numel(soupeak)

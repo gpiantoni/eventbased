@@ -1,13 +1,6 @@
 function export2csv(cfg)
 %EXPORT2CSV write results in csv file
 
-%06 12/02/14 more precision %1.f -> %f
-%05 12/02/13 small change to realignment
-%04 12/02/05 use struct2log on preproc and redef
-%03 12/02/02 renamed to export2csv
-%02 12/01/18 simpler output
-%01 12/01/16 created from sw2csv
-
 mincol = 10; % minimum columns for erp and pow, to keep them aligned
 
 %-------------------------------------%

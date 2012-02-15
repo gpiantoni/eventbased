@@ -7,13 +7,6 @@ function [soupeak stat output] = reportsource(gdat, gpre)
 % not make sense to have both (how can one TFR element be associated with
 % activation and disactivation from baseline?)
 
-%06 12/02/14 export stat as well
-%05 12/02/12 use absolute z-score threshold instead of cluster
-%04 12/01/31 plot image with most significant voxels
-%03 12/01/19 if there are no clusters at all, use [0 0 0]
-%02 12/01/12 don't compare against zero, but against baseline
-%01 12/01/11 created from reportcluster
-
 addpath /data1/toolbox/helpers/ % mni2ba
 
 maxclust = 150;
