@@ -69,7 +69,7 @@ for p = 1:numel(erppeak)
   output = [output outtmp];  
   
   %--------%
-  pngname = sprintf('gerppeak_%1.f_%s', cfg.poweffect, powpeak(p).name);
+  pngname = sprintf('gerppeak_%1.f_%s', cfg.erpeffect, erppeak(p).name);
   saveas(gcf, [cfg.log filesep pngname '.png'])
   close(gcf); drawnow
   
