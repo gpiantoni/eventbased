@@ -60,8 +60,6 @@ for i = 1:numel(allfile)
   %-definetrials
   cfg1 = [];
   cfg1.trialfun = cfg.seldata.trialfun;
-  cfg1.trialdef.prestim = .5;
-  cfg1.trialdef.poststim = 1.5;
   cfg1.dataset = dataset;
   
   cfg2 = ft_definetrial(cfg1);
