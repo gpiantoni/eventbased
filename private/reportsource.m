@@ -9,7 +9,7 @@ function [soupeak stat output] = reportsource(gdat, gpre)
 
 addpath /data1/toolbox/helpers/ % mni2ba
 
-maxclust = 150;
+nvox = 50;
 
 %-----------------%
 %-check data
@@ -64,33 +64,7 @@ if ~isfield(stat, 'posclusters')
   return
 end  
 %-----------------%
-
-%-----------------%
-%-avoid huge clusters
-alphaval = [0.025 0.01 0.005 0.001 0.0005 0.0001 0.00005 0.00001 0.000005 0.000001];
-for alpha = alphaval
-  stat_orig  = stat;
-  
-  if numel(find(stat.posclusterslabelmat == 1)) > maxclust ...
-      || numel(find(stat.negclusterslabelmat == 1)) > maxclust
-    
-    cfg3.clusteralpha       = alpha;
-    stat = ft_sourcestatistics(cfg3, gdat, gpre);
-  else
-    break
-  end
-  
-  %-------%
-  %-no clusters at all, we went too far
-  if ~isfield(stat, 'posclusters')
-    stat = stat_orig;
-    break
-  end
-  %-------%
-  
-end
-%-----------------%
-  
+ 
 %-----------------%
 %-report cluster
 clusterthr = .8;
@@ -119,11 +93,6 @@ end
 %-------%
 
 %-------%
-%-show only first source for connectivity analysis
-soupeak = stat.pos(clusterslabelmat==1, :);
-%-------%
-
-%-------%
 %-report significant cluster
 signcl = find([clusters.prob] < clusterthr);
 
@@ -144,12 +113,23 @@ end
 %-----------------%
 
 %-----------------%
-%-plot main cluster
+keyboard
 %-------%
+%-show only first source for connectivity analysis
+if posneg
+  [~, sstat] = sort(stat.stat, 'descend');
+else
+  [~, sstat] = sort(stat.stat, 'ascend');
+end
+
+soupeak = stat.pos(sstat(1:nvox), :);
+%-------%
+
+%-------%
+%-plot main cluster
 %-prepare figure
 backgrnd = isnan(clusterslabelmat); % separate NaN to be used as background
-% clmat = clusterslabelmat == 1; % only main cluster
-clmat = abs(stat.stat) > 3; % only main cluster
+clmat = sstat(1:nvox); % largest nvox voxels (this is 1D, should be 3D)
 
 %-prepare axis 
 xpos = unique(stat.pos(:,1));
