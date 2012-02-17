@@ -113,13 +113,14 @@ end
 %-----------------%
 
 %-----------------%
-keyboard
 %-------%
 %-show only first source for connectivity analysis
 if posneg
-  [~, sstat] = sort(stat.stat, 'descend');
+  [allstat, sstat] = sort(stat.stat(:), 'descend');
+  sstat = sstat(~isnan(allstat));
 else
-  [~, sstat] = sort(stat.stat, 'ascend');
+  [allstat, sstat] = sort(stat.stat(:), 'ascend');
+  sstat = sstat(~isnan(allstat));
 end
 
 soupeak = stat.pos(sstat(1:nvox), :);
@@ -129,7 +130,8 @@ soupeak = stat.pos(sstat(1:nvox), :);
 %-plot main cluster
 %-prepare figure
 backgrnd = isnan(clusterslabelmat); % separate NaN to be used as background
-clmat = sstat(1:nvox); % largest nvox voxels (this is 1D, should be 3D)
+clmat = zeros(size(stat.mask));
+clmat(sstat(1:nvox)) = 1;
 
 %-prepare axis 
 xpos = unique(stat.pos(:,1));
