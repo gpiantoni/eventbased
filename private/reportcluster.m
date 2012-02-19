@@ -155,7 +155,7 @@ end
 if isempty(i)
   ipos = 0;
 else
-  ipos = 1;
+  ipos = i;
 end
 %-----------------%
 
