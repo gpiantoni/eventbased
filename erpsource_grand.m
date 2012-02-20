@@ -39,7 +39,6 @@ for e = 1:numel(cfg.erpeffect)
     cfg1.parameter = 'pow'; % instead of nai
     gerpsouPre{k,a} = ft_sourcegrandaverage(cfg1, spre{:,a});
     gerpsource{k,a} = ft_sourcegrandaverage(cfg1, sall{:,a});
-    % gerpsource{k,a}.avg.tscore =  gerpsource{k,a}.avg.nai ./ (sqrt(gerpsource{k,a}.var.nai) / sqrt(numel(cfg.subjall))); % nai in lcmv instead of avg in pow
   end
   %-----------------%
   
@@ -62,7 +61,7 @@ soupeak = [];
 for p = 1:numel(erppeak)
   output = sprintf('%s\n%s:\n', output, erppeak(p).name);
   h = figure;
-  [soupos erpstat{p} outtmp] = reportsource(gerpsource{cfg.erpeffect, p}, gerpsouPre{cfg.erpeffect,p});
+  [soupos erpstat{p} outtmp] = reportsource(cfg.erpsource, gerpsource{cfg.erpeffect, p}, gerpsouPre{cfg.erpeffect,p});
   soupeak(p).pos = soupos;
   soupeak(p).center = mean(soupos,1);
   soupeak(p).name = erppeak(p).name;
@@ -86,8 +85,8 @@ save([cfg.derp cfg.proj '_soupeak'], 'soupeak')
 for p = 1:numel(erpstat)
   erpstat{p} = rmfield(erpstat{p}, ...
     {'mask', 'ref', ...
-    'posclusters', 'posclusterslabelmat', 'posdistribution', ...
-    'negclusters', 'negclusterslabelmat', 'negdistribution'});
+    'posclusters', 'posdistribution', ...
+    'negclusters', 'negdistribution'});
   erpstat{p}.cfg = []; % this is huge
 end
 save([cfg.derp cfg.proj '_granderpsource'], 'erpstat', '-v7.3')
