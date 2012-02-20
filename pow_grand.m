@@ -86,8 +86,8 @@ if ~isempty(gpow)
       %-options
       cfg3 = [];
       cfg3.channel = cfg.gpow.chan(c).chan;
-      cfg3.zlim = [-4 4];
-      cfg3.parameter = 'tscore';
+      cfg3.zlim = 'maxabs';
+      cfg3.parameter = 'powspctrm';
       ft_singleplotTFR(cfg3, gpow{t});
       colorbar
       
@@ -129,7 +129,7 @@ if ~isempty(gpow)
       %-plot
       cfg4 = [];
       cfg4.channel = cfg.gpow.chan(c).chan;
-      cfg4.parameter = 'tscore';
+      cfg4.parameter = 'powspctrm';
       cfg4.zlim = cfg.gpow.freq{f};
       ft_singleplotER(cfg4, gpow{:});
       
@@ -173,11 +173,11 @@ if ~isempty(gpow)
       %--------%
       %-plot
       cfg5 = [];
-      cfg5.parameter = 'tscore';
+      cfg5.parameter = 'powspctrm';
       cfg5.layout = layout;
       cfg5.xlim = gpow{t}.time;
       cfg5.ylim = cfg.gpow.freq{f};
-      cfg5.zlim = [-4 4];
+      cfg5.zlim = 'maxabs';
       cfg5.style = 'straight';
       cfg5.marker = 'off';
       cfg5.comment = 'xlim';
