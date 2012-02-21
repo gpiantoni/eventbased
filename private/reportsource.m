@@ -1,4 +1,4 @@
-function [soupeak stat output] = reportsource(gdat, gpre)
+function [soupeak stat output] = reportsource(cfg, gdat, gpre)
 %REPORTSOURCE get cluster which are different from baseline, even if not significant
 % The clusters to determine the main results of the analysis, for example
 % to concentrate the source reconstruction
@@ -9,14 +9,12 @@ function [soupeak stat output] = reportsource(gdat, gpre)
 
 addpath /data1/toolbox/helpers/ % mni2ba
 
-nvox = 50;
-
-%-----------------%
+%-------------------------------------%
 %-check data
 output = '';
 nsubj = numel(gdat.trial);
 
-%-------%
+%-----------------%
 %-pow or nai
 if isfield(gdat.avg, 'nai')
   param = 'nai';
@@ -27,25 +25,17 @@ elseif isfield(gdat.avg, 'pow')
 else
   error('field in .avg. not recognized')
 end
-%-------%
-
-% gzero = gdat;
-% 
-% for i = 1:nsubj
-%   gzero.trial(i).(param) = zeros(size(gzero.trial(i).(param)));
-%   gzero.trial(i).(param)(isnan(gzero.trial(i).(param))) = NaN;
-% end
 %-----------------%
-
-%-----------------%
+%-------------------------------------%
+keyboard
+%-------------------------------------%
 %-calc clusters
 cfg3 = [];
 cfg3.method      = 'montecarlo';
 cfg3.statistic   = 'depsamplesT';
-cfg3.alpha       = 0.05;
 cfg3.correctm    = 'cluster';
-cfg3.clusterstatistic = 'maxsize'; % 'maxsize' or 'max' ('max' might be better for focal sources)
-cfg3.numrandomization = 1e4;
+cfg3.clusterstatistic = cfg.clusterstatistics; % 'maxsize' or 'max' ('max' might be better for focal sources)
+cfg3.numrandomization = 1e5;
 cfg3.design = [ones(1,nsubj) ones(1,nsubj).*2; 1:nsubj 1:nsubj];
 cfg3.ivar   = 1;
 cfg3.uvar   = 2;
@@ -53,9 +43,14 @@ cfg3.feedback = 'none';
 
 cfg3.parameter = param;
 cfg3.dim = gdat.dim;
-stat = ft_sourcestatistics(cfg3, gdat, gpre);
-%-----------------%
 
+cfg3.alpha       = cfg.alpha;
+cfg3.clusteralpha = cfg.clusteralpha;
+stat = ft_sourcestatistics(cfg3, gdat, gpre);
+%-------------------------------------%
+
+%-------------------------------------%
+%-find clusters
 %-----------------%
 %-if there are no clusters at all
 if ~isfield(stat, 'posclusters') 
@@ -104,48 +99,60 @@ for i = 1:numel(signcl)
   areas = mni2ba(pos);
   areastext = unique({areas.IBASPM116});
    
-  outtmp = sprintf('    (a: %1.e) %s cluster% 3.f: P = %4.3f, size =% 4.f, [% 5.1f % 5.1f % 5.1f], %s\n', ...
-    stat.cfg.clusteralpha, posnegtxt, i, clusters(i).prob, numel(clmat), mean(pos(:,1)), mean(pos(:,2)), mean(pos(:,3)), sprintf(' %s', areastext{:}));
+  outtmp = sprintf('    %s cluster% 3.f: P = %4.3f, size =% 5.f, [% 5.1f % 5.1f % 5.1f], %s\n', ...
+    posnegtxt, i, clusters(i).prob, numel(clmat), mean(pos(:,1)), mean(pos(:,2)), mean(pos(:,3)), sprintf(' %s', areastext{:}));
   output = [output outtmp];
   
 end
 %-------%
 %-----------------%
+%-------------------------------------%
 
-%-----------------%
-%-------%
+%-------------------------------------%
 %-show only first source for connectivity analysis
+cl = find(clusterslabelmat == 1);
+
 if posneg
-  [allstat, sstat] = sort(stat.stat(:), 'descend');
-  sstat = sstat(~isnan(allstat));
+  [~, sstat] = sort(stat.stat(cl), 'descend');
 else
-  [allstat, sstat] = sort(stat.stat(:), 'ascend');
-  sstat = sstat(~isnan(allstat));
+  [~, sstat] = sort(stat.stat(cl), 'ascend');
 end
 
-soupeak = stat.pos(sstat(1:nvox), :);
-%-------%
+if numel(sstat) <= cfg.maxvox
+  selvox = cl(sstat);
+else
+  selvox = cl(sstat(1:cfg.maxvox));
+  output = sprintf('%s     Too many voxels in main cluster (% 4.f), reduced to largest % 3.f (lowest t-stat:% 6.3f)\n', ...
+    output, numel(sstat), cfg.maxvox, stat.stat(selvox(end)));
+end
 
-%-------%
+soupeak = stat.pos(selvox, :);
+clmat = zeros(size(clusterslabelmat));
+clmat(cl(sstat)) = 1; % in cluster, but not first cfg.maxvox
+clmat(selvox) = 2; % largest t-score
+%-------------------------------------%
+
+%-------------------------------------%
+%-----------------%
 %-plot main cluster
 %-prepare figure
 backgrnd = isnan(clusterslabelmat); % separate NaN to be used as background
-clmat = zeros(size(stat.mask));
-clmat(sstat(1:nvox)) = 1;
 
 %-prepare axis 
 xpos = unique(stat.pos(:,1));
 ypos = unique(stat.pos(:,2));
 zpos = unique(stat.pos(:,3));
-%-------%
+%-----------------%
 
+%-----------------%
+%-plot
 %-------%
 %-x-axis
 subplot(2,2,1)
-[~, imax] = max(sum(sum(clmat,2),3));
-toplot = nansum(cat(1, -1 * backgrnd(imax,:,:),  clmat(imax, :, :) .* abs(stat.stat(imax,:,:))), 1);
+[~, imax] = max(sum(sum(clmat==2,2),3));
+toplot = nansum(cat(1, -1 * backgrnd(imax,:,:),  clmat(imax, :, :)), 1);
 
-imagesc(ypos, zpos, squeeze(toplot)', [-.5 7])
+imagesc(ypos, zpos, squeeze(toplot)', [-.5 2])
 axis xy equal
 colormap hot
 
@@ -155,10 +162,10 @@ title(sprintf('x =% 3.f', xpos(imax)))
 %-------%
 %-y-axis
 subplot(2,2,2)
-[~, imax] = max(sum(sum(clmat,1),3));
-toplot = nansum(cat(2, -1 * backgrnd(:,imax,:),  clmat(:,imax,:) .* abs(stat.stat(:,imax,:))), 2);
+[~, imax] = max(sum(sum(clmat==2,1),3));
+toplot = nansum(cat(2, -1 * backgrnd(:,imax,:),  clmat(:,imax,:)), 2);
 
-imagesc(xpos, zpos, squeeze(toplot)', [-.5 7])
+imagesc(xpos, zpos, squeeze(toplot)', [-.5 2])
 axis xy equal
 colormap hot
 
@@ -168,13 +175,14 @@ title(sprintf('y =% 3.f', ypos(imax)))
 %-------%
 %-z-axis
 subplot(2,2,3)
-[~, imax] = max(sum(sum(clmat,1),2));
-toplot = nansum(cat(3, -1 * backgrnd(:,:,imax),  clmat(:,:,imax) .* abs(stat.stat(:,:,imax))), 3);
+[~, imax] = max(sum(sum(clmat==2,1),2));
+toplot = nansum(cat(3, -1 * backgrnd(:,:,imax),  clmat(:,:,imax)), 3);
 
-imagesc(xpos, ypos, squeeze(toplot)', [-.5 7])
+imagesc(xpos, ypos, squeeze(toplot)', [-.5 2])
 axis xy equal
 colormap hot
 
 title(sprintf('z =% 3.f', zpos(imax)))
 %-------%
 %-----------------%
+%-------------------------------------%

@@ -37,9 +37,7 @@ for e = 1:numel(cfg.poweffect)
     cfg1 = [];
     cfg1.keepindividual = 'yes';
     gpowsouPre{k,a} = ft_sourcegrandaverage(cfg1, spre{:,a});
-    % gpowsouPre{k,a}.avg.tscore =  gpowsouPre{k,a}.avg.pow ./ (sqrt(gpowsouPre{k,a}.var.pow) / sqrt(numel(cfg.subjall)));
     gpowsource{k,a} = ft_sourcegrandaverage(cfg1, sall{:,a});
-    % gpowsource{k,a}.avg.tscore =  gpowsource{k,a}.avg.pow ./ (sqrt(gpowsource{k,a}.var.pow) / sqrt(numel(cfg.subjall)));
   end
   %-----------------%
   
@@ -63,7 +61,7 @@ for p = 1:numel(powpeak)
   output = sprintf('%s\n%s:\n', output, powpeak(p).name);
   
   h = figure;
-  [soupos powstat{p} outtmp] = reportsource(gpowsource{cfg.poweffect, p}, gpowsouPre{cfg.poweffect, p});
+  [soupos powstat{p} outtmp] = reportsource(cfg.powsource, gpowsource{cfg.poweffect, p}, gpowsouPre{cfg.poweffect, p});
   soupeak(p).pos = soupos;
   soupeak(p).center = mean(soupos,1);
   soupeak(p).name = powpeak(p).name;
@@ -87,8 +85,8 @@ save([cfg.dpow cfg.proj '_soupeak'], 'soupeak')
 for p = 1:numel(powstat)
   powstat{p} = rmfield(powstat{p}, ...
     {'mask', 'ref', ...
-    'posclusters', 'posclusterslabelmat', 'posdistribution', ...
-    'negclusters', 'negclusterslabelmat', 'negdistribution'});
+    'posclusters', 'posdistribution', ...
+    'negclusters', 'negdistribution'});
   powstat{p}.cfg = []; % this is huge
 end
 save([cfg.dpow cfg.proj '_grandpowsource'], 'powstat', '-v7.3')
