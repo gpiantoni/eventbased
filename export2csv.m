@@ -136,13 +136,12 @@ output = [output sprintf('%f,', cfg.pow.t_ftimwin(end))];
 output = [output sprintf('%f,', cfg.pow.toi(1))];
 output = [output sprintf('%f,', cfg.pow.toi(end))];
 
-output = [output sprintf('%s,', cfg.pow.bl.baselinetype)];
-
 if ~isempty(cfg.pow.bl.baseline)
+  output = [output sprintf('%s,', cfg.pow.bl.baselinetype)];
   output = [output sprintf('%f,', cfg.pow.bl.baseline(1))];
   output = [output sprintf('%f,', cfg.pow.bl.baseline(end))];
 else
-  output = [output ',,'];
+  output = [output ',,,'];
 end
 
 output = [output ',,'];
@@ -297,6 +296,14 @@ if exist([cfg.log filesep 'connsum.mat'], 'file')
   %---------------------------%
   
 else
+  
+  %-----------------%
+  %-read extra, dataset-specific info
+  if isfield(cfg, 'export2csv') && isfield(cfg.export2csv, 'extrainfo')
+    outtmp = feval(cfg.export2csv.extrainfo, cfg);
+    output = [output outtmp];
+  end
+  %-----------------%
   
   fwrite(fid, output);
   fprintf(fid, '\n');
