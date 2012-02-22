@@ -58,6 +58,11 @@ for chan1 = 1:numel(gconn.label)
         hold on
         
         x = squeeze(gconn.mat(chan1, chan2, :, f, :, :));
+        
+        if ~isempty(cfg.statconn.bl.baseline)
+          x = performNormalization(cfg.conn.toi, x, cfg.statconn.bl.baseline, cfg.statconn.bl.baselinetype);
+        end
+        
         conntime = mean(x, 3); % connectivity over time
         % plot(cfg.conn.toi, conntime)
         xax = repmat(cfg.conn.toi, [numel(cfg.test) 1]);
@@ -72,9 +77,7 @@ for chan1 = 1:numel(gconn.label)
         connsum(cnt).freq  = sprintf('% 3.f-% 3.f', gconn.freq{f}(1), gconn.freq{f}(2));
         connsum(cnt).cond1 = regexprep(cfg.test{cfg.statconn.ttest2(1)}, '*', '');
         connsum(cnt).cond2 = regexprep(cfg.test{cfg.statconn.ttest2(2)}, '*', '');
-        
-        
-        
+           
         for t = 1:numel(cfg.statconn.time)
           t1 = nearest(cfg.conn.toi, cfg.statconn.time{t}(1));
           t2 = nearest(cfg.conn.toi, cfg.statconn.time{t}(2));
@@ -140,3 +143,24 @@ fwrite(fid, output);
 fclose(fid);
 %-----------------%
 %---------------------------%
+
+%-------------------------------------%
+%-performNormalization (copied from ft_freqbaseline)
+function data = performNormalization(timeVec, data, baseline, baselinetype)
+
+baselineTimes = (timeVec >= baseline(1) & timeVec <= baseline(2));
+
+% compute mean of time/frequency quantity in the baseline interval,
+% ignoring NaNs, and replicate this over time dimension
+meanVals = repmat(nanmean(data(baselineTimes,:,:), 1), [size(data, 1) 1 1]);
+
+if (strcmp(baselinetype, 'absolute'))
+  data = data - meanVals;
+elseif (strcmp(baselinetype, 'relative'))
+  data = data ./ meanVals;
+elseif (strcmp(baselinetype, 'relchange'))
+  data = (data - meanVals) ./ meanVals;
+else
+  error('unsupported method for baseline normalization: %s', baselinetype);
+end
+%-------------------------------------%
