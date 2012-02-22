@@ -241,8 +241,8 @@ end
 % and half in the end, but it's centered around powpeak(f).time anyway)
 if ~iserp
   for f = 1:numel(clpeak)
-    ifreq = nearest(cfg.pow.foi, powpeak(f).freq); % length of cfg.pow.t_ftimwin depends on the frequency
-    powpeak(f).wndw = powpeak(f).wndw + cfg.pow.t_ftimwin(ifreq); 
+    ifreq = nearest(cfg.pow.foi, clpeak(f).freq); % length of cfg.pow.t_ftimwin depends on the frequency
+    clpeak(f).wndw = clpeak(f).wndw + cfg.pow.t_ftimwin(ifreq); 
   end
 end
 %-----------------%

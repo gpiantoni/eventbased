@@ -132,7 +132,10 @@ for i = 1:numel(allfile) % this can run in parallel
   
   %--------------------------%
   %-convert and prepare cfg
+  load([ddir allfile(i).name], 'data')
+  data1 = data;
   data = fieldtrip(gdata);
+  data.sampleinfo = data1.sampleinfo;
   %--------------------------%
   
   %--------------------------%
