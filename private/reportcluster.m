@@ -80,7 +80,7 @@ end
 %-------------------------------------%
 %-report cluster
 clpeak = [];
-clusterthr = .7;
+clusterthr = .9;
 
 %-----------------%
 %-positive cluster
@@ -227,6 +227,23 @@ for i = 1:numel(negcl)
     
   end
   %-------%
+end
+%-----------------%
+
+%-----------------%
+%-add time window used for the calculation of power into clpeak
+% This time window is extremely tricky to work with: powpeak is
+% selected based on the significant time points of the TFR. However,
+% each of those points represents an FFT around that time window, with
+% length defined by cfg.pow.t_ftimwin. powpeak(f).wndw reports only the
+% significant timepoints (it can 0, if only one time point is
+% significant), so we add cfg.pow.t_ftimwin here (half in the beginning
+% and half in the end, but it's centered around powpeak(f).time anyway)
+if ~iserp
+  for f = 1:numel(clpeak)
+    ifreq = nearest(cfg.pow.foi, powpeak(f).freq); % length of cfg.pow.t_ftimwin depends on the frequency
+    powpeak(f).wndw = powpeak(f).wndw + cfg.pow.t_ftimwin(ifreq); 
+  end
 end
 %-----------------%
 %-------------------------------------%

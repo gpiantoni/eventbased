@@ -124,16 +124,6 @@ for e = 1:numel(cfg.erpeffect)
     %-------%
     %-check that baseline contains always data, otherwise shrink the time
     % window
-    % This time window is extremely tricky to work with: powpeak is
-    % selected based on the significant time points of the TFR. However,
-    % each of those points represents an FFT around that time window, with
-    % length defined by cfg.pow.t_ftimwin. powpeak(f).wndw reports only the
-    % significant timepoints (it can 0, if only one time point is
-    % significant), so we add cfg.pow.t_ftimwin here (half in the beginning
-    % and half in the end, but it's centered around powpeak(f).time anyway)
-    ifreq = nearest(cfg.pow.foi, powpeak(f).freq); % length of cfg.pow.t_ftimwin depends on the frequency
-    timelim = powpeak(f).wndw + cfg.pow.t_ftimwin(ifreq); 
-    
     begbline = cfg.powsource.bline - timelim/2; % beginning of baseline
     begtrl = data.time{1}(1); % beginning of trial
     if begbline < begtrl
