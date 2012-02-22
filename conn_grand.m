@@ -88,13 +88,14 @@ end
 gconn.label = stat.label;
 gconn.time = cfg.conn.toi;
 gconn.freq = mat2cell(connfreq, size(connfreq,1), [2]);
-gconn.mat = zeros(numel(gconn.label), numel(gconn.label), numel(gconn.time), size(gconn.freq,1), numel(cfg.test), numel(cfg.subjall));
+gconn.mat = nan(numel(gconn.label), numel(gconn.label), numel(gconn.time), size(gconn.freq,1), numel(cfg.test), numel(cfg.subjall));
 %-----------------%
 %---------------------------%
 
 %---------------------------%
 %-loop over conditions
-for k = 1:numel(cfg.test)
+for kstat = 1:numel(cfg.statconn.ttest2)
+  k = cfg.statconn.ttest2(kstat);
   
   %-----------------%
   %-file for each cond

@@ -91,7 +91,8 @@ close(gcf); drawnow
 
 %-------------------------------------%
 %-loop over conditions
-for k = 1:numel(cfg.test)
+for kstat = 1:numel(cfg.statconn.ttest2)
+  k = cfg.statconn.ttest2(kstat);
   
   %-----------------%
   %-input and output for each condition

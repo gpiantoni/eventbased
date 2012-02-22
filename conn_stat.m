@@ -1,6 +1,8 @@
 function conn_stat(cfg)
 %STATCONN statistics on connectivity analysis
 
+%TODO: this does not handle one single condition case 
+
 %---------------------------%
 %-start log
 output = sprintf('%s started at %s on %s\n', ...
