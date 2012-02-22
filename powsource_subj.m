@@ -124,6 +124,7 @@ for e = 1:numel(cfg.erpeffect)
     %-------%
     %-check that baseline contains always data, otherwise shrink the time
     % window
+    timelim = powpeak(f).wndw;
     begbline = cfg.powsource.bline - timelim/2; % beginning of baseline
     begtrl = data.time{1}(1); % beginning of trial
     if begbline < begtrl
