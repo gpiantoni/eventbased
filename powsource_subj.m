@@ -136,13 +136,18 @@ for e = 1:numel(cfg.erpeffect)
     
     %-------%
     %-check that time window is long enough for dpss smoothing
+    % you get 0.75 from dpss(a,b). If b < 0.75, you get one taper (but the
+    % last one is not used by fieldtrip). If it's between 0.75 and 1.25,
+    % you get two tapers, but the second is not used and you get a warning
+    % from fieldtrip. Still, the one taper in use is not a simple hanning
     tapsmofrq = powpeak(f).band/2;
-    if timelim > 1/tapsmofrq 
+    if timelim * tapsmofrq > 0.75 
+      
       isdpss = true;
       output = sprintf('%sPowpeak % 2.f (%s), window length % 3.2fs, using dpss (tapsmofrq: +-% 2.1f Hz)\n', ...
         output, f, powpeak(f).name, timelim, tapsmofrq);
       
-    else % when ==, then dpss uses only one taper, hanning (but use hanning, otherwise we get one warning per trial, useless)
+    else
       isdpss = false; % hanning, no smoothing
       output = sprintf('%sPowpeak % 2.f (%s), window length % 3.2fs, using hanning\n', ...
         output, f, powpeak(f).name, timelim);
@@ -176,7 +181,7 @@ for e = 1:numel(cfg.erpeffect)
     cfg1.frequency = powpeak(f).freq;
     
     cfg1.method = 'dics';
-    cfg1.dics.feedback = 'none';
+    cfg1.dics.feedback = 'etf';
     cfg1.dics.lambda = cfg.powsource.lambda;
     cfg1.dics.powmethod = cfg.powsource.powmethod;
     
