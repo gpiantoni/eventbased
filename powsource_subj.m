@@ -119,6 +119,8 @@ for e = 1:numel(cfg.erpeffect)
   
   for f = 1:numel(powpeak)
     
+    fprintf('\n   ->->-> Running % 2.f powpeak (%s) <-<-<-\n', f, powpeak(f).name);
+    
     %-----------------%
     %-more precise source reconstruction
     %-------%
@@ -181,7 +183,7 @@ for e = 1:numel(cfg.erpeffect)
     cfg1.frequency = powpeak(f).freq;
     
     cfg1.method = 'dics';
-    cfg1.dics.feedback = 'etf';
+    cfg1.dics.feedback = 'none';
     cfg1.dics.lambda = cfg.powsource.lambda;
     cfg1.dics.powmethod = cfg.powsource.powmethod;
     
