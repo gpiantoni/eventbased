@@ -248,6 +248,14 @@ if exist([cfg.log filesep 'connsum.mat'], 'file')
   
   output = [output sprintf('%f,', cfg.conn.t_ftimwin)];
   
+  if ~isempty(cfg.statconn.bl.baseline)
+    output = [output sprintf('%s,', cfg.statconn.bl.baselinetype)];
+    output = [output sprintf('%f,', cfg.statconn.bl.baseline(1))];
+    output = [output sprintf('%f,', cfg.statconn.bl.baseline(end))];
+  else
+    output = [output ',,,'];
+  end
+  
   output = [output sprintf('%s,', cfg.conn.type)];
   
   switch cfg.conn.type
