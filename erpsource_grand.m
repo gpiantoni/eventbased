@@ -83,10 +83,6 @@ save([cfg.derp cfg.proj '_soupeak'], 'soupeak')
 %-----------------%
 %-save
 for p = 1:numel(erpstat)
-  erpstat{p} = rmfield(erpstat{p}, ...
-    {'mask', 'ref', ...
-    'posclusters', 'posdistribution', ...
-    'negclusters', 'negdistribution'});
   erpstat{p}.cfg = []; % this is huge
 end
 save([cfg.derp cfg.proj '_granderpsource'], 'erpstat', '-v7.3')
