@@ -86,7 +86,7 @@ for i = 1:numel(allfile)
   %-----------------%
   %-save data
   [~, filename] = fileparts(allfile(i).name);
-  savename = [cfg.proj '_' filename '_' mfilename];
+  savename = [cfg.proj '_' filename '_' mfilename]; % <-- add proj name
   save([ddir savename], 'data');
   clear data
   %-----------------%

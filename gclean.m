@@ -1,9 +1,28 @@
 function gclean(cfg, subj)
 %GCLEAN use German's toolbox to clean the data
+% Read the data from seldata (it assumes that the data is continuous), low
+% pass filter, reject bad channels and eye, ecg, emg activity with ICA.
+% It returns a fieldtrip structure made of trials of different length only
+% containing good data. Bad channels are interpolated.
 %
 % CFG
-
-
+%  .data: name of projects/PROJNAME/subjects/
+%  .mod: name of the modality used in recordings and projects
+%  .cond: name to be used in projects/PROJNAME/subjects/0001/MOD/CONDNAME/
+%  .endname: includes previous steps '_seldata'
+%
+%  .sens.file: file with EEG sensors. It can be sfp or mat
+%  .sens.dist: distance between sensors to consider them neighbors (in the units of cfg.sens.file)
+%
+%  .gtool.fsample: manually specify the frequency (very easily bug-prone, but in this way it does not read "data" all the time)
+%  .gtool.saveall: false
+%  .gtool.verbose: true
+%  .gtool.lpfreqn = [.5 / (cfg.gtool.fsample/2)]; % normalized by half of the sampling frequency!
+%  .gtool.bad_samples.MADs = 5;
+%  .gtool.bad_channels.MADs = 8;
+%  .gtool.eog.correction = 50;
+%  .gtool.emg.correction = 30;
+%
 % Part of EVENTBASED preprocessing
 % see also SELDATA, GCLEAN, PREPROC, REDEF
 
@@ -119,7 +138,7 @@ for i = 1:numel(allfile) % this can run in parallel
     'Save', cfg.gtool.saveall, ...
     'Verbose', cfg.gtool.verbose), ...
     }, ...
-    'OGE', cfg.gtool.oge, ...
+    'OGE', false, ...
     'Save', false);
   %--------------------------%
   
@@ -130,10 +149,7 @@ for i = 1:numel(allfile) % this can run in parallel
   
   %--------------------------%
   %-convert and prepare cfg
-  load([ddir allfile(i).name], 'data')
-  data1 = data;
   data = fieldtrip(gdata);
-  data.sampleinfo = data1.sampleinfo;
   %--------------------------%
   
   %--------------------------%
