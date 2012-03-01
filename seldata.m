@@ -19,7 +19,7 @@ tic_t = tic;
 
 %---------------------------%
 %-dir and files
-rdir = sprintf('%s%04.f/%s/%s/', cfg.recs, subj, cfg.mod, cfg.rawd); % recording raw
+rdir = sprintf('%s%04.f/%s/%s/', cfg.recs, subj, cfg.mod, 'raw'); % recording raw
 ddir = sprintf('%s%04.f/%s/%s/', cfg.data, subj, cfg.mod, cfg.cond); % data
 if isdir(ddir); rmdir(ddir, 's'); end
 mkdir(ddir)
