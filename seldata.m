@@ -1,7 +1,22 @@
 function seldata(cfg, subj)
 %SELECT DATA get data from recordings and put them in subject directory
-% it recreates the gosd folder for each subject
-% you need to specify your own trialfun
+% it recreates the "cfg.cond" folder for each subject
+%
+% CFG
+%  .recs: name of recordings/RECNAME/subjects/
+%  .mod: name of the modality used in recordings and projects
+%  .rcnd: specific name of the condition of interest in the raw recording folder
+%  .data: name of projects/PROJNAME/subjects/
+%  .cond: name to be used in projects/PROJNAME/subjects/0001/MOD/CONDNAME/
+% 
+%  .sens.file: file with EEG sensors. It can be sfp or mat
+% 
+%  .seldata.trialfun: name of the trialfun used to read the data before preprocessing
+%  .seldata.selchan: channels to read. It can be a vector or a cell of strings with the elec names on file (Micromed elec names are '  1' '  2'  '  3'
+%  .seldata.label: if not empty, labels of electrodes to rename (same length as seldata.selchan)
+%
+% Part of EVENTBASED preprocessing
+% see also SELDATA, GCLEAN, PREPROC, REDEF
 
 %-----------------%
 %-input
@@ -57,7 +72,7 @@ for i = 1:numel(allfile)
     
   %-----------------%
   %-preprocessing
-  cfg2.feedback = cfg.seldata.feedback;
+  cfg2.feedback = 'off';
   if iscell(cfg.seldata.selchan)
     cfg2.channel = cfg.seldata.selchan{subj};
   else
@@ -69,7 +84,9 @@ for i = 1:numel(allfile)
   
   %-----------------%
   %-fix channels
-  data.label = cfg.seldata.label;
+  if ~isempty(cfg.seldata.label)
+    data.label = cfg.seldata.label;
+  end
   data.elec = sens;
   %-----------------%
   
