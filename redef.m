@@ -1,8 +1,35 @@
 function redef(cfg, subj)
 %REDEF redefine trials
-% This function should be as flexible as ft_redefinetrial
+% This function should be as flexible bc it uses ft_redefinetrial
 % Therefore, it does not do much, but it calls a function "event2trl_xxx"
-% and then it calls ft_redefinetrial
+% and then it calls ft_redefinetrial. It creates a separate dataset for
+% each condition. It only keeps trials which are in the good part of the data.
+%
+% CFG
+%  .data: name of projects/PROJNAME/subjects/
+%  .mod: name of the modality used in recordings and projects
+%  .cond: name to be used in projects/PROJNAME/subjects/0001/MOD/CONDNAME/
+%  .endname: includes previous steps '_seldata_gclean_preproc'
+%
+%  .step: all the analysis step (for cfg.clear)
+%  .clear: index of cfg.step to remove from subject directory
+%  .redef.event2trl: function name in PROJNAME_private which creates the correct trl based on events
+%  
+% You need to write your own function to create trials. Call the function
+% something like "event2trl_XXX" and use as
+%   [cond output] = event2trl_gosdtrl(cfg, event)
+% where
+%   cfg is cfg.redef (it also includes cfg.fsample with the sampling
+%   frequency of that specific dataset)
+%   
+%   cond is a struct with
+%     .name = 'name of the condition'
+%     .trl = a nX3 matrix used by ft_definetrial
+%     .trialinfo = extra_trialinfo (optional)
+%   output is a text for output
+%
+% Part of EVENTBASED preprocessing
+% see also SELDATA, GCLEAN, PREPROC, REDEF
 
 %---------------------------%
 %-start log

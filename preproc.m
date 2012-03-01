@@ -1,6 +1,6 @@
 function preproc(cfg, subj)
-%PREPROC do preprocessing (including rerefering) TODO
-
+%PREPROC do preprocessing (including rerefering) on all data
+%
 % CFG
 %  .data: name of projects/PROJNAME/subjects/
 %  .mod: name of the modality used in recordings and projects

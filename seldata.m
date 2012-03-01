@@ -11,9 +11,18 @@ function seldata(cfg, subj)
 % 
 %  .sens.file: file with EEG sensors. It can be sfp or mat
 % 
-%  .seldata.trialfun: name of the trialfun used to read the data before preprocessing
+%  .seldata.trialfun: name of the trialfun used to read the data before preprocessing, the function should be in PROJNAME_private/
 %  .seldata.selchan: channels to read. It can be a vector or a cell of strings with the elec names on file (Micromed elec names are '  1' '  2'  '  3'
 %  .seldata.label: if not empty, labels of electrodes to rename (same length as seldata.selchan)
+%
+% You need to write your own function to read the data and the events.
+% Call the function something like "trialfun_XXX" and use as:
+%   [trl, event] = trialfun_XXX(cfg)
+% where trl is 1x3 vector (as in ft_definetrial) and event is the structure
+% which can be used later on in redef.m to prepare the actual trials.
+% It's better if you prepare only one big trials. gclean will clean the
+% whole trial and prefers continuous data. You can create smaller trials
+% later, during redef.m
 %
 % Part of EVENTBASED preprocessing
 % see also SELDATA, GCLEAN, PREPROC, REDEF
