@@ -55,7 +55,7 @@ end
 %-create grand file
 %-------%
 %-load one example 
-condname = regexprep(cfg.test{1}, '*', ''); % it does not matter
+condname = regexprep(cfg.test{cfg.statconn.ttest2(1)}, '*', ''); % it does not matter
 outputfile = sprintf('%s_%s*_%s.mat', cfg.proj, cfg.conn.method, condname);
   
 allsub = dir([cfg.dcon outputfile]);
