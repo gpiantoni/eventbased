@@ -14,6 +14,9 @@ function gclean(cfg, subj)
 %  .sens.file: file with EEG sensors. It can be sfp or mat
 %  .sens.dist: distance between sensors to consider them neighbors (in the units of cfg.sens.file)
 %
+%  .step: all the analysis step (for cfg.clear)
+%  .clear: index of cfg.step to remove from subject directory
+%
 %  .gtool.fsample: manually specify the frequency (very easily bug-prone, but in this way it does not read "data" all the time)
 %  .gtool.saveall: false
 %  .gtool.verbose: true

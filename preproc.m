@@ -1,6 +1,33 @@
 function preproc(cfg, subj)
 %PREPROC do preprocessing (including rerefering) TODO
 
+% CFG
+%  .data: name of projects/PROJNAME/subjects/
+%  .mod: name of the modality used in recordings and projects
+%  .cond: name to be used in projects/PROJNAME/subjects/0001/MOD/CONDNAME/
+%  .endname: includes previous steps '_seldata_gclean'
+%
+%  .sens.file: file with EEG sensors. It can be sfp or mat
+%  .sens.dist: distance between sensors to consider them neighbors (in the units of cfg.sens.file)
+%
+%  .step: all the analysis step (for cfg.clear)
+%  .clear: index of cfg.step to remove from subject directory
+%
+%  .preproc: anything that goes into ft_preprocessing(cfg.preproc, data)
+%  Suggested:
+%     .preproc.reref = 'yes';
+%     .preproc.refchannel = 'all';
+%     .preproc.implicit = [];
+%     .preproc.hpfilter = 'yes';
+%     .preproc.hpfreq = 0.5;
+%     .preproc.hpfiltord = 4;
+%
+%  .csd.do: do current source density ('yes' or 'no')
+%  .csd.method: which method for CSD ('finite' or 'spline' or 'hjorth')
+%
+% Part of EVENTBASED preprocessing
+% see also SELDATA, GCLEAN, PREPROC, REDEF
+
 %---------------------------%
 %-start log
 output = sprintf('(p%02.f) %s started at %s on %s\n', ...
@@ -39,9 +66,9 @@ for i = 1:numel(allfile)
 
   %-----------------%
   %-scalp current density
-  if strcmpi(cfg.preproc.csd.do, 'yes')
+  if strcmpi(cfg.csd.do, 'yes')
     cfg1 = [];
-    cfg1.method = cfg.preproc.csd.method;
+    cfg1.method = cfg.csd.method;
     cfg1.elec = sens;
     cfg1.feedback = 'none';
     cfg1.inputfile = outputfile; % it rewrites the same file
