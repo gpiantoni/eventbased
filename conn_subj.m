@@ -1,13 +1,6 @@
 function conn_subj(cfg, subj)
 %SUBJ CONN connectivity on single-subject data
 
-%-----------------%
-%-input
-if nargin == 1
-  subj = cfg.subj;
-end
-%-----------------%
-
 %---------------------------%
 %-start log
 output = sprintf('(p%02.f) %s started at %s on %s\n', ...

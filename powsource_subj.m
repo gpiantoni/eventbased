@@ -1,13 +1,6 @@
 function powsource_subj(cfg, subj)
 %POWSOURCE_SUBJ DICS on interesting parts, defined by powpeaks
 
-%-----------------%
-%-input
-if nargin == 1
-  subj = cfg.subj;
-end
-%-----------------%
-
 %---------------------------%
 %-start log
 output = sprintf('(p%02.f) %s started at %s on %s\n', ...

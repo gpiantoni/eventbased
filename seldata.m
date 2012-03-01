@@ -1,5 +1,5 @@
 function seldata(cfg, subj)
-%SELECT DATA get data from recordings and put them in subject directory
+%SELDATA get data from recordings and put them in subject directory
 % it recreates the "cfg.cond" folder for each subject
 %
 % CFG
@@ -17,13 +17,6 @@ function seldata(cfg, subj)
 %
 % Part of EVENTBASED preprocessing
 % see also SELDATA, GCLEAN, PREPROC, REDEF
-
-%-----------------%
-%-input
-if nargin == 1
-  subj = cfg.subj;
-end
-%-----------------%
 
 %---------------------------%
 %-start log

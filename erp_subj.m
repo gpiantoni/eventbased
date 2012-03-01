@@ -1,13 +1,6 @@
 function erp_subj(cfg, subj)
 %ERP_SUBJ create subject-specific erp
 
-%-----------------%
-%-input
-if nargin == 1
-  subj = cfg.subj;
-end
-%-----------------%
-
 %---------------------------%
 %-start log
 output = sprintf('(p%02.f) %s started at %s on %s\n', ...

@@ -3,13 +3,6 @@ function powcorr_subj(cfg, subj)
 % practically identical to pow_subj but it takes log and it correlates with
 % cfg.powcorr.info 
 
-%-----------------%
-%-input
-if nargin == 1
-  subj = cfg.subj;
-end
-%-----------------%
-
 %---------------------------%
 %-start log
 output = sprintf('(p%02.f) %s started at %s on %s\n', ...

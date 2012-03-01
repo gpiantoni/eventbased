@@ -4,13 +4,6 @@ function redef(cfg, subj)
 % Therefore, it does not do much, but it calls a function "event2trl_xxx"
 % and then it calls ft_redefinetrial
 
-%-----------------%
-%-input
-if nargin == 1
-  subj = cfg.subj;
-end
-%-----------------%
-
 %---------------------------%
 %-start log
 output = sprintf('(p%02.f) %s started at %s on %s\n', ...

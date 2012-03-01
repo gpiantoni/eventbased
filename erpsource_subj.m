@@ -1,13 +1,6 @@
 function erpsource_subj(cfg, subj)
 %LCMV on interesting parts, defined by cfg.erpsource.source
 
-%-----------------%
-%-input
-if nargin == 1
-  subj = cfg.subj;
-end
-%-----------------%
-
 %---------------------------%
 %-start log
 output = sprintf('(p%02.f) %s started at %s on %s\n', ...

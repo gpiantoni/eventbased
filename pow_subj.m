@@ -1,13 +1,6 @@
 function pow_subj(cfg, subj)
 %POW_SUBJ check power changes at single-subject level
 
-%-----------------%
-%-input
-if nargin == 1
-  subj = cfg.subj;
-end
-%-----------------%
-
 %---------------------------%
 %-start log
 output = sprintf('(p%02.f) %s started at %s on %s\n', ...

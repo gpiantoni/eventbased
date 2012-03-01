@@ -1,17 +1,15 @@
 function gclean(cfg, subj)
-%PREPROCESS DATA USING GDEV TOOLBOX
-% use German's toolbox to clean the data
+%GCLEAN use German's toolbox to clean the data
+%
+% CFG
+
+
+% Part of EVENTBASED preprocessing
+% see also SELDATA, GCLEAN, PREPROC, REDEF
 
 %TODO: make it parallel over files (I think the gtool can already do it,
 %only fixing the fields in data should not be parallel, but it should be
-%very fast
-
-%-----------------%
-%-input
-if nargin == 1
-  subj = cfg.subj;
-end
-%-----------------%
+%very fast)
 
 %---------------------------%
 %-start log
