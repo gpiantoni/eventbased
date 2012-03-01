@@ -89,7 +89,7 @@ for kstat = 1:numel(cfg.statconn.ttest2)
   
   %-----------------%
   %-input and output for each condition
-  allfile = dir([ddir '*' cfg.test{k} cfg.endname '.mat']); % files matching a preprocessing
+  allfile = dir([ddir cfg.test{k} cfg.endname '.mat']); % files matching a preprocessing
   if isempty(allfile)
     continue
   end

@@ -1,5 +1,27 @@
 function erpsource_grand(cfg)
-%ERPSOURCE_GRAND grand erp source average
+%ERPSOURCE_GRAND group-analysis of ERP source data
+%
+% CFG
+%  .cond: name to be used to save erpsource_PROJNAME and figures
+%  .test: a cell with the condition defined by redef. 
+%
+%  .derp: directory to save ERP data
+%  .erpeffect: effect of interest to create erppeak. If empty, no stats.
+%
+%  .gerp.chan(1).name = 'name of channel group';
+%  .gerp.chan(1).chan =  cell with labels of channels of interest
+%  .gerp.bline = two scalars indicating the time window for baseline in s
+%  (only for plotting, TODO: check if necessary for normal analysis as well)
+%
+% OUT
+%  [cfg.derp 'COND_granderpsource']: source analysis for all subject
+%  [cfg.derp 'COND_soupeak']: significant source peaks in the ERP
+%
+% FIGURES
+%  gerppeak_ERPEFFECT_ERPPEAKNAME: 3d plot of the source for one peak
+%
+% Part of EVENTBASED group-analysis
+% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND
 
 %---------------------------%
 %-start log
@@ -49,11 +71,11 @@ end
 %---------------------------%
 %-statistics for main effects
 %-----------------%
-%-use predefined or erp-peaks for areas of interest
+%-use predefined or erppeaks for areas of interest
 if strcmp(cfg.erpsource.areas, 'manual')
   erppeak = cfg.erpsource.erppeak;
 elseif strcmp(cfg.erpsource.areas, 'erppeak')
-  load([cfg.derp cfg.proj '_erppeak'], 'erppeak')
+  load([cfg.derp cfg.cond '_erppeak'], 'erppeak')
 end
 %-----------------%
 
@@ -78,14 +100,14 @@ for p = 1:numel(erppeak)
       
 end
 
-save([cfg.derp cfg.proj '_soupeak'], 'soupeak')
+save([cfg.derp cfg.cond '_soupeak'], 'soupeak')
 
 %-----------------%
 %-save
 for p = 1:numel(erpstat)
   erpstat{p}.cfg = []; % this is huge
 end
-save([cfg.derp cfg.proj '_granderpsource'], 'erpstat', '-v7.3')
+save([cfg.derp cfg.cond '_granderpsource'], 'erpstat', '-v7.3')
 %-----------------%
 %---------------------------%
 

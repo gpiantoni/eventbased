@@ -1,5 +1,32 @@
 function erp_grand(cfg)
-%ERP_GRAND grand time lock analysis
+%ERP_GRAND grand time lock analysis.
+% 1) read single subject-data and create gerp in cfg.derp
+% 2) do statistics for condition indicated by cfg.erpeffect, to create erppeak
+% 3) plot the topoplot over time and singleplot for some electrodes
+%
+% CFG
+%  .cond: name to be used in projects/PROJNAME/subjects/0001/MOD/CONDNAME/
+%  .test: a cell with the condition defined by redef. 
+%  .sens.layout: file with layout. It should be a mat containing 'layout'
+%
+%  .derp: directory to save ERP data
+%  .erpeffect: effect of interest to create erppeak. If empty, no stats.
+%
+%  .gerp.chan(1).name = 'name of channel group';
+%  .gerp.chan(1).chan =  cell with labels of channels of interest
+%  .gerp.bline = two scalars indicating the time window for baseline in s
+%  (only for plotting, TODO: check if necessary for normal analysis as well)
+%
+% OUT
+%  [cfg.derp 'COND_granderp']: timelock analysis for all subjects
+%  [cfg.derp 'COND_erppeak']: significant peaks in the ERP
+%
+% FIGURES
+%  gerp_erp_c01: singleplot ERP, all conditions, for one channel group
+%  gerp_topo_COND: topoplot ERP for each condition, over time
+%
+% Part of EVENTBASED group-analysis
+% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND
 
 %---------------------------%
 %-start log
@@ -43,7 +70,7 @@ end
 
 %-----------------%
 %-save
-save([cfg.derp cfg.proj '_granderp'], 'gerp')
+save([cfg.derp cfg.cond '_granderp'], 'gerp')
 %-----------------%
 %---------------------------%
 
@@ -55,10 +82,12 @@ if ~isempty(gerp)
   
   %---------------------------%
   %-statistics for main effects
-  [erppeak outtmp] = reportcluster(gerpall{cfg.erpeffect}, cfg);
-  
-  save([cfg.derp cfg.proj '_erppeak'], 'erppeak')
-  output = [output outtmp];
+  if ~isempty(cfg.erpeffect)
+    [erppeak outtmp] = reportcluster(gerpall{cfg.erpeffect}, cfg);
+    
+    save([cfg.derp cfg.cond '_erppeak'], 'erppeak')
+    output = [output outtmp];
+  end
   %---------------------------%
   
   %---------------------------%

@@ -1,5 +1,21 @@
 function erp_subj(cfg, subj)
 %ERP_SUBJ create subject-specific erp
+%
+% CFG
+%  .data: name of projects/PROJNAME/subjects/
+%  .mod: name of the modality used in recordings and projects
+%  .cond: name to be used in projects/PROJNAME/subjects/0001/MOD/CONDNAME/
+%  .endname: includes previous steps '_seldata_gclean_preproc_redef'
+%  .test: a cell with the condition defined by redef. This function will loop over cfg.test
+%  .derp: directory to save ERP data
+%
+%  .erp: a structure with cfg to pass to ft_timelockanalysis
+%
+% OUT
+%  [cfg.derp 'erp_001_TEST']: timelock analysis for single-subject
+%
+% Part of EVENTBASED single-subject
+% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND
 
 %---------------------------%
 %-start log
@@ -19,7 +35,7 @@ for k = 1:numel(cfg.test)
   
   %-----------------%
   %-input and output for each condition
-  allfile = dir([ddir '*' cfg.test{k} cfg.endname '.mat']); % files matching a preprocessing
+  allfile = dir([ddir cfg.test{k} cfg.endname '.mat']); % files matching a preprocessing
   if isempty(allfile)
     continue
   end

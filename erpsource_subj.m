@@ -1,5 +1,41 @@
 function erpsource_subj(cfg, subj)
-%LCMV on interesting parts, defined by cfg.erpsource.source
+%ERPSOURCE_SUBJ: identify sources from erp peaks using LCMV
+%
+% CFG
+%  .data: name of projects/PROJNAME/subjects/
+%  .mod: name of the modality used in recordings and projects
+%  .cond: name to be used in projects/PROJNAME/subjects/0001/MOD/CONDNAME/
+%  .endname: includes previous steps '_seldata_gclean_preproc_redef'
+%  .test: a cell with the condition defined by redef. This function will loop over cfg.test
+%  .derp: directory to save ERP data
+%
+%  .erp: a structure with cfg to pass to ft_timelockanalysis
+%
+%  .vol.type: 'template' or subject-specific ('dipoli' or 'openmeeg')
+%    if template, specify template .vol.template (should contain vol, lead, sens)
+%    if not template, specify 
+%      .vol.mod: 'smri'
+%      .vol.cond: 't1'
+%      .proj: because the project name is part of the MRI name
+%
+%  .erpsource.areas: how to speficy peaks to analyze, 'manual' or 'erppeak' (peaks from granderp)
+%    if 'manual'
+%      .erpsource.erppeak(1).name = 'name_of_the_time_ window';
+%      .erpsource.erppeak(1).time = 0.10; % center of the time window
+%      .erpsource.erppeak(1).wndw = 0.05; % length of the time window
+%    if 'erppeak', it reads the significant peaks calculated by erp_grand
+%
+%  .erpsource.erp: a structure with cfg to pass to ft_timelockanalysis (it's better if identical to cfg.erp)
+%  .erpsource.bline: one number in s, the center of the covariance window of the baseline (the window length depends on erppeak)
+%
+%  .erpsource.lambda: regularization parameter of beamformer ('10%')
+%  .erpsource.powmethod: power method of beamformer ('trace' or 'lambda1')
+%
+% OUT
+%  [cfg.derp 'erpsource_001_TEST']: source data for period of interest and baseline for each subject
+%
+% Part of EVENTBASED single-subject
+% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND
 
 %---------------------------%
 %-start log
@@ -14,8 +50,8 @@ ddir = sprintf('%s%04.f/%s/%s/', cfg.data, subj, cfg.mod, cfg.cond); % data
 
 %-----------------%
 %-head shape
-if strcmp(cfg.voltype, 'template')
-  load(cfg.leadfile, 'vol', 'lead', 'sens')
+if strcmp(cfg.vol.type, 'template')
+  load(cfg.vol.template, 'vol', 'lead', 'sens')
   
 else
   mod = 'smri';
@@ -37,7 +73,7 @@ if strcmp(cfg.erpsource.areas, 'manual')
   erppeak = cfg.erpsource.erppeak;
   
 elseif strcmp(cfg.erpsource.areas, 'erppeak')
-  load([cfg.derp cfg.proj '_erppeak'], 'erppeak')
+  load([cfg.derp cfg.cond '_erppeak'], 'erppeak')
   
 end
 %-----------------%
@@ -50,7 +86,7 @@ for e = 1:numel(cfg.erpeffect)
   
   %-----------------%
   %-input and output for each condition
-  allfile = dir([ddir '*' cfg.test{k} cfg.endname '.mat']); % files matching a preprocessing
+  allfile = dir([ddir cfg.test{k} cfg.endname '.mat']); % files matching a preprocessing
   if isempty(allfile)
     continue
   end

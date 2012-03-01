@@ -9,7 +9,7 @@ function seldata(cfg, subj)
 %  .data: name of projects/PROJNAME/subjects/
 %  .cond: name to be used in projects/PROJNAME/subjects/0001/MOD/CONDNAME/
 % 
-%  .sens.file: file with EEG sensors. It can be sfp or mat
+%  .sens.file: file with EEG sensors. It can be sfp or mat.
 % 
 %  .seldata.trialfun: name of the trialfun used to read the data before preprocessing, the function should be in PROJNAME_private/
 %  .seldata.selchan: channels to read. It can be a vector or a cell of strings with the elec names on file (Micromed elec names are '  1' '  2'  '  3'

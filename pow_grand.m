@@ -62,10 +62,12 @@ if ~isempty(gpow)
   
   %---------------------------%
   %-statistics for main effects
-  [powpeak outtmp] = reportcluster(gfreq{cfg.poweffect}, cfg);
-  
-  save([cfg.dpow cfg.proj '_powpeak'], 'powpeak')
-  output = [output outtmp];
+  if ~isempty(cfg.poweffect)
+    [powpeak outtmp] = reportcluster(gfreq{cfg.poweffect}, cfg);
+    
+    save([cfg.dpow cfg.proj '_powpeak'], 'powpeak')
+    output = [output outtmp];
+  end
   %---------------------------%
   
   %---------------------------%
