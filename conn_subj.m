@@ -90,22 +90,29 @@ for kstat = 1:numel(cfg.statconn.ttest2)
   %-----------------%
   %-input and output for each condition
   allfile = dir([ddir cfg.test{k} cfg.endname '.mat']); % files matching a preprocessing
-  if isempty(allfile)
-    continue
-  end
-  
+
   condname = regexprep(cfg.test{k}, '*', '');
   outputfile = sprintf('%s_%s_%02.f_%s', cfg.proj, cfg.conn.method, subj, condname);
   %-----------------%
   
   %-----------------%
-  %-concatenate
-  spcell = @(name) sprintf('%s%s', ddir, name);
-  allname = cellfun(spcell, {allfile.name}, 'uni', 0);
-  
-  cfg1 = [];
-  cfg1.inputfile = allname;
-  data = ft_appenddata(cfg1);
+  %-concatenate only if you have more datasets
+  if numel(allfile) > 1
+    spcell = @(name) sprintf('%s%s', ddir, name);
+    allname = cellfun(spcell, {allfile.name}, 'uni', 0);
+    
+    cfg1 = [];
+    cfg1.inputfile = allname;
+    data = ft_appenddata(cfg1);
+    
+  elseif numel(allfile) == 1
+    load([ddir allfile(1).name], 'data')
+    
+  else
+    output = sprintf('%sCould not find any file in %s for test %s\n', ...
+      output, ddir, cfg.test{k});
+    
+  end
   %-----------------%
   
   %-----------------%

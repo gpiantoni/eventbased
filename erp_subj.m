@@ -36,10 +36,7 @@ for k = 1:numel(cfg.test)
   %-----------------%
   %-input and output for each condition
   allfile = dir([ddir cfg.test{k} cfg.endname '.mat']); % files matching a preprocessing
-  if isempty(allfile)
-    continue
-  end
-  
+
   condname = regexprep(cfg.test{k}, '*', '');
   outputfile = sprintf('erp_%02.f_%s', subj, condname);
   %-----------------%
@@ -54,8 +51,12 @@ for k = 1:numel(cfg.test)
     cfg1.inputfile = allname;
     data = ft_appenddata(cfg1);
     
-  else
+  elseif numel(allfile) == 1
     load([ddir allfile(1).name], 'data')
+    
+  else
+    output = sprintf('%sCould not find any file in %s for test %s\n', ...
+      output, ddir, cfg.test{k});
     
   end
   %-----------------%
