@@ -18,15 +18,13 @@ if strcmp(cfg.voltype, 'template')
   load(cfg.leadfile, 'vol', 'lead', 'sens')
   
 else
-  mod = 'smri';
-  cond = 't1';
-  mdir = sprintf('%s%04.f/%s/%s/', cfg.data, subj, mod, cond); % mridata dir
-  mfile = sprintf('%s_%s_%04.f_%s_%s', cfg.proj, cfg.rec, subj, mod, cond); % mridata
+  mdir = sprintf('%s%04.f/%s/%s/', cfg.data, subj, cfg.vol.mod, cfg.vol.cond); % mridata dir
+  mfile = sprintf('%s_%s_%04.f_%s_%s', cfg.proj, cfg.rec, subj, cfg.vol.mod, cfg.vol.cond); % mridata
   
   load([mdir mfile '_elec.mat'], 'elec')
   sens = elec;
-  load([mdir mfile '_vol_' cfg.voltype '.mat'], 'vol')
-  load([mdir mfile '_lead_' cfg.voltype '.mat'], 'lead')
+  load([mdir mfile '_vol_' cfg.vol.type '.mat'], 'vol')
+  load([mdir mfile '_lead_' cfg.vol.type '.mat'], 'lead')
   
 end
 %-----------------%
