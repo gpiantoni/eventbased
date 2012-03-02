@@ -55,7 +55,7 @@ if strcmp(cfg.vol.type, 'template')
   
 else
   mdir = sprintf('%s%04.f/%s/%s/', cfg.data, subj, cfg.vol.mod, cfg.vol.cond); % mridata dir
-  mfile = sprintf('%s_%s_%04.f_%s_%s', cfg.proj, cfg.rec, subj, cfg.vol.mod, cfg.vol.cond); % mridata
+  mfile = sprintf('%s_%04.f_%s_%s', cfg.rec, subj, cfg.vol.mod, cfg.vol.cond); % mridata
   
   load([mdir mfile '_elec.mat'], 'elec')
   sens = elec;
