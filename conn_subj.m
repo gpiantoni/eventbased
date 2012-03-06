@@ -111,6 +111,7 @@ for kstat = 1:numel(cfg.statconn.ttest2)
   else
     output = sprintf('%sCould not find any file in %s for test %s\n', ...
       output, ddir, cfg.test{k});
+    continue
     
   end
   %-----------------%

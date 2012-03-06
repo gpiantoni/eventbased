@@ -76,6 +76,7 @@ for e = 1:numel(cfg.erpeffect)
   else
     output = sprintf('%sCould not find any file in %s for test %s\n', ...
       output, ddir, cfg.test{k});
+    continue
     
   end
   %-----------------%
