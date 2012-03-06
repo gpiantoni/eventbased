@@ -33,15 +33,36 @@ nsubj = size(gdat.(param),1);
 
 gzero = gdat;
 gzero.(param) = zeros(size(gdat.(param)));
+%-----------------%
 
-sens = ft_read_sens(cfg.sens.file);
-sens.label = upper(sens.label);
-
-cfg1 = [];
-cfg1.elec = sens;
-cfg1.method = 'distance';
-cfg1.neighbourdist = cfg.sens.dist;
-neigh = ft_prepare_neighbours(cfg1);
+%-----------------%
+%-sensors
+if ~isempty(cfg.sens.file)
+  
+  %-------%
+  %-create neighbors from file
+  sens = ft_read_sens(cfg.sens.file);
+  sens.label = upper(sens.label);
+  
+  cfg1 = [];
+  cfg1.elec = sens;
+  cfg1.method = 'distance';
+  cfg1.neighbourdist = cfg.sens.dist;
+  neigh = ft_prepare_neighbours(cfg1);
+  %-------%
+  
+else
+  
+  %-------%
+  %-create fake neighbors (no real neighbors)
+  neigh = [];
+  for i = 1:numel(data.label)
+    neigh(i).label = data.label{i};
+    neigh(i).neighlabel(1) = data.label(i);
+  end
+  %-------%
+  
+end
 %-----------------%
 
 %-----------------%
@@ -56,7 +77,7 @@ cfg3.design = [ones(1,nsubj) ones(1,nsubj).*2; 1:nsubj 1:nsubj];
 cfg3.ivar   = 1;
 cfg3.uvar   = 2;
 
-cfg3.latency = [0 gdat.time(end)];
+cfg3.latency = gdat.time([1 end]);
 cfg3.neighbours = neigh;
 cfg3.feedback = 'none';
 
