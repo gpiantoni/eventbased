@@ -56,9 +56,9 @@ else
   %-------%
   %-create fake neighbors (no real neighbors)
   neigh = [];
-  for i = 1:numel(data.label)
-    neigh(i).label = data.label{i};
-    neigh(i).neighlabel(1) = data.label(i);
+  for i = 1:numel(gdat.label)
+    neigh(i).label = gdat.label{i};
+    neigh(i).neighblabel(1) = gdat.label(i);
   end
   %-------%
   
