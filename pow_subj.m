@@ -1,5 +1,22 @@
 function pow_subj(cfg, subj)
-%POW_SUBJ check power changes at single-subject level
+%POW_SUBJ create subject-specific pow
+%
+% CFG
+%  .data: name of projects/PROJNAME/subjects/
+%  .mod: name of the modality used in recordings and projects
+%  .cond: name to be used in projects/PROJNAME/subjects/0001/MOD/CONDNAME/
+%  .endname: includes previous steps '_seldata_gclean_preproc_redef'
+%  .test: a cell with the condition defined by redef. This function will loop over cfg.test
+%  .dpow: directory to save ERP data
+%
+%  .pow: a structure with cfg to pass to ft_freqanalysis
+%  .pow.bl.baseline: two scalars with baseline windows (if empty, no baseline)
+%
+% OUT
+%  [cfg.dpow 'pow_001_TEST']: power analysis for single-subject
+%
+% Part of EVENTBASED single-subject
+% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND
 
 %---------------------------%
 %-start log
@@ -41,6 +58,7 @@ for k = 1:numel(cfg.test)
   else
     output = sprintf('%sCould not find any file in %s for test %s\n', ...
       output, ddir, cfg.test{k});
+    continue
     
   end
   %-----------------%

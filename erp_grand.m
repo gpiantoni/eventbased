@@ -6,8 +6,9 @@ function erp_grand(cfg)
 %
 % CFG
 %  .cond: name to be used in projects/PROJNAME/subjects/0001/MOD/CONDNAME/
-%  .test: a cell with the condition defined by redef. 
+%  .test: a cell with the condition defined by redef.
 %  .sens.layout: file with layout. It should be a mat containing 'layout'
+%                If empty, it does not plot topo.
 %
 %  .derp: directory to save ERP data
 %  .erpeffect: effect of interest to create erppeak. If empty, no stats.
@@ -76,7 +77,9 @@ save([cfg.derp cfg.cond '_granderp'], 'gerp')
 
 %-----------------------------------------------%
 %-stats and plots
-load(cfg.sens.layout, 'layout');
+if ~isempty(cfg.sens.layout)
+  load(cfg.sens.layout, 'layout');
+end
 
 if ~isempty(gerp)
   
@@ -128,42 +131,44 @@ if ~isempty(gerp)
   
   %---------------------------%
   %-topoplotTFR (loop over tests)
-  for t = 1:numel(cfg.test)
-    
-    %--------%
-    %-figure
-    h = figure;
-    set(h, 'Renderer', 'painters')
-    %--------%
-    
-    %--------%
-    %-plot
-    colorlim = max(max(abs(gerp{cfg.erpeffect}.avg)));
-    timelim = gerp{cfg.erpeffect}.time([1 end]);
-    
-    cfg4 = [];
-    cfg4.xlim = timelim(1):.1:timelim(2); % one plot every 100 ms
-    cfg4.zlim = [-1 1] * colorlim;
-    cfg4.layout = layout;
-    cfg4.style = 'straight';
-    cfg4.marker = 'off';
-    cfg4.comment = 'xlim';
-    cfg4.commentpos = 'title';
-
-    ft_topoplotER(cfg4, gerp{t});
-    %--------%
-    
-    %--------%
-    %-save and link
-    condname = regexprep(cfg.test{t}, '*', '');
-    pngname = sprintf('gerp_topo_%s', condname);
-    saveas(gcf, [cfg.log filesep pngname '.png'])
-    close(gcf); drawnow
-    
-    [~, logfile] = fileparts(cfg.log);
-    system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
-    %--------%
-    
+  if ~isempty(cfg.sens.layout)
+    for t = 1:numel(cfg.test)
+      
+      %--------%
+      %-figure
+      h = figure;
+      set(h, 'Renderer', 'painters')
+      %--------%
+      
+      %--------%
+      %-plot
+      colorlim = max(max(abs(gerp{cfg.erpeffect}.avg)));
+      timelim = gerp{cfg.erpeffect}.time([1 end]);
+      
+      cfg4 = [];
+      cfg4.xlim = timelim(1):.1:timelim(2); % one plot every 100 ms
+      cfg4.zlim = [-1 1] * colorlim;
+      cfg4.layout = layout;
+      cfg4.style = 'straight';
+      cfg4.marker = 'off';
+      cfg4.comment = 'xlim';
+      cfg4.commentpos = 'title';
+      
+      ft_topoplotER(cfg4, gerp{t});
+      %--------%
+      
+      %--------%
+      %-save and link
+      condname = regexprep(cfg.test{t}, '*', '');
+      pngname = sprintf('gerp_topo_%s', condname);
+      saveas(gcf, [cfg.log filesep pngname '.png'])
+      close(gcf); drawnow
+      
+      [~, logfile] = fileparts(cfg.log);
+      system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
+      %--------%
+      
+    end
   end
   %---------------------------%
   
