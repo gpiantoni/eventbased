@@ -8,11 +8,6 @@ function erpsource_grand(cfg)
 %  .derp: directory to save ERP data
 %  .erpeffect: effect of interest to create erppeak. If empty, no stats.
 %
-%  .gerp.chan(1).name = 'name of channel group';
-%  .gerp.chan(1).chan =  cell with labels of channels of interest
-%  .gerp.bline = two scalars indicating the time window for baseline in s
-%  (only for plotting, TODO: check if necessary for normal analysis as well)
-%
 % OUT
 %  [cfg.derp 'COND_granderpsource']: source analysis for all subject
 %  [cfg.derp 'COND_soupeak']: significant source peaks in the ERP
@@ -21,7 +16,10 @@ function erpsource_grand(cfg)
 %  gerppeak_ERPEFFECT_ERPPEAKNAME: 3d plot of the source for one peak
 %
 % Part of EVENTBASED group-analysis
-% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND
+% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND, 
+% POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND, 
+% POWCORR_SUBJ, POWCORR_SUBJ,
+% CONN_SUBJ, CONN_GRAND, CONN_STAT
 
 %---------------------------%
 %-start log

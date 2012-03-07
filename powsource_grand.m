@@ -1,5 +1,26 @@
 function powsource_grand(cfg)
-%POWSOURCE_GRAND grand pow source average
+%POWSOURCE_GRAND group-analysis of POW source data
+%
+% CFG
+%  .cond: name to be used to save powsource_PROJNAME and figures
+%  .test: a cell with the condition defined by redef. 
+%
+%  .dpow: directory to save POW data
+%  .poweffect: effect of interest to create powpeak. If empty, no stats.
+%
+% OUT
+%  [cfg.dpow 'COND_grandpowsource']: source analysis for all subject
+%  [cfg.dpow 'COND_soupeak']: significant source peaks in the POW
+%
+% FIGURES
+%  gpowpeak_POWEFFECT_POWPEAKNAME: 3d plot of the source for one peak
+%
+% Part of EVENTBASED group-analysis
+% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND, 
+% POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND, 
+% POWCORR_SUBJ, POWCORR_SUBJ,
+% CONN_SUBJ, CONN_GRAND, CONN_STAT
+
 
 %---------------------------%
 %-start log
@@ -11,7 +32,7 @@ tic_t = tic;
 %---------------------------%
 %-loop over conditions
 for e = 1:numel(cfg.poweffect)
-  k = cfg.erpeffect(e);
+  k = cfg.poweffect(e);
   
   %-----------------%
   %-file for each cond

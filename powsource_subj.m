@@ -1,5 +1,46 @@
 function powsource_subj(cfg, subj)
-%POWSOURCE_SUBJ DICS on interesting parts, defined by powpeaks
+%ERPSOURCE_SUBJ: identify sources from pow peaks using DICS
+%
+% CFG
+%  .data: name of projects/PROJNAME/subjects/
+%  .mod: name of the modality used in recordings and projects
+%  .cond: name to be used in projects/PROJNAME/subjects/0001/MOD/CONDNAME/
+%  .endname: includes previous steps '_seldata_gclean_preproc_redef'
+%  .test: a cell with the condition defined by redef. This function will loop over cfg.test
+%  .dpow: directory to save ERP data
+%
+%  .pow: a structure with cfg to pass to ft_freqanalysis
+%
+%  .vol.type: 'template' or subject-specific ('dipoli' or 'openmeeg')
+%    if template, specify template .vol.template (should contain vol, lead, sens)
+%    if not template, specify 
+%      .vol.mod: 'smri'
+%      .vol.cond: 't1'
+%      .proj: because the project name is part of the MRI name
+%
+%  .powsource.areas: how to speficy peaks to analyze, 'manual' or 'powpeak' (peaks from grandpow)
+%    if 'manual'
+%      .powsource.powpeak(1).name = 'name_of_the_time_ window';
+%      .powsource.powpeak(1).time = 0.10; % center of the time window
+%      .powsource.powpeak(1).wndw = 0.05; % length of the time window
+%      .powsource.powpeak(1).freq = 10; % center of the frequency
+%      .powsource.powpeak(1).band = 4; % width of the frequency band
+%    if 'powpeak', it reads the significant peaks calculated by pow_grand
+%
+%  .powsource.pow: a structure with cfg to pass to ft_timelockanalysis (it's better if identical to cfg.pow)
+%  .powsource.bline: one number in s, the center of the covariance window of the baseline (the window length depends on powpeak)
+%
+%  .powsource.lambda: regularization parameter of beamformer ('10%')
+%  .powsource.powmethod: power method of beamformer ('trace' or 'lambda1')
+%
+% OUT
+%  [cfg.dpow 'powsource_001_TEST']: source data for period of interest and baseline for each subject
+%
+% Part of EVENTBASED single-subject
+% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND, 
+% POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND, 
+% POWCORR_SUBJ, POWCORR_SUBJ,
+% CONN_SUBJ, CONN_GRAND, CONN_STAT
 
 %---------------------------%
 %-start log
@@ -47,8 +88,8 @@ end
 
 %-------------------------------------%
 %-loop over conditions
-for e = 1:numel(cfg.erpeffect)
-  k = cfg.erpeffect(e);
+for e = 1:numel(cfg.poweffect)
+  k = cfg.poweffect(e);
   
   %-----------------%
   %-input and output for each condition

@@ -1,7 +1,28 @@
 function powcorr_subj(cfg, subj)
 %POWCORR_SUBJ correlate power with trialinfo
-% practically identical to pow_subj but it takes log and it correlates with
-% cfg.powcorr.info 
+%
+% CFG
+%  .data: name of projects/PROJNAME/subjects/
+%  .mod: name of the modality used in recordings and projects
+%  .cond: name to be used in projects/PROJNAME/subjects/0001/MOD/CONDNAME/
+%  .endname: includes previous steps '_seldata_gclean_preproc_redef'
+%  .test: a cell with the condition defined by redef. This function will loop over cfg.test
+%  .dpow: directory to save ERP data
+%
+%  .pow: a structure with cfg to pass to ft_freqanalysis
+%  .pow.bl.baseline: two scalars with baseline windows (if empty, no baseline)
+%
+%  .powcorr.info: column of trialinfo to use for the correlation
+%  .powcorr.log: logical (take the log of power, stronlgy advised)
+%
+% OUT
+%  [cfg.dpow 'powcorr_001_TEST']: power analysis for single-subject
+%
+% Part of EVENTBASED single-subject
+% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND, 
+% POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND, 
+% POWCORR_SUBJ, POWCORR_SUBJ,
+% CONN_SUBJ, CONN_GRAND, CONN_STAT
 
 %---------------------------%
 %-start log
@@ -70,7 +91,9 @@ for k = 1:numel(cfg.test)
   
   %-----------------%
   %-regression at each point
-  freq.powspctrm = log(freq.powspctrm);
+  if cfg.powcorr.log
+    freq.powspctrm = log(freq.powspctrm);
+  end
   
   [s1 s2 s3 s4] = size(freq.powspctrm);
   
