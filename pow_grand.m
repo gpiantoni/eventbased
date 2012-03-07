@@ -17,7 +17,7 @@ function pow_grand(cfg)
 %  .gpow.chan(1).chan =  cell with labels of channels of interest
 %
 % OUT
-%  [cfg.dpow 'COND_grandpow']: timelock analysis for all subjects
+%  [cfg.dpow 'COND_grandpow']: power analysis for all subjects
 %  [cfg.dpow 'COND_powpeak']: significant peaks in the POW
 %
 % FIGURES
@@ -26,7 +26,10 @@ function pow_grand(cfg)
 %  gpow_topo_COND_FREQ: topoplot POW for each condition and frequency, over time
 %
 % Part of EVENTBASED group-analysis
-% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND
+% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND, 
+% POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND, 
+% POWCORR_SUBJ, POWCORR_SUBJ,
+% CONN_SUBJ, CONN_GRAND, CONN_STAT
 
 %---------------------------%
 %-start log
