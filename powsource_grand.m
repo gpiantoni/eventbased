@@ -8,6 +8,11 @@ function powsource_grand(cfg)
 %  .dpow: directory to save POW data
 %  .poweffect: effect of interest to create powpeak. If empty, no stats.
 %
+% Options from reportsource:
+%  .powsource.clusterstatistics: 'maxsize' or 'max'
+%  .powsource.clusteralpha: level to select sensors (default 0.05)
+%  .powsource.maxvox: max number of significant voxels to be used in soupeak
+%
 % OUT
 %  [cfg.dpow 'COND_grandpowsource']: source analysis for all subject
 %  [cfg.dpow 'COND_soupeak']: significant source peaks in the POW
@@ -20,7 +25,6 @@ function powsource_grand(cfg)
 % POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND, 
 % POWCORR_SUBJ, POWCORR_SUBJ,
 % CONN_SUBJ, CONN_GRAND, CONN_STAT
-
 
 %---------------------------%
 %-start log

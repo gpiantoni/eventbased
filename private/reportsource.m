@@ -42,7 +42,7 @@ cfg3.feedback = 'none';
 cfg3.parameter = param;
 cfg3.dim = gdat.dim;
 
-cfg3.alpha       = cfg.alpha;
+cfg3.alpha       = 0.05;
 cfg3.clusteralpha = cfg.clusteralpha;
 stat = ft_sourcestatistics(cfg3, gdat, gpre);
 %-------------------------------------%
