@@ -9,6 +9,7 @@ function erpsource_subj(cfg, subj)
 %  .test: a cell with the condition defined by redef. This function will loop over cfg.test
 %  .derp: directory to save ERP data
 %
+%  .erpeffect: effect of interest for source reconstruction, can be a vector (this field is shared with erp_grand.m, maybe it's not a good idea)
 %  .erp: a structure with cfg to pass to ft_timelockanalysis
 %
 %  .vol.type: 'template' or subject-specific ('dipoli' or 'openmeeg')
@@ -60,12 +61,12 @@ else
   mod = 'smri';
   cond = 't1';
   mdir = sprintf('%s%04.f/%s/%s/', cfg.data, subj, mod, cond); % mridata dir
-  mfile = sprintf('%s_%s_%04.f_%s_%s', cfg.proj, cfg.rec, subj, mod, cond); % mridata
+  mfile = sprintf('%s_%04.f_%s_%s', cfg.rec, subj, mod, cond); % mridata
   
   load([mdir mfile '_elec.mat'], 'elec')
   sens = elec;
-  load([mdir mfile '_vol_' cfg.voltype '.mat'], 'vol')
-  load([mdir mfile '_lead_' cfg.voltype '.mat'], 'lead')
+  load([mdir mfile '_vol_' cfg.vol.type '.mat'], 'vol')
+  load([mdir mfile '_lead_' cfg.vol.type '.mat'], 'lead')
   
 end
 %-----------------%
