@@ -8,6 +8,11 @@ function erpsource_grand(cfg)
 %  .derp: directory to save ERP data
 %  .erpeffect: effect of interest to create erppeak. If empty, no stats.
 %
+% Options from reportsource:
+%  .erpsource.clusterstatistics: 'maxsize' or 'max'
+%  .erpsource.clusteralpha: level to select sensors (default 0.05)
+%  .erpsource.maxvox: max number of significant voxels to be used in soupeak
+%
 % OUT
 %  [cfg.derp 'COND_granderpsource']: source analysis for all subject
 %  [cfg.derp 'COND_soupeak']: significant source peaks in the ERP
