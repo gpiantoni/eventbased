@@ -11,6 +11,7 @@ function pow_subj(cfg, subj)
 %
 %  .pow: a structure with cfg to pass to ft_freqanalysis
 %  .pow.bl.baseline: two scalars with baseline windows (if empty, no baseline)
+%  .pow.bl.baselinetype: type of baseline ('relchange')
 %
 % OUT
 %  [cfg.dpow 'pow_001_TEST']: power analysis for single-subject

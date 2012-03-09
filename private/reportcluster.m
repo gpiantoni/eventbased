@@ -79,7 +79,7 @@ cfg3.uvar   = 2;
 
 cfg3.latency = gdat.time([1 end]);
 cfg3.neighbours = neigh;
-cfg3.feedback = 'none';
+cfg3.feedback = 'etf';
 
 if iserp
   % cfg3.minnbchan = 5; % to avoid huge clusters
