@@ -9,8 +9,8 @@ function powcorr_subj(cfg, subj)
 %  .test: a cell with the condition defined by redef. This function will loop over cfg.test
 %  .dpow: directory to save ERP data
 %
-%  .pow: a structure with cfg to pass to ft_freqanalysis
-%  .pow.bl.baseline: two scalars with baseline windows (if empty, no baseline)
+%  .powcorr: a structure with cfg to pass to ft_freqanalysis
+%  .powcorr.bl.baseline: two scalars with baseline windows (if empty, no baseline)
 %
 %  .powcorr.info: column of trialinfo to use for the correlation
 %  .powcorr.log: logical (take the log of power, stronlgy advised)
