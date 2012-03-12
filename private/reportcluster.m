@@ -263,7 +263,11 @@ end
 if ~iserp
   for f = 1:numel(clpeak)
     ifreq = nearest(cfg.pow.foi, clpeak(f).freq); % length of cfg.pow.t_ftimwin depends on the frequency
-    clpeak(f).wndw = clpeak(f).wndw + cfg.pow.t_ftimwin(ifreq); 
+    if isfield(cfg.pow.method, 'wavelet') || isfield(cfg.pow.method, 'tfr');
+      clpeak(f).wndw = clpeak(f).wndw + cfg.pow.width/cfg.pow.foi(ifreq); 
+    elseif isfield(cfg.pow.method, 'mtmconvol');
+      clpeak(f).wndw = clpeak(f).wndw + cfg.pow.t_ftimwin(ifreq); 
+    end
   end
 end
 %-----------------%

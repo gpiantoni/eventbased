@@ -97,7 +97,8 @@ if ~isempty(gpow)
   %---------------------------%
   %-statistics for main effects
   if ~isempty(cfg.poweffect)
-    [powcorrpeak outtmp] = reportcluster(gfreq{cfg.powcorreffect}, cfg);
+    [powcorrpeak outtmp] = reportcluster(gfreq{cfg.powcorreffect}, cfg); 
+    outtmp = sprintf('%sattention! .wndw is adjusted incorrectly based on cfg.pow, not cfg.powcorr\n', output);
     
     save([cfg.dpow cfg.proj '_powcorrpeak'], 'powcorrpeak')
     output = [output outtmp];
