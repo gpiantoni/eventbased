@@ -1,5 +1,12 @@
 function export2csv(cfg)
 %EXPORT2CSV write results in csv file
+% 
+% CFG
+%  
+%
+
+
+
 
 mincol = 10; % minimum columns for erp and pow, to keep them aligned
 
@@ -224,8 +231,16 @@ output = [output sprintf(repmat(' ,', 1, extracol))];
 %-------------------------------------%
 
 %-------------------------------------%
+%-read extra, dataset-specific info
+if isfield(cfg, 'export2csv') && isfield(cfg.export2csv, 'extrainfo')
+  outtmp = feval(cfg.export2csv.extrainfo, cfg);
+  output = [output outtmp];
+end
+%-------------------------------------%
+
+%-------------------------------------%
 %-connectivity analysis (and write)
-% one row per channel combination/ or one row for the whole analysis if no connectivity)
+% one row per channel combination/ or one row for the whole analysis if no connectivity
 fid = fopen(cfg.csvf, 'a+');
 
 if exist([cfg.log filesep 'connsum.mat'], 'file')
@@ -304,14 +319,6 @@ if exist([cfg.log filesep 'connsum.mat'], 'file')
   %---------------------------%
   
 else
-  
-  %-----------------%
-  %-read extra, dataset-specific info
-  if isfield(cfg, 'export2csv') && isfield(cfg.export2csv, 'extrainfo')
-    outtmp = feval(cfg.export2csv.extrainfo, cfg);
-    output = [output outtmp];
-  end
-  %-----------------%
   
   fwrite(fid, output);
   fprintf(fid, '\n');
