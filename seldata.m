@@ -8,6 +8,7 @@ function seldata(cfg, subj)
 %  .rcnd: specific name of the condition of interest in the raw recording folder
 %  .data: name of projects/PROJNAME/subjects/
 %  .cond: name to be used in projects/PROJNAME/subjects/0001/MOD/CONDNAME/
+%  .log: name of the file and directory with analysis log
 % 
 %  .sens.file: file with EEG sensors. It can be sfp or mat.
 % 

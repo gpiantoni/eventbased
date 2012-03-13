@@ -4,6 +4,8 @@ function powsource_grand(cfg)
 % CFG
 %  .cond: name to be used to save powsource_PROJNAME and figures
 %  .test: a cell with the condition defined by redef. 
+%  .log: name of the file and directory with analysis log
+%  .rslt: directory images are saved into
 %
 %  .dpow: directory to save POW data
 %  .poweffect: effect of interest to create powpeak. If empty, no stats.

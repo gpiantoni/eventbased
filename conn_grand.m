@@ -4,6 +4,7 @@ function conn_grand(cfg)
 % CFG
 %  .cond: name to be used in projects/PROJNAME/subjects/0001/MOD/CONDNAME/
 %  .dcon: directory with connectivity data
+%  .log: name of the file and directory with analysis log
 %  .conn.method: method used for connectivity
 %  .conn.toi: vector with time points to run connectivity on
 %  .gconn.freq:

@@ -10,6 +10,7 @@ function gclean(cfg, subj)
 %  .mod: name of the modality used in recordings and projects
 %  .cond: name to be used in projects/PROJNAME/subjects/0001/MOD/CONDNAME/
 %  .endname: includes previous steps '_seldata'
+%  .log: name of the file and directory with analysis log
 %
 %  .sens.file: file with EEG sensors. It can be sfp or mat
 %  .sens.dist: distance between sensors to consider them neighbors (in the units of cfg.sens.file)

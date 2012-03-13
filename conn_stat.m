@@ -6,11 +6,16 @@ function conn_stat(cfg)
 %  .cond: name to be used in projects/PROJNAME/subjects/0001/MOD/CONDNAME/
 %  .dcon: directory with connectivity data
 %  .conn.method: method used for connectivity
+%  .log: name of the file and directory with analysis log
+%  .rslt: directory images are saved into
 % 
 %  .conn.toi: vector with time points to run connectivity on
 %  .statconn.bl.baseline: two scalars with baseline windows (if empty, no baseline)
 %  .statconn.bl.baselinetype: type of baseline ('relchange' 'relative' 'absolute')
 %
+% OUT
+%  [cfg.log connsum]: values from the plots to report in csv
+% 
 % FIGURES
 %  gtrs_CONNMETHOD_LABEL1_LABEL2: connectivity over time, with one subplot per frequency
 %

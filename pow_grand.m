@@ -7,6 +7,8 @@ function pow_grand(cfg)
 % CFG
 %  .cond: name to be used in projects/PROJNAME/subjects/0001/MOD/CONDNAME/
 %  .test: a cell with the condition defined by redef.
+%  .log: name of the file and directory with analysis log
+%  .rslt: directory images are saved into
 %  .sens.layout: file with layout. It should be a mat containing 'layout'
 %                If empty, it does not plot topo.
 %

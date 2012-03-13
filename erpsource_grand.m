@@ -4,6 +4,8 @@ function erpsource_grand(cfg)
 % CFG
 %  .cond: name to be used to save erpsource_PROJNAME and figures
 %  .test: a cell with the condition defined by redef. 
+%  .log: name of the file and directory with analysis log
+%  .rslt: directory images are saved into
 %
 %  .derp: directory to save ERP data
 %  .erpeffect: effect of interest to create erppeak. If empty, no stats.

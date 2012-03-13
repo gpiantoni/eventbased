@@ -10,6 +10,7 @@ function redef(cfg, subj)
 %  .mod: name of the modality used in recordings and projects
 %  .cond: name to be used in projects/PROJNAME/subjects/0001/MOD/CONDNAME/
 %  .endname: includes previous steps '_seldata_gclean_preproc'
+%  .log: name of the file and directory with analysis log
 %
 %  .step: all the analysis step (for cfg.clear)
 %  .clear: index of cfg.step to remove from subject directory

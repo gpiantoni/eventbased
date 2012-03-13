@@ -7,6 +7,7 @@ function erp_subj(cfg, subj)
 %  .cond: name to be used in projects/PROJNAME/subjects/0001/MOD/CONDNAME/
 %  .endname: includes previous steps '_seldata_gclean_preproc_redef'
 %  .test: a cell with the condition defined by redef. This function will loop over cfg.test
+%  .log: name of the file and directory with analysis log
 %  .derp: directory to save ERP data
 %
 %  .erp: a structure with cfg to pass to ft_timelockanalysis
