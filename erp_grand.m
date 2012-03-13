@@ -49,22 +49,21 @@ for k = 1:numel(cfg.test)
   %-----------------%
   %-file for each cond
   condname = regexprep(cfg.test{k}, '*', '');
-  inputfile = sprintf('erp_*_%s.mat', condname);
+  subjfile = @(s) sprintf('%serp_%02.f_%s.mat', cfg.dpow, s, condname);
+  allname = cellfun(subjfile, num2cell(cfg.subjall), 'uni', 0);
   
-  allsub = dir([cfg.derp inputfile]);
-  
-  if isempty(allsub)
-    outtmp = sprintf('%s does not match any file\n', condname);
-    output = [output outtmp];
-    continue
+  allfiles = true(1, numel(allname));
+  for i = 1:numel(allname)
+    if ~exist(allname{i}, 'file')
+      output = [output sprintf('%s does not exist\n', allname{i})];
+      allfiles(i) = false;
+    end
   end
+  allname = allname(allfiles);
   %-----------------%
   
   %-----------------%
   %-erp over subj
-  spcell = @(name) sprintf('%s%s', cfg.derp, name);
-  allname = cellfun(spcell, {allsub.name}, 'uni', 0);
-  
   cfg1 = [];
   cfg1.inputfile = allname;
   gerp{k} = ft_timelockgrandaverage(cfg1);

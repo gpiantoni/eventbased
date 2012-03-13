@@ -50,22 +50,21 @@ for k = 1:numel(cfg.test)
   %-----------------%
   %-file for each cond
   condname = regexprep(cfg.test{k}, '*', '');
-  inputfile = sprintf('pow_*_%s.mat', condname);
+  subjfile = @(s) sprintf('%spow_%02.f_%s.mat', cfg.dpow, s, condname);
+  allname = cellfun(subjfile, num2cell(cfg.subjall), 'uni', 0);
   
-  allsub = dir([cfg.dpow inputfile]);
-  
-  if isempty(allsub)
-    outtmp = sprintf('%s does not match any file\n', condname);
-    output = [output outtmp];
-    continue
+  allfiles = true(1, numel(allname));
+  for i = 1:numel(allname)
+    if ~exist(allname{i}, 'file')
+      output = [output sprintf('%s does not exist\n', allname{i})];
+      allfiles(i) = false;
+    end
   end
+  allname = allname(allfiles);
   %-----------------%
   
   %-----------------%
   %-POW over subj
-  spcell = @(name) sprintf('%s%s', cfg.dpow, name);
-  allname = cellfun(spcell, {allsub.name}, 'uni', 0);
-  
   cfg1 = [];
   cfg1.inputfile = allname;
   cfg1.keepindividual = 'yes';

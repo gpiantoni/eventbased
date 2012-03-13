@@ -114,13 +114,19 @@ for kstat = 1:numel(cfg.statconn.ttest2)
   %-----------------%
   %-file for each cond
   condname = regexprep(cfg.test{k}, '*', '');
-  outputfile = sprintf('%s_%s*_%s.mat', cfg.cond, cfg.conn.method, condname);
+  subjfile = @(s) sprintf('%s%s_%s%02.f_%s.mat', cfg.dpow, cfg.cond, cfg.conn.method, s, condname);
+  allname = cellfun(subjfile, num2cell(cfg.subjall), 'uni', 0);
   
-  allsub = dir([cfg.dcon outputfile]);
-  spcell = @(name) sprintf('%s%s', cfg.dcon, name);
-  allname = cellfun(spcell, {allsub.name}, 'uni', 0);
+  allfiles = true(1, numel(allname));
+  for i = 1:numel(allname)
+    if ~exist(allname{i}, 'file')
+      output = [output sprintf('%s does not exist\n', allname{i})];
+      allfiles(i) = false;
+    end
+  end
+  allname = allname(allfiles);
   %-----------------%
-  
+
   %---------------------------%
   %-loop over frequencies
   for f = 1:size(connfreq,1)

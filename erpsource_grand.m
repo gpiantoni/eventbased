@@ -43,15 +43,23 @@ for e = 1:numel(cfg.erpeffect)
   %-----------------%
   %-file for each cond
   condname = regexprep(cfg.test{k}, '*', '');
-  outputfile = sprintf('erpsource_*_%s.mat', condname);
+  subjfile = @(s) sprintf('%serpsource_%02.f_%s.mat', cfg.dpow, s, condname);
+  allname = cellfun(subjfile, num2cell(cfg.subjall), 'uni', 0);
   
-  allsub = dir([cfg.derp outputfile]);
+  allfiles = true(1, numel(allname));
+  for i = 1:numel(allname)
+    if ~exist(allname{i}, 'file')
+      output = [output sprintf('%s does not exist\n', allname{i})];
+      allfiles(i) = false;
+    end
+  end
+  allname = allname(allfiles);
   %-----------------%
   
   %-----------------%
   %-read data
-  for s = 1:numel(allsub)
-    load([cfg.derp allsub(s).name]);
+  for s = 1:numel(allname)
+    load(allname{s});
     spre(s,:) = souPre;
     sall(s,:) = source;
     clear source souPre

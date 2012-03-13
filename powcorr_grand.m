@@ -28,8 +28,8 @@ function powcorr_grand(cfg)
 %  gpowcorr_topo_COND_FREQ: topoplot POWCORR for each condition and frequency, over time
 %
 % Part of EVENTBASED group-analysis
-% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND, 
-% POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND, 
+% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND,
+% POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND,
 % POWCORR_SUBJ, POWCORR_SUBJ,
 % CONN_SUBJ, CONN_GRAND, CONN_STAT
 
@@ -53,22 +53,21 @@ for k = 1:numel(cfg.test)
   %-----------------%
   %-file for each cond
   condname = regexprep(cfg.test{k}, '*', '');
-  inputfile = sprintf('powcorr_*_%s.mat', condname);
+  subjfile = @(s) sprintf('%spowcorr_%02.f_%s.mat', cfg.dpow, s, condname);
+  allname = cellfun(subjfile, num2cell(cfg.subjall), 'uni', 0);
   
-  allsub = dir([cfg.dpow inputfile]);
-  
-  if isempty(allsub)
-    outtmp = sprintf('%s does not match any file\n', condname);
-    output = [output outtmp];
-    continue
+  allfiles = true(1, numel(allname));
+  for i = 1:numel(allname)
+    if ~exist(allname{i}, 'file')
+      output = [output sprintf('%s does not exist\n', allname{i})];
+      allfiles(i) = false;
+    end
   end
+  allname = allname(allfiles);
   %-----------------%
   
   %-----------------%
   %-POWCORR over subj
-  spcell = @(name) sprintf('%s%s', cfg.dpow, name);
-  allname = cellfun(spcell, {allsub.name}, 'uni', 0);
-  
   cfg1 = [];
   cfg1.inputfile = allname;
   cfg1.keepindividual = 'yes';
@@ -99,7 +98,7 @@ if ~isempty(gpow)
   %---------------------------%
   %-statistics for main effects
   if ~isempty(cfg.poweffect)
-    [powcorrpeak outtmp] = reportcluster(gfreq{cfg.powcorreffect}, cfg); 
+    [powcorrpeak outtmp] = reportcluster(gfreq{cfg.powcorreffect}, cfg);
     outtmp = sprintf('%sattention! .wndw is adjusted incorrectly based on cfg.pow, not cfg.powcorr\n', output);
     
     save([cfg.dpow cfg.proj '_powcorrpeak'], 'powcorrpeak')
