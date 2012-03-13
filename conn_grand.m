@@ -19,7 +19,7 @@ function conn_grand(cfg)
 % Part of EVENTBASED group-analysis
 % see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND, 
 % POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND, 
-% POWCORR_SUBJ, POWCORR_SUBJ,
+% POWCORR_SUBJ, POWCORR_GRAND,
 % CONN_SUBJ, CONN_GRAND, CONN_STAT
 
 %---------------------------%
@@ -114,7 +114,7 @@ for kstat = 1:numel(cfg.statconn.ttest2)
   %-----------------%
   %-file for each cond
   condname = regexprep(cfg.test{k}, '*', '');
-  subjfile = @(s) sprintf('%s%s_%s%02.f_%s.mat', cfg.dpow, cfg.cond, cfg.conn.method, s, condname);
+  subjfile = @(s) sprintf('%s%s_%s_%02.f_%s.mat', cfg.dcon, cfg.cond, cfg.conn.method, s, condname);
   allname = cellfun(subjfile, num2cell(cfg.subjall), 'uni', 0);
   
   allfiles = true(1, numel(allname));

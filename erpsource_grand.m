@@ -25,7 +25,7 @@ function erpsource_grand(cfg)
 % Part of EVENTBASED group-analysis
 % see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND, 
 % POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND, 
-% POWCORR_SUBJ, POWCORR_SUBJ,
+% POWCORR_SUBJ, POWCORR_GRAND,
 % CONN_SUBJ, CONN_GRAND, CONN_STAT
 
 %---------------------------%
@@ -43,7 +43,7 @@ for e = 1:numel(cfg.erpeffect)
   %-----------------%
   %-file for each cond
   condname = regexprep(cfg.test{k}, '*', '');
-  subjfile = @(s) sprintf('%serpsource_%02.f_%s.mat', cfg.dpow, s, condname);
+  subjfile = @(s) sprintf('%serpsource_%02.f_%s.mat', cfg.derp, s, condname);
   allname = cellfun(subjfile, num2cell(cfg.subjall), 'uni', 0);
   
   allfiles = true(1, numel(allname));

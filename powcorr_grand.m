@@ -30,7 +30,7 @@ function powcorr_grand(cfg)
 % Part of EVENTBASED group-analysis
 % see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND,
 % POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND,
-% POWCORR_SUBJ, POWCORR_SUBJ,
+% POWCORR_SUBJ, POWCORR_GRAND,
 % CONN_SUBJ, CONN_GRAND, CONN_STAT
 
 % practically identical to pow_grand but not powpeaks

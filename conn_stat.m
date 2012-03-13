@@ -13,6 +13,8 @@ function conn_stat(cfg)
 %  .statconn.bl.baseline: two scalars with baseline windows (if empty, no baseline)
 %  .statconn.bl.baselinetype: type of baseline ('relchange' 'relative' 'absolute')
 %
+%  .statconn.time: cell with two scalars. Each cell gives the time window to test the t-test between conditions
+% 
 % OUT
 %  [cfg.log connsum]: values from the plots to report in csv
 % 
@@ -22,7 +24,7 @@ function conn_stat(cfg)
 % Part of EVENTBASED group-analysis
 % see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND, 
 % POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND, 
-% POWCORR_SUBJ, POWCORR_SUBJ,
+% POWCORR_SUBJ, POWCORR_GRAND,
 % CONN_SUBJ, CONN_GRAND, CONN_STAT
 
 %---------------------------%

@@ -15,7 +15,7 @@ function conn_subj(cfg, subj)
 %    if 'channel' (take average over groups of channels)
 %      .conn.chan: a struct with: 
 %                               .name: 'name of group elec'
-%                               .elec: {'elec1' 'elec2' 'elec3'};
+%                               .chan: {'elec1' 'elec2' 'elec3'};
 %      .seldata.label: names of the channels to match with cfg.conn.chan
 %      (not very robust, might require more testing)
 %   
@@ -61,7 +61,7 @@ function conn_subj(cfg, subj)
 % Part of EVENTBASED single-subject
 % see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND, 
 % POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND, 
-% POWCORR_SUBJ, POWCORR_SUBJ,
+% POWCORR_SUBJ, POWCORR_GRAND,
 % CONN_SUBJ, CONN_GRAND, CONN_STAT
 
 %---------------------------%
@@ -79,8 +79,8 @@ ddir = sprintf('%s%04.f/%s/%s/', cfg.data, subj, cfg.mod, cfg.cond); % data
 %-prepare montage
 if strcmp(cfg.conn.areas, 'channel')
   
-  if ischar(cfg.seldata.channel)
-    error('You need to specify all the channels in cfg.prepr.channel');
+  if ischar(cfg.seldata.label)
+    error('You need to specify all the channels in cfg.seldata.label');
   else
     mont = prepare_montage(cfg.conn.chan, cfg.seldata.label');
   end

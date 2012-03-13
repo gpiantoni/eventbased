@@ -4,7 +4,7 @@ function [mont] = prepare_montage(grpchan, label)
 %   [mont] = prepare_montage(chan, label)
 % where chan is a struct with:
 %   .name = 'name of group elec'
-%   .elec = {'elec'}
+%   .chan = {'elec'}
 % and label is data.label
 % Mont can be used for ft_apply_montage(data, mont)
 

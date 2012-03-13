@@ -1,5 +1,5 @@
 function powsource_subj(cfg, subj)
-%ERPSOURCE_SUBJ: identify sources from pow peaks using DICS
+%POWSOURCE_SUBJ: identify sources from pow peaks using DICS
 %
 % CFG
 %  .data: name of projects/PROJNAME/subjects/
@@ -11,7 +11,6 @@ function powsource_subj(cfg, subj)
 %  .dpow: directory to save ERP data
 %
 %  .poweffect: effect of interest for source reconstruction, can be a vector (this field is shared with pow_grand.m, maybe it's not a good idea)
-%  .pow: a structure with cfg to pass to ft_freqanalysis
 %
 %  .vol.type: 'template' or subject-specific ('dipoli' or 'openmeeg')
 %    if template, specify template .vol.template (should contain vol, lead, sens)
@@ -29,7 +28,6 @@ function powsource_subj(cfg, subj)
 %      .powsource.powpeak(1).band = 4; % width of the frequency band
 %    if 'powpeak', it reads the significant peaks calculated by pow_grand
 %
-%  .powsource.pow: a structure with cfg to pass to ft_timelockanalysis (it's better if identical to cfg.pow)
 %  .powsource.bline: one number in s, the center of the covariance window of the baseline (the window length depends on powpeak)
 %
 %  .powsource.lambda: regularization parameter of beamformer ('10%')
@@ -41,7 +39,7 @@ function powsource_subj(cfg, subj)
 % Part of EVENTBASED single-subject
 % see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND, 
 % POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND, 
-% POWCORR_SUBJ, POWCORR_SUBJ,
+% POWCORR_SUBJ, POWCORR_GRAND,
 % CONN_SUBJ, CONN_GRAND, CONN_STAT
 
 %---------------------------%

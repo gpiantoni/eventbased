@@ -14,7 +14,7 @@ function powcorr_subj(cfg, subj)
 %  .powcorr.bl.baseline: two scalars with baseline windows (if empty, no baseline)
 %
 %  .powcorr.info: column of trialinfo to use for the correlation
-%  .powcorr.log: logical (take the log of power, stronlgy advised)
+%  .powcorr.log: logical (take the log of power, strongly advised)
 %
 % OUT
 %  [cfg.dpow 'powcorr_001_TEST']: power analysis for single-subject
@@ -22,7 +22,7 @@ function powcorr_subj(cfg, subj)
 % Part of EVENTBASED single-subject
 % see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND, 
 % POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND, 
-% POWCORR_SUBJ, POWCORR_SUBJ,
+% POWCORR_SUBJ, POWCORR_GRAND,
 % CONN_SUBJ, CONN_GRAND, CONN_STAT
 
 %---------------------------%
