@@ -8,7 +8,7 @@ function pow_subj(cfg, subj)
 %  .endname: includes previous steps '_seldata_gclean_preproc_redef'
 %  .log: name of the file and directory with analysis log
 %  .test: a cell with the condition defined by redef. This function will loop over cfg.test
-%  .dpow: directory to save ERP data
+%  .dpow: directory to save POW data
 %
 %  .pow: a structure with cfg to pass to ft_freqanalysis
 %  .pow.bl.baseline: two scalars with baseline windows (if empty, no baseline)
