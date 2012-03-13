@@ -1,12 +1,25 @@
 function conn_grand(cfg)
-%GRANDCONN grand connectivity analysis
-% it only works with frequency-domain Granger data at the moment. It
-% creates a matrix (chan_chan_subj_freq) for further analysis
-% There are four ways to specify cfg.gconn.freq
-%   - char: 'all' : it takes all the frequencies in the data
-%   - char: 'any' : it takes every single frequency in the data
-%   - numeric: it takes every single frequency between the two limits ([8 12], means each frequency between 8 and 12, so 8 9 10 11 12, five values)
-%   - cell: average between the two limits ({[8 12]}, means average of all the frequencies between 8 and 12, one value)
+%CONN_GRAND connectivity analysis across subjects
+%
+% CFG
+%  .cond: name to be used in projects/PROJNAME/subjects/0001/MOD/CONDNAME/
+%  .dcon: directory with connectivity data
+%  .conn.method: method used for connectivity
+%  .conn.toi: vector with time points to run connectivity on
+%  .gconn.freq:
+%    if 'all': it takes all the frequency in the data (one value)
+%    if 'any': it takes each frequency in the data (can be alot alot)
+%    if two scalar: it takes each frequency between the extremes ([8 12], means each frequency between 8 and 12, so 8 9 10 11 12, five values)
+%    if a cell with scalar: it takes the average between the two limits ({[8 12]}, means average of all the frequencies between 8 and 12, one value)
+%
+% OUT
+%  [cfg.dcon COND_CONNMETHOD_GRANDCONN]: a matrix with all connectivity measures (chan X chan X time X freq X test X subj)
+%
+% Part of EVENTBASED group-analysis
+% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND, 
+% POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND, 
+% POWCORR_SUBJ, POWCORR_SUBJ,
+% CONN_SUBJ, CONN_GRAND, CONN_STAT
 
 %---------------------------%
 %-start log
@@ -56,7 +69,7 @@ end
 %-------%
 %-load one example 
 condname = regexprep(cfg.test{cfg.statconn.ttest2(1)}, '*', ''); % it does not matter
-outputfile = sprintf('%s_%s*_%s.mat', cfg.proj, cfg.conn.method, condname);
+outputfile = sprintf('%s_%s*_%s.mat', cfg.cond, cfg.conn.method, condname);
   
 allsub = dir([cfg.dcon outputfile]);
 load([cfg.dcon allsub(1).name], 'stat')
@@ -100,7 +113,7 @@ for kstat = 1:numel(cfg.statconn.ttest2)
   %-----------------%
   %-file for each cond
   condname = regexprep(cfg.test{k}, '*', '');
-  outputfile = sprintf('%s_%s*_%s.mat', cfg.proj, cfg.conn.method, condname);
+  outputfile = sprintf('%s_%s*_%s.mat', cfg.cond, cfg.conn.method, condname);
   
   allsub = dir([cfg.dcon outputfile]);
   spcell = @(name) sprintf('%s%s', cfg.dcon, name);
@@ -134,7 +147,7 @@ end
 
 %-----------------%
 %-save
-save([cfg.dcon cfg.proj '_' cfg.conn.method '_grandconn'], 'gconn')
+save([cfg.dcon cfg.cond '_' cfg.conn.method '_grandconn'], 'gconn')
 %-----------------%
 
 %---------------------------%

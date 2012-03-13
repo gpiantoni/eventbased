@@ -1,5 +1,67 @@
 function conn_subj(cfg, subj)
-%SUBJ CONN connectivity on single-subject data
+%CONN_SUBJ connectivity on single-subject data
+% At the moment, it only computes the two conditions which are used in the t-test
+%
+% CFG
+%  .data: name of projects/PROJNAME/subjects/
+%  .mod: name of the modality used in recordings and projects
+%  .cond: name to be used in projects/PROJNAME/subjects/0001/MOD/CONDNAME/
+%  .endname: includes previous steps '_seldata_gclean_preproc_redef'
+%  .test: a cell with the condition defined by redef. This function will loop over cfg.test
+%  .dcon: directory to save connectivity data
+% 
+%  .conn.areas: 'channel' or 'dipole' or 'erppeak' or 'powpeak'
+%    if 'channel' (take average over groups of channels)
+%      .conn.chan: a struct with: 
+%                               .name: 'name of group elec'
+%                               .elec: {'elec1' 'elec2' 'elec3'};
+%      .seldata.label: names of the channels to match with cfg.conn.chan
+%      (not very robust, might require more testing)
+%   
+%    if 'dipole' (use weights from erp at specific time window):
+%      .derp: directory with ERP data
+%      .erpeffect: vector of condition whose ERP is used here
+%      .conn.dip: a struct with:
+%                              .name: 'name of dipole'
+%                              .time: one or two scalars, time of the ERP of interest
+%   
+%    if 'erppeak' or 'powpeak' (use beamformer to construct virtual electrode):
+%      .erpeffect or .poweffect: vector of condition used for source reconstruction
+%      .derp or .dpow: directory with ERP or POW data
+%      .conn.fixedmom: logical (use the same moment for source or change it every time)
+%    
+%  .conn.toi: vector with time points to run connectivity on
+%  .conn.t_ftimwin: scalar with duration of time window
+%  .conn.type: 'cca' or 'ft'
+%    if 'cca' (use Anil Seth's implementation):
+%      .conn.method: 'gc' (only this method is available, it's time-domain based) 
+%      .conn.order: scalar indicating model order
+%
+%    if 'ft' (use Fieldtrip implementation):
+%      .conn.method: can be symmetric or asymmetric (a string of one of the below)
+%SYM:  'coh', 'csd', 'plv', 'powcorr', 'amplcorr', 'ppc', 'psi'
+%ASYM: 'granger', 'dtf', 'pdc'
+%      .conn.freq: logical, needs to be TRUE (in future, Fieldtrip might implement time-domain connectivity measures)
+%      .conn.mvar: logical, estimate coefficients or not
+%        if TRUE:
+%          .conn.toolbox: 'biosig' or 'bsmart'
+%          .conn.order: scalar indicating model order
+%        if FALSE:
+%          .conn.foi: frequency of interest (best if identical to .pow.foi)
+%
+%  .statconn.ttest2: two scalars indexing the conditions to compare (run conn_subj only on interesting conditions)
+%
+% OUT
+%  [cfg.dcon 'COND_CONNMETHOD_001_TEST']
+%
+% FIGURES
+%  montconn_001: imagesc of montage for subject used to construct virtual electrode
+%
+% Part of EVENTBASED single-subject
+% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND, 
+% POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND, 
+% POWCORR_SUBJ, POWCORR_SUBJ,
+% CONN_SUBJ, CONN_GRAND, CONN_STAT
 
 %---------------------------%
 %-start log
@@ -19,18 +81,18 @@ if strcmp(cfg.conn.areas, 'channel')
   if ischar(cfg.seldata.channel)
     error('You need to specify all the channels in cfg.prepr.channel');
   else
-    mont = prepare_montage(cfg.conn.chan, cfg.seldata.channel');
+    mont = prepare_montage(cfg.conn.chan, cfg.seldata.label');
   end
   
 elseif strcmp(cfg.conn.areas, 'dipole')
   
   %-------%
   %-read data
-  if ~exist([cfg.derp cfg.proj '_granderp.mat'], 'file')
-    error([cfg.derp cfg.proj '_granderp.mat does not exist'])
+  if ~exist([cfg.derp cfg.cond '_granderp.mat'], 'file')
+    error([cfg.derp cfg.cond '_granderp.mat does not exist'])
   end
   
-  load([cfg.derp cfg.proj '_granderp'], 'gerp')
+  load([cfg.derp cfg.cond '_granderp'], 'gerp')
   %-------%
   
   mont = topodipole(cfg.conn.dip, gerp{cfg.erpeffect});
@@ -45,7 +107,7 @@ elseif strcmp(cfg.conn.areas, 'erppeak') || strcmp(cfg.conn.areas, 'powpeak')
     inputfile = sprintf('erpsource_%02.f_%s', subj, condname);
     load([cfg.derp inputfile], 'source')
     
-    load([cfg.derp cfg.proj '_soupeak'], 'soupeak')
+    load([cfg.derp cfg.cond '_soupeak'], 'soupeak')
     %-------%
     
   elseif strcmp(cfg.conn.areas, 'powpeak')
@@ -56,7 +118,7 @@ elseif strcmp(cfg.conn.areas, 'erppeak') || strcmp(cfg.conn.areas, 'powpeak')
     inputfile = sprintf('powsource_%02.f_%s', subj, condname);
     load([cfg.dpow inputfile], 'source')
     
-    load([cfg.dpow cfg.proj '_soupeak'], 'soupeak')
+    load([cfg.dpow cfg.cond '_soupeak'], 'soupeak')
     %-------%
     
   end
@@ -92,7 +154,7 @@ for kstat = 1:numel(cfg.statconn.ttest2)
   allfile = dir([ddir cfg.test{k} cfg.endname '.mat']); % files matching a preprocessing
 
   condname = regexprep(cfg.test{k}, '*', '');
-  outputfile = sprintf('%s_%s_%02.f_%s', cfg.proj, cfg.conn.method, subj, condname);
+  outputfile = sprintf('%s_%s_%02.f_%s', cfg.cond, cfg.conn.method, subj, condname);
   %-----------------%
   
   %-----------------%
@@ -148,9 +210,9 @@ for kstat = 1:numel(cfg.statconn.ttest2)
       
       %-----------------%
       %-freq on mvar
-      if strcmpi(cfg.conn.freq, 'yes')
+      if cfg.conn.freq
         
-        if strcmpi(cfg.conn.mvar, 'yes')
+        if cfg.conn.mvar
           
           %--------%
           %-use special freq analysis for mvar data
@@ -167,7 +229,7 @@ for kstat = 1:numel(cfg.statconn.ttest2)
           cfg3 = [];
           cfg3.method = 'mtmconvol';
           cfg3.taper = 'hanning';
-          cfg3.foi  = cfg.pow.foi;
+          cfg3.foi  = cfg.conn.foi;
           cfg3.output = 'fourier';
           cfg3.feedback = 'none';
           cfg3.toi = cfg.conn.toi;
@@ -276,7 +338,7 @@ for i1 = 1:numel(soupeak)
   ivox = ~cellfun(@isempty, strfind(data.label, newname));
   %-----------------%
   
-  if strcmp(fixedmom, 'no')
+  if ~fixedmom
     %-----------------%
     %-the moment is different in each trial
     for t = 1:numel(data.trial)

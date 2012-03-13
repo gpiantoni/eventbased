@@ -6,7 +6,6 @@ function  mont = topodipole(dip, gerp)
 % where dip has fields:
 %  .name = 'name of dipole location'
 %  .time = time of the dipole, in seconds (can be one number or [.1 .2])
-%  .cond = '@(avg) avg{1}.avg' (it means: take avg from the first gerp)
 % and gerp is the average ERP for the condition of interest, cfg.erpeffect
 % Output mont can be used in ft_prepare_montage(data, mont)
 

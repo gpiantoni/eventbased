@@ -1,7 +1,24 @@
 function conn_stat(cfg)
-%STATCONN statistics on connectivity analysis
-
-%TODO: this does not handle one single condition case 
+%CONN_STAT statistics on connectivity analysis
+% Attention: this does not handle one single condition case 
+% 
+% CFG
+%  .cond: name to be used in projects/PROJNAME/subjects/0001/MOD/CONDNAME/
+%  .dcon: directory with connectivity data
+%  .conn.method: method used for connectivity
+% 
+%  .conn.toi: vector with time points to run connectivity on
+%  .statconn.bl.baseline: two scalars with baseline windows (if empty, no baseline)
+%  .statconn.bl.baselinetype: type of baseline ('relchange' 'relative' 'absolute')
+%
+% FIGURES
+%  gtrs_CONNMETHOD_LABEL1_LABEL2: connectivity over time, with one subplot per frequency
+%
+% Part of EVENTBASED group-analysis
+% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND, 
+% POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND, 
+% POWCORR_SUBJ, POWCORR_SUBJ,
+% CONN_SUBJ, CONN_GRAND, CONN_STAT
 
 %---------------------------%
 %-start log
@@ -12,7 +29,7 @@ tic_t = tic;
 
 %---------------------------%
 %-load data
-load([cfg.dcon cfg.proj '_' cfg.conn.method '_grandconn'], 'gconn')
+load([cfg.dcon cfg.cond '_' cfg.conn.method '_grandconn'], 'gconn')
 gshort = mean(mean(mean(mean(gconn.mat,3),4),5),6);
 symm = all(all(gshort - gshort' > eps(10))); % check if matrix is symmetric
 
