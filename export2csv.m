@@ -1,93 +1,144 @@
 function export2csv(cfg)
 %EXPORT2CSV write results in csv file
-% 
-% CFG
-%  
+% It will write the cfg, erppeak (and soupeak), powpeak (and soupeak), and 
+% results from connectivity analysis.
 %
+% You add columns with specific results. You need to specify:
+%   .export2csv.extrainfo = 'functionname'
+% where 'functionname' is as:
+%   [output] = functionname(cfg)
+% and output should contain no new lines but commas to separate values
+% 
+% TODO:
+%   - powcorr
+%   - testing
+%
+% Part of EVENTBASED
 
+mincol = 10; % minimum columns
+mincolcfg = 150; % minimum columns for the whole cfg
 
-
-
-mincol = 10; % minimum columns for erp and pow, to keep them aligned
-
-%-------------------------------------%
-%-simplified cfg
+%-----------------%
+%-get log file name and steps which were run
 [~, logfile] = fileparts(cfg.log);
 output = [logfile ','];
-
+output = [output sprintf(' %s', cfg.step{cfg.run}) ','];
 %-----------------%
-%-trial definition
-output = [output struct2log(cfg.preproc, 'csv')];
-output = [output struct2log(cfg.redef, 'csv')];
 
-output = [output sprintf('%s,', cfg.voltype)];
-output = [output ',,,,']; % leave some extras in case we add options
-%-----------------%
 %-------------------------------------%
+%-loop over steps
+output = [output sprintf('%s,', cfg.vol.type)];
+
+for st = 1:numel(cfg.step)
+  output = [output cfg.step{st} ','];
+  
+  %---------------------------%
+  %-preprocessing
+  switch cfg.step{st}
+    case 'seldata'
+      output = [output sprintf('%1.f,', numel(cfg.seldata))];
+      
+    case 'gclean'
+      output = [output sprintf('%1f,', cfg.gtool.bad_samples.MADs)];
+      output = [output sprintf('%1f,', cfg.gtool.bad_channels.MADs)];
+      output = [output sprintf('%1f,', cfg.gtool.eog.correction)];
+      output = [output sprintf('%1f,', cfg.gtool.emg.correction)];
+      
+    case 'preproc'
+      output = [output realign(struct2log(cfg.preproc, 'csv'), mincol)];
+      
+    case 'redef'
+      output = [output realign(struct2log(cfg.preproc, 'csv'), mincol)];
+  end
+  %---------------------------%
+  
+  %---------------------------%
+  %-analysis
+  switch cfg.step{st}
+    case 'erp_subj'
+      output = [output realign(struct2log(cfg.erp, 'csv'), mincol)];
+    case 'erp_grand'
+      output = [output sprintf('%f,', cfg.erpeffect)];
+      
+    case 'erpsource_subj'
+      output = [output realign(struct2log(cfg.erpsource.erp, 'csv'), mincol)];
+      output = [output sprintf('%s,', cfg.erpsource.areas)];
+      output = [output sprintf('%f,', cfg.erpsource.bline)];
+      output = [output sprintf('%s,', cfg.erpsource.lambda)];
+      output = [output sprintf('%s,', cfg.erpsource.powmethod)];
+    case 'erpsource_grand'
+      output = [output sprintf('%s,', cfg.erpsource.clusterstatistics)];
+      output = [output sprintf('%f,', cfg.erpsource.clusteralpha)];
+      output = [output sprintf('%f,', cfg.erpsource.maxvox)];
+      
+    case 'pow_subj'
+      output = [output realign(struct2log(cfg.pow, 'csv'), mincol)];
+    case 'pow_grand'
+      output = [output sprintf('%f,', cfg.poweffect)];
+      
+    case 'powsource_subj'
+      output = [output sprintf('%s,', cfg.powsource.areas)];
+      output = [output sprintf('%f,', cfg.powsource.bline)];
+      output = [output sprintf('%s,', cfg.powsource.lambda)];
+      output = [output sprintf('%s,', cfg.powsource.powmethod)];
+    case 'powsource_grand'
+      output = [output sprintf('%s,', cfg.powsource.clusterstatistics)];
+      output = [output sprintf('%f,', cfg.powsource.clusteralpha)];
+      output = [output sprintf('%f,', cfg.powsource.maxvox)];
+      
+    case 'powcorr_subj'
+      output = [output realign(struct2log(cfg.powcorr, 'csv'), mincol)];
+    case 'powcorr_grand'
+      output = [output sprintf('%f,', cfg.powcorreffect)];
+      
+    case 'conn_subj'
+      output = [output realign(struct2log(cfg.conn, 'csv'), 2*mincol)];
+    case 'conn_grand'
+      output = [output struct2log(cfg.gconn, 'csv')];
+    case 'conn_grand'
+      output = [output realign(struct2log(cfg.statconn, 'csv'), mincol)];
+      
+  end
+  %---------------------------%
+  
+end
+
+output = realign(output, mincolcfg);
+%-------------------------------------%
+
+keyboard
 
 %-------------------------------------%
 %-main findings
 %---------------------------%
 %-ERP
-%-----------------%
-%-output parameters
-output = [output 'ERP,'];
-output = [output sprintf('%s,', cfg.test{cfg.erpeffect})];
-
-output = [output sprintf('%1.f,', cfg.erp.preproc.baselinewindow(1))];
-output = [output sprintf('%1.f,', cfg.erp.preproc.baselinewindow(2))];
-
-if strcmp(cfg.erp.preproc.lpfilter, 'no')
-  output = [output 'no,'];
-else
-  output = [output sprintf('%1.f,', cfg.erp.preproc.lpfreq)];
-end
-
-output = [output ',,'];
-output = [output 'ERPsource,'];
-
-output = [output sprintf('%f,', cfg.gerp.bline(1))];
-output = [output sprintf('%f,', cfg.gerp.bline(2))];
-
-output = [output sprintf('%s,', cfg.erpsource.lambda)];
-output = [output sprintf('%s,', cfg.erpsource.powmethod)];
-output = [output sprintf('%f,', cfg.erpsource.bline)];
-
-output = [output sprintf('%s,', cfg.erpsource.areas )];
-output = [output ',,,,'];
-%-----------------%
-
-%-----------------%
-%-use predefined or ERP-peaks for areas of interest
-erp = false;
-
-if strcmp(cfg.erpsource.areas, 'manual')
-  erppeak = cfg.erpsource.erppeak;
-  erp = true;
+if numel(dir(cfg.derp)) > 2 % dir is not empty
   
-elseif strcmp(cfg.erpsource.areas, 'erppeak')
-  if exist([cfg.derp cfg.proj '_erppeak.mat'], 'file')
+  %-----------------%
+  %-erppeak and soupeak
+  %-------%
+  %-get erppeak
+  if strcmp(cfg.erpsource.areas, 'manual')
+    erppeak = cfg.erpsource.erppeak;
+  elseif strcmp(cfg.erpsource.areas, 'erppeak')
     load([cfg.derp cfg.proj '_erppeak'], 'erppeak')
-    erp = true;
   end
-end
-
-%-------%
-%-load ERP source peaks
-sou = false;
-
-if exist([cfg.derp cfg.proj '_soupeak.mat'], 'file')
-  load([cfg.derp cfg.proj '_soupeak'], 'soupeak')
+  %-------%
   
-  if numel({erppeak.name}) == numel({soupeak.name}) && ...
-      all(strcmp({erppeak.name}, {soupeak.name}))
-    sou = true;
+  %-------%
+  %-load ERP source peaks
+  sou = false;
+  
+  if exist([cfg.derp cfg.proj '_soupeak.mat'], 'file')
+    load([cfg.derp cfg.proj '_soupeak'], 'soupeak')
+    
+    if numel({erppeak.name}) == numel({soupeak.name}) && ...
+        all(strcmp({erppeak.name}, {soupeak.name}))
+      sou = true;
+    end
   end
-end
-%-------%
-%-----------------%
-
-if erp
+  %-------%
+  %-----------------%
   
   %-----------------%
   %-loop over peaks (sorted by time)
@@ -112,87 +163,43 @@ if erp
   %-----------------%
   
 end
-
-%-----------------%
-%-add extra column for realignment
-if erp
-  extracol = (mincol - numel(erppeak)) * 6; % there are six cells in ERP
-else
-  extracol = mincol * 6;
-end
-output = [output sprintf(repmat(' ,', 1, extracol))];
+output = realign(output, mincol*4); % to be tested
 %-----------------%
 %---------------------------%
+
 
 %---------------------------%
 %-POW
-%-----------------%
-%-output
-output = [output 'POW,'];
-output = [output sprintf('%s,', cfg.test{cfg.poweffect})];
-
-output = [output sprintf('%s,', cfg.pow.method)];
-output = [output sprintf('%s,', cfg.pow.taper)];
-
-output = [output sprintf('%f,', cfg.pow.foi(1))];
-output = [output sprintf('%f,', cfg.pow.foi(end))];
-
-output = [output sprintf('%f,', cfg.pow.t_ftimwin(1))];
-output = [output sprintf('%f,', cfg.pow.t_ftimwin(end))];
-
-output = [output sprintf('%f,', cfg.pow.toi(1))];
-output = [output sprintf('%f,', cfg.pow.toi(end))];
-
-if ~isempty(cfg.pow.bl.baseline)
-  output = [output sprintf('%s,', cfg.pow.bl.baselinetype)];
-  output = [output sprintf('%f,', cfg.pow.bl.baseline(1))];
-  output = [output sprintf('%f,', cfg.pow.bl.baseline(end))];
-else
-  output = [output ',,,'];
-end
-
-output = [output ',,'];
-output = [output 'POWsource,'];
-
-output = [output sprintf('%s,', cfg.powsource.lambda)];
-output = [output sprintf('%s,', cfg.powsource.powmethod)];
-output = [output sprintf('%f,', cfg.powsource.bline)];
-
-output = [output sprintf('%s,', cfg.powsource.areas )];
-output = [output ',,,,'];
-%-----------------%
-
-%-----------------%
-%-use predefined or POW-peaks for areas of interest
-pow = false;
-
-if strcmp(cfg.powsource.areas, 'manual')
-  powpeak = cfg.powsource.powpeak;
-  pow = true;
+if numel(dir(cfg.dpow)) > 2 % dir is not empty
   
-elseif strcmp(cfg.powsource.areas, 'powpeak')
-  if exist([cfg.dpow cfg.proj '_powpeak.mat'], 'file')
-    load([cfg.dpow cfg.proj '_powpeak'], 'powpeak')
-    pow = true;
+  %-----------------%
+  %-powpeak and soupeak
+  %-------%
+  %-get powpeak
+  if strcmp(cfg.powsource.areas, 'manual')
+    powpeak = cfg.powsource.powpeak;
+    
+  elseif strcmp(cfg.powsource.areas, 'powpeak')
+    if exist([cfg.dpow cfg.proj '_powpeak.mat'], 'file')
+      load([cfg.dpow cfg.proj '_powpeak'], 'powpeak')
+    end
   end
-end
-
-%-------%
-%-load POW source peaks
-sou = false;
-
-if exist([cfg.dpow cfg.proj '_soupeak.mat'], 'file')
-  load([cfg.dpow cfg.proj '_soupeak'], 'soupeak')
+  %-------%
   
-  if numel({powpeak.name}) == numel({soupeak.name}) && ... 
-    all(strcmp({powpeak.name}, {soupeak.name}))
-    sou = true;
+  %-------%
+  %-load POW source peaks
+  sou = false;
+  
+  if exist([cfg.dpow cfg.proj '_soupeak.mat'], 'file')
+    load([cfg.dpow cfg.proj '_soupeak'], 'soupeak')
+    
+    if numel({powpeak.name}) == numel({soupeak.name}) && ...
+        all(strcmp({powpeak.name}, {soupeak.name}))
+      sou = true;
+    end
   end
-end
-%-------%
-%-----------------%
-
-if pow
+  %-------%
+  %-----------------%
   
   %-----------------%
   %-loop over peaks (sorted by time)
@@ -217,16 +224,7 @@ if pow
   %-----------------%
   
 end
-
-%-----------------%
-%-add extra column for realignment
-if pow
-  extracol = (mincol - numel(powpeak)) * 8; % there are six cells in pow
-else
-  extracol = mincol * 8;
-end
-output = [output sprintf(repmat(' ,', 1, extracol))];
-%-----------------%
+output = realign(output, mincol*4); % to be tested
 %---------------------------%
 %-------------------------------------%
 
@@ -244,62 +242,11 @@ end
 fid = fopen(cfg.csvf, 'a+');
 
 if exist([cfg.log filesep 'connsum.mat'], 'file')
- 
-  %-----------------%
-  %-output
-  output = [output 'CONN,'];
-  
-  output = [output sprintf('%s,', cfg.conn.areas)];
-  
-  switch cfg.conn.areas
-    case {'erppeak' 'powpeak'}
-      output = [output sprintf('%s,', cfg.conn.fixedmom)];
-    otherwise
-      output = [output ','];
-  end
-  
-  output = [output sprintf('%f,', cfg.conn.toi(1))];
-  output = [output sprintf('%f,', cfg.conn.toi(end))];
-  
-  output = [output sprintf('%f,', cfg.conn.t_ftimwin)];
-  
-  if ~isempty(cfg.statconn.bl.baseline)
-    output = [output sprintf('%s,', cfg.statconn.bl.baselinetype)];
-    output = [output sprintf('%f,', cfg.statconn.bl.baseline(1))];
-    output = [output sprintf('%f,', cfg.statconn.bl.baseline(end))];
-  else
-    output = [output ',,,'];
-  end
-  
-  output = [output sprintf('%s,', cfg.conn.type)];
-  
-  switch cfg.conn.type
-    case 'ft'
-      output = [output sprintf('%s,', cfg.conn.mvar)];
-      output = [output sprintf('%s,', cfg.conn.toolbox)];
-      
-      output = [output sprintf('%s,', cfg.conn.freq)];
-      output = [output sprintf('%s,', cfg.conn.method)];
-      
-      
-    case 'cca'
-      output = [output sprintf('%s,', cfg.conn.method)];
-      output = [output ',,,'];
-  end
-  
-  if strcmp(cfg.conn.type, 'ft') && strcmp(cfg.conn.mvar, 'ft')
-    output = [output ','];
-  else
-    output = [output sprintf('%1.f,', cfg.conn.order)];
-  end
-  
-  output = [output ',,,,']; % leave some extras in case we add options
-  %-----------------%
-  
-  load([cfg.log filesep 'connsum'], 'connsum')
   
   %---------------------------%
   %-loop over chan-chan
+  load([cfg.log filesep 'connsum'], 'connsum')
+  
   for i = 1:numel(connsum) % channel combinations
     
     fwrite(fid, output);
@@ -314,7 +261,7 @@ if exist([cfg.log filesep 'connsum.mat'], 'file')
     end
     %-----------------%
     
-    fprintf(fid, '\n');
+   % fprintf(fid, '\n');
   end
   %---------------------------%
   
@@ -325,4 +272,16 @@ else
   
 end
 fclose(fid);
+%-------------------------------------%
+
+%-------------------------------------%
+%-add commas at the end so that columns are realigned
+function csvlog = realign(csvlog, mincol)
+
+ncol = mincol - numel(strfind(csvlog, ','));
+if ncol <= 0
+  return
+else
+  csvlog = [csvlog repmat(',', [1 ncol])];
+end
 %-------------------------------------%
