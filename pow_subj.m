@@ -73,7 +73,10 @@ for k = 1:numel(cfg.test)
   cfg2 = cfg.pow;
   cfg2.feedback = 'none';
   data = ft_freqanalysis(cfg2, data);
-  data.time = cfg2.toi;
+  
+  if isfield(cfg.pow, 'toi')
+    data.time = cfg.pow.toi;
+  end
   %-----------------%
   
   %-----------------%

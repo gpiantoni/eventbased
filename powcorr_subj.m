@@ -75,7 +75,10 @@ for k = 1:numel(cfg.test)
   cfg2.feedback = 'none';
   cfg2.keeptrials = 'yes';
   data = ft_freqanalysis(cfg2, data);
-  data.time = cfg2.toi;
+  
+  if isfield(cfg.powcorr, 'toi')
+    data.time = cfg.powcorr.toi;
+  end
   %-----------------%
   
   %-----------------%
