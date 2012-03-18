@@ -63,6 +63,7 @@ for i = 1:numel(allfile)
   cfg1.feedback = 'none';
   cfg1.outputfile = outputfile;
   ft_preprocessing(cfg1, data);
+  save(outputfile, 'event', '-append')
   %-----------------%
 
   %-----------------%

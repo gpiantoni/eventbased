@@ -53,7 +53,6 @@ for i = 1:numel(allfile)
   %-define the new trl
   load([ddir allfile(i).name]) % to get the events
   output = sprintf('%s\n%s\n', output, allfile(i).name);
-  event = ft_findcfg(data.cfg, 'event');
   
   if isempty(event)
     continue

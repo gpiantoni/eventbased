@@ -191,6 +191,12 @@ for i = 1:numel(allfile) % this can run in parallel
   %--------------------------%
   
   %--------------------------%
+  %-save event
+  load([ddir allfile(i).name], 'event')
+  save(cfg2.outputfile, 'event', '-append')
+  %--------------------------%
+  
+  %--------------------------%
   %-output
   outtmp = sprintf('%s ', data.label{gdata.BadChanIdx});
   output = sprintf('%s   Bad channels: %s \n', output, outtmp);
