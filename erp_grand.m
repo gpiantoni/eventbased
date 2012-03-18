@@ -146,12 +146,17 @@ if ~isempty(gerp)
       
       %--------%
       %-plot
-      colorlim = max(max(abs(gerp{cfg.erpeffect}.avg)));
-      timelim = gerp{cfg.erpeffect}.time([1 end]);
       
       cfg4 = [];
-      cfg4.xlim = timelim(1):.1:timelim(2); % one plot every 100 ms
-      cfg4.zlim = [-1 1] * colorlim;
+      if ~isempty(cfg.erpeffect)
+        colorlim = max(max(abs(gerp{cfg.erpeffect}.avg)));
+        timelim = gerp{cfg.erpeffect}.time([1 end]);
+        
+        cfg4.xlim = timelim(1):.1:timelim(2); % one plot every 100 ms
+        cfg4.zlim = [-1 1] * colorlim;
+      else
+        cfg4.zlim = 'maxabs';
+      end
       cfg4.layout = layout;
       cfg4.style = 'straight';
       cfg4.marker = 'off';
