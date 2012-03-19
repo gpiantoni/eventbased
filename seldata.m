@@ -84,6 +84,11 @@ for i = 1:numel(allfile)
   
   data = ft_preprocessing(cfg2);
   event = ft_findcfg(data.cfg, 'event');
+  
+  if ischar(event) && ...
+      strcmp(event, 'empty - this was cleared by checkconfig')
+    event = ft_read_event(event);
+  end
   %-----------------%
   
   %-----------------%
