@@ -11,6 +11,9 @@ function pow_grand(cfg)
 %  .rslt: directory images are saved into
 %  .sens.layout: file with layout. It should be a mat containing 'layout'
 %                If empty, it does not plot topo.
+% 
+%  .gpow.outliers: logical (print tables with number of points above a
+%  certain number of standard deviation, experimental code)
 %
 %  .dpow: directory to save POW data
 %  .poweffect: effect of interest to create powpeak. If empty, no stats.
