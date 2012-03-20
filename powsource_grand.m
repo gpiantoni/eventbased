@@ -43,7 +43,7 @@ for e = 1:numel(cfg.poweffect)
   %-----------------%
   %-file for each cond
   condname = regexprep(cfg.test{k}, '*', '');
-  subjfile = @(s) sprintf('%serpsource_%02.f_%s.mat', cfg.dpow, s, condname);
+  subjfile = @(s) sprintf('%spowsource_%02.f_%s.mat', cfg.dpow, s, condname);
   allname = cellfun(subjfile, num2cell(cfg.subjall), 'uni', 0);
   
   allfiles = true(1, numel(allname));
