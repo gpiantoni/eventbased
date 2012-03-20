@@ -106,8 +106,6 @@ end
 output = realign(output, mincolcfg);
 %-------------------------------------%
 
-keyboard
-
 %-------------------------------------%
 %-main findings
 %---------------------------%
@@ -230,7 +228,8 @@ output = realign(output, mincol*4); % to be tested
 
 %-------------------------------------%
 %-read extra, dataset-specific info
-if isfield(cfg, 'export2csv') && isfield(cfg.export2csv, 'extrainfo')
+if isfield(cfg, 'export2csv') && isfield(cfg.export2csv, 'extrainfo') && ...
+    ~isempty(cfg.export2csv.extrainfo)
   outtmp = feval(cfg.export2csv.extrainfo, cfg);
   output = [output outtmp];
 end
