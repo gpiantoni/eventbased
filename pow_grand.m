@@ -64,16 +64,65 @@ for k = 1:numel(cfg.test)
   %-----------------%
   
   %-----------------%
-  %-POW over subj
+  %-read data from all subjects
   cfg1 = [];
   cfg1.inputfile = allname;
   cfg1.keepindividual = 'yes';
   gfreq{k} = ft_freqgrandaverage(cfg1);
+  %-----------------%
   
+  %-----------------%
+  %-average across subjects
   cfg2 = [];
   cfg2.variance = 'yes';
   gpow{k} = ft_freqdescriptives(cfg2, gfreq{k});
   gpow{k}.tscore =  gpow{k}.powspctrm ./ gpow{k}.powspctrmsem;
+  %-----------------%
+  
+  %-----------------%
+  %-find if there are outliers
+  if isfield(cfg.gpow, 'outliers') && cfg.gpow.outliers
+    
+    thr = [5 10 15 20 25 50]; % threshold above sem
+    
+    %-------%   
+    %-calculate mean and sem (idk if sem should be changed to be less sensitive to the number of subjects)
+    % jackknife is more robust towards outliers
+    cfg2 = [];
+    cfg2.jackknife = 'yes';
+    gjack = ft_freqdescriptives(cfg2, gfreq{k});
+    gjack.powspctrm = shiftdim(median(gfreq{k}.powspctrm), 1);
+    %-------%  
+    
+    %-------%  
+    %-header
+    output = [output sprintf('Subject-outliers\n')];
+    output = [output 'Filename                ' sprintf('>%2.f    ', thr) sprintf('\n')];
+    %-------%  
+    
+    %-------%  
+    %-loop over subjects
+    for s = 1:numel(allname)
+      
+      %-filename
+      [~, subjfile] = fileparts(allname{s});
+      subjfile = [subjfile repmat(' ', 1, 20-numel(subjfile))];
+      
+      %-matrix giving the difference in sem from the mean
+      jsubj = (shiftdim(gfreq{k}.powspctrm(s,:,:,:), 1) - gjack.powspctrm) ./ gjack.powspctrmsem; % subject-specific distance from mean
+      
+      %-count how many points are above the threshold
+      morethan = @(n)numel(find(jsubj(:) > n));
+      abovethr = cellfun(morethan, num2cell(thr));
+      
+      %-print one row
+      outtmp = sprintf('%s%s\n', subjfile, sprintf('%7.f', abovethr));
+      output = [output outtmp];
+      
+    end
+    %-------% 
+    
+  end
   %-----------------%
   
 end
