@@ -13,11 +13,11 @@ function pow_subj(cfg, subj)
 %  .pow: a structure with cfg to pass to ft_freqanalysis
 %  .pow.outliers: logical (print tables with number of points above a
 %  certain number of standard deviation, experimental code)
-%  .pow.outliersthr: if outliers is true, this is the threshold in sd to reject a trial (if empty, no rejection)
+%  .pow.outliersthr: if outliers is true, this is the threshold to reject a
+%  trial (if empty, no rejection. It's very hard to give an indicative
+%  value for this number. First try checking the plots, then assign a threshold)
 %
-%  .pow.bl: if empty, no baseline. Otherwise:
-%  .pow.bl.baseline: two scalars with baseline windows
-%  .pow.bl.baselinetype: type of baseline ('relchange')
+% Baseline correction is applied in POW_GRAND
 %
 % OUT
 %  [cfg.dpow 'pow_001_TEST']: power analysis for single-subject
@@ -94,31 +94,18 @@ for k = 1:numel(cfg.test)
   if cfg.pow.outliers
     
     %-------%
-    %-freqtrl: freq with single trials, freq: averaged freq
-    freqtrl = freq;
-    
-    cfg4 = [];
-    cfg4.jackknife = 'yes'; % more robust against outliers
-    freq = ft_freqdescriptives(cfg4, freqtrl);
-    freq.powspctrmsem = freq.powspctrmsem * sqrt(size(freqtrl.powspctrm,1)); % sem = sd / sqrt(n_trials)
-    %-------%
-    
-    %-------%
-    %-compute distance in sd for each TFR point
-    powspctrm = bsxfun(@minus, freqtrl.powspctrm, shiftdim(freq.powspctrm, -1));
-    powspctrm = bsxfun(@rdivide, powspctrm, shiftdim(freq.powspctrmsem, -1));
-    
-    trlsd = zeros(size(powspctrm,1), 1);
-    for i = 1:size(powspctrm,1)
-      i_powspctrm = powspctrm(i, :, :, :);
+    %-compute sd across trials
+    trlsd = zeros(size(freq.powspctrm,1), 1);
+    for i = 1:size(freq.powspctrm,1)
+      i_powspctrm = freq.powspctrm(i, :, :, :);
       trlsd(i) = nanstd(i_powspctrm(:),1);
     end
-    
-    freq = rmfield(freq, 'powspctrmsem'); % you don't need this extra field
     %-------%
     
     %-------%
-    %-reject outliers
+    %-compute average (and reject outliers if necessary)
+    cfg4 = [];
+    
     if isfield(cfg.pow, 'outliersthr') && ~isempty(cfg.pow.outliersthr)
       goodtrl = find(trlsd < cfg.pow.outliersthr);
       badtrl = find(trlsd >= cfg.pow.outliersthr);
@@ -126,11 +113,12 @@ for k = 1:numel(cfg.test)
       output = [output sprintf('Cond %s Rejecting %5.f outliers out of %5.f trials, remaining %5.f trials\n', ...
         condname, numel(badtrl), numel(trlsd), numel(goodtrl))];
       
-      cfg4 = [];
+      
       cfg4.trials = goodtrl;
-      freq = ft_freqdescriptives(cfg4, freqtrl);
       
     end
+    
+    freq = ft_freqdescriptives(cfg4, freq);
     %-------%
     
     %-------%
@@ -152,20 +140,6 @@ for k = 1:numel(cfg.test)
     saveas(gcf, pngfile);
     close(gcf); drawnow
     %-------%
-    
-  end
-  %-----------------%
-  
-  %-----------------%
-  %-baseline correction
-  if ~isempty(cfg.pow.bl) && cfg.pow.bl.singletrial
-    cfg3 = [];
-    cfg3.baseline = cfg.pow.bl.baseline;
-    cfg3.baselinetype = cfg.pow.bl.baselinetype;
-    freqtrl = ft_freqbaseline(cfg3, freq);
-    
-  else
-    freqtrl = freq;
     
   end
   %-----------------%

@@ -11,6 +11,11 @@ function pow_grand(cfg)
 %  .rslt: directory images are saved into
 %  .sens.layout: file with layout. It should be a mat containing 'layout'
 %                If empty, it does not plot topo.
+%
+%  Baseline correction at the single-subject level:
+%  .pow.bl: if empty, no baseline. Otherwise:
+%  .pow.bl.baseline: two scalars with baseline windows
+%  .pow.bl.baselinetype: type of baseline ('relchange')
 % 
 %  .gpow.outliers: logical (print tables with number of points above a
 %  certain number of standard deviation, experimental code)
@@ -67,11 +72,31 @@ for k = 1:numel(cfg.test)
   %-----------------%
   
   %-----------------%
+  %-load and apply baseline correction if necessary
+  freqall = [];
+  for i = 1:numel(allname)
+    load(allname{i}, 'freq')
+    
+    %-------%
+    %-baseline correction
+    if ~isempty(cfg.pow.bl)
+      cfg3 = [];
+      cfg3.baseline = cfg.pow.bl.baseline;
+      cfg3.baselinetype = cfg.pow.bl.baselinetype;
+      freq = ft_freqbaseline(cfg3, freq);
+    end
+    %-------%
+    
+    freqall{i} = freq;
+    
+  end
+  %-----------------%
+  
+  %-----------------%
   %-read data from all subjects
   cfg1 = [];
-  cfg1.inputfile = allname;
   cfg1.keepindividual = 'yes';
-  gfreq{k} = ft_freqgrandaverage(cfg1);
+  gfreq{k} = ft_freqgrandaverage(cfg1, freqall{:});
   %-----------------%
   
   %-----------------%
