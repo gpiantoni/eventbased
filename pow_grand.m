@@ -86,15 +86,16 @@ for k = 1:numel(cfg.test)
   %-find if there are outliers
   if isfield(cfg.gpow, 'outliers') && cfg.gpow.outliers
     
-    thr = [5 10 15 20 25 50]; % threshold above sem
+    thr = [1 2 3 5 10 20]; % threshold above sem
     
     %-------%   
-    %-calculate mean and sem (idk if sem should be changed to be less sensitive to the number of subjects)
+    %-calculate mean and standard deviation (not sem, but keep same name)
     % jackknife is more robust towards outliers
     cfg2 = [];
     cfg2.jackknife = 'yes';
     gjack = ft_freqdescriptives(cfg2, gfreq{k});
     gjack.powspctrm = shiftdim(median(gfreq{k}.powspctrm), 1);
+    gjack.powspctrmsem = gjack.powspctrmsem * sqrt(numel(allname)); % sem = sd / sqrt(n)
     %-------%  
     
     %-------%  
