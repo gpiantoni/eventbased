@@ -289,13 +289,18 @@ if ~isempty(gpow)
         cfg5 = [];
         cfg5.parameter = 'powspctrm';
         cfg5.layout = layout;
-        cfg5.xlim = gpow{t}.time;
+        
         cfg5.ylim = cfg.gpow.freq{f};
         cfg5.zlim = 'maxabs';
         cfg5.style = 'straight';
         cfg5.marker = 'off';
         cfg5.comment = 'xlim';
         cfg5.commentpos = 'title';
+        
+        %-no topoplot if the data contains NaN
+        onedat = squeeze(gpow{t}.powspctrm(1, cfg.gpow.freq{f}(1), :)); % take one example, lowest frequency)
+        cfg5.xlim = gpow{t}.time(~isnan(onedat));
+        
         ft_topoplotER(cfg5, gpow{t});
         %--------%
         
