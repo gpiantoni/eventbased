@@ -76,7 +76,7 @@ for k = 1:numel(cfg.test)
   %-----------------%
   %-calculate power
   cfg2 = cfg.pow;
-  cfg2.feedback = 'none';
+  cfg2.feedback = 'etf';
   
   if cfg.pow.outliers
     cfg2.keeptrials = 'yes';
