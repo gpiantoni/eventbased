@@ -148,15 +148,12 @@ for i = 1:numel(allfile) % this can run in parallel
   
   %--------------------------%
   %-run pipeline
-  load([ddir allfile(i).name], 'data')
-  gdata = process(cleanpipe, data);
+  gdata = process(cleanpipe, [ddir allfile(i).name]);
   %--------------------------%
   
   %--------------------------%
   %-convert and prepare cfg
-  dataorig = data;
   data = fieldtrip(gdata);
-  data.label = dataorig.label;
   %--------------------------%
   
   %--------------------------%
