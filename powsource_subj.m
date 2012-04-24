@@ -244,8 +244,8 @@ for e = 1:numel(cfg.poweffect)
     %-load MNI grid
     if ~strcmp(cfg.vol.type, 'template') ...
         && isfield(cfg, 'bnd2lead') && isfield(cfg.bnd2lead, 'mni') ...
-        && isfield(cfg.bnd2lead.mni, 'warp') && strcmp(cfg.bnd2lead.mni.warp, 'yes')
-      souPre{f}.grid = grid;
+        && isfield(cfg.bnd2lead.mni, 'warp') && cfg.bnd2lead.mni.warp
+      souPre{f}.pos = grid.pos;
     end
     %-----------------%
     %---------------------------%
@@ -266,8 +266,8 @@ for e = 1:numel(cfg.poweffect)
     %-load MNI grid
     if ~strcmp(cfg.vol.type, 'template') ...
         && isfield(cfg, 'bnd2lead') && isfield(cfg.bnd2lead, 'mni') ...
-        && isfield(cfg.bnd2lead.mni, 'warp') && strcmp(cfg.bnd2lead.mni.warp, 'yes')
-      source{f}.grid = grid;
+        && isfield(cfg.bnd2lead.mni, 'warp') && cfg.bnd2lead.mni.warp
+      source{f}.pos = grid.pos;
     end
     %-----------------%
     %---------------------------%
