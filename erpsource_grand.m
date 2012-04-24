@@ -3,7 +3,7 @@ function erpsource_grand(cfg)
 %
 % CFG
 %  .cond: name to be used to save erpsource_PROJNAME and figures
-%  .test: a cell with the condition defined by redef. 
+%  .test: a cell with the condition defined by redef.
 %  .log: name of the file and directory with analysis log
 %  .rslt: directory images are saved into
 %
@@ -15,6 +15,10 @@ function erpsource_grand(cfg)
 %  .erpsource.clusteralpha: level to select sensors (default 0.05)
 %  .erpsource.maxvox: max number of significant voxels to be used in soupeak
 %
+% Options if you want to create significance mask
+%  .erpsource.nifti: directory and initial part of the name where you want to save the masks
+%  .dti.ref: template for mask ('/usr/share/data/fsl-mni152-templates/MNI152_T1_1mm_brain.nii.gz')
+%
 % OUT
 %  [cfg.derp 'COND_granderpsource']: source analysis for all subject
 %  [cfg.derp 'COND_soupeak']: significant source peaks in the ERP
@@ -23,8 +27,8 @@ function erpsource_grand(cfg)
 %  gerppeak_ERPEFFECT_ERPPEAKNAME: 3d plot of the source for one peak
 %
 % Part of EVENTBASED group-analysis
-% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND, 
-% POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND, 
+% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND,
+% POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND,
 % POWCORR_SUBJ, POWCORR_GRAND,
 % CONN_SUBJ, CONN_GRAND, CONN_STAT
 
@@ -100,7 +104,7 @@ for p = 1:numel(erppeak)
   soupeak(p).pos = soupos;
   soupeak(p).center = mean(soupos,1);
   soupeak(p).name = erppeak(p).name;
-  output = [output outtmp];  
+  output = [output outtmp];
   
   %--------%
   pngname = sprintf('gerppeak_%1.f_%s', cfg.erpeffect, erppeak(p).name);
@@ -110,7 +114,25 @@ for p = 1:numel(erppeak)
   [~, logfile] = fileparts(cfg.log);
   system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
   %--------%
-      
+  
+  %--------%
+  if isfield(cfg.erpsource, 'nifti') && ~isempty(cfg.erpsource.nifti)
+    
+    dtimri = ft_read_mri(cfg.dti.ref);
+    
+    cfg1 = [];
+    cfg1.parameter = 'image';
+    souinterp = ft_sourceinterpolate(cfg1, erpstat{p}, dtimri);
+    
+    cfg1 = [];
+    cfg1.parameter = 'image';
+    cfg1.filename = [cfg.powsource.nifti soupeak(p).name];
+    ft_sourcewrite(cfg1, souinterp);
+    gzip([cfg.powsource.nifti soupeak(p).name '.nii'])
+    delete([cfg.powsource.nifti soupeak(p).name '.nii'])
+  end
+  %--------%
+  
 end
 
 save([cfg.derp cfg.cond '_soupeak'], 'soupeak')

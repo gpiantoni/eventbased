@@ -15,6 +15,10 @@ function powsource_grand(cfg)
 %  .powsource.clusteralpha: level to select sensors (default 0.05)
 %  .powsource.maxvox: max number of significant voxels to be used in soupeak
 %
+% Options if you want to create significance mask
+%  .powsource.nifti: directory where you want to save the masks
+%  .dti.ref: template for mask ('/usr/share/data/fsl-mni152-templates/MNI152_T1_1mm_brain.nii.gz')
+%
 % OUT
 %  [cfg.dpow 'COND_grandpowsource']: source analysis for all subject
 %  [cfg.dpow 'COND_soupeak']: significant source peaks in the POW
@@ -114,8 +118,7 @@ for p = 1:numel(powpeak)
   %--------%
   if isfield(cfg.powsource, 'nifti') && ~isempty(cfg.powsource.nifti)
     
-    dtitemplate = '/data1/projects/gosd/subjects/0003/smri/t1/svui_0003_smri_t1_spm_bet.nii.gz';
-    dtimri = ft_read_mri(dtitemplate);
+    dtimri = ft_read_mri(cfg.dti.ref);
     
     cfg1 = [];
     cfg1.parameter = 'image';
@@ -125,6 +128,8 @@ for p = 1:numel(powpeak)
     cfg1.parameter = 'image';
     cfg1.filename = [cfg.powsource.nifti soupeak(p).name];
     ft_sourcewrite(cfg1, souinterp);
+    gzip([cfg.powsource.nifti soupeak(p).name '.nii'])
+    delete([cfg.powsource.nifti soupeak(p).name '.nii'])
   end
   %--------%
 
