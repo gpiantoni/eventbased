@@ -70,7 +70,7 @@ else
   load([mdir mfile '_lead_' cfg.vol.type '.mat'], 'lead')
   
   if isfield(cfg, 'bnd2lead') && isfield(cfg.bnd2lead, 'mni') ...
-      && isfield(cfg.bnd2lead.mni, 'warp') && strcmp(cfg.bnd2lead.mni.warp, 'yes')
+      && isfield(cfg.bnd2lead.mni, 'warp') && cfg.bnd2lead.mni.warp
     load(sprintf('/data1/toolbox/fieldtrip/template/sourcemodel/standard_grid3d%dmm.mat', ...
       cfg.bnd2lead.mni.resolution), 'grid'); % TODO: change absolute path to relative
     grid = ft_convert_units(grid, 'mm');
