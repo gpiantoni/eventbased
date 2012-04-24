@@ -62,7 +62,7 @@ for e = 1:numel(cfg.poweffect)
     load(allname{s});
     spre(s,:) = souPre;
     sall(s,:) = source;
-    clear source
+    clear source souPre
   end
   %-----------------%
   
@@ -109,6 +109,23 @@ for p = 1:numel(powpeak)
   
   [~, logfile] = fileparts(cfg.log);
   system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
+  %--------%
+  
+  %--------%
+  if isfield(cfg.powsource, 'nifti') && ~isempty(cfg.powsource.nifti)
+    
+    dtitemplate = '/data1/projects/gosd/subjects/0003/smri/t1/svui_0003_smri_t1_spm_bet.nii.gz';
+    dtimri = ft_read_mri(dtitemplate);
+    
+    cfg1 = [];
+    cfg1.parameter = 'image';
+    souinterp = ft_sourceinterpolate(cfg1, powstat{p}, dtimri);
+    
+    cfg1 = [];
+    cfg1.parameter = 'image';
+    cfg1.filename = [cfg.powsource.nifti soupeak(p).name];
+    ft_sourcewrite(cfg1, souinterp);
+  end
   %--------%
 
 end

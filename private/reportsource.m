@@ -128,6 +128,9 @@ soupeak = stat.pos(selvox, :);
 clmat = zeros(size(clusterslabelmat));
 clmat(cl(sstat)) = 1; % in cluster, but not first cfg.maxvox
 clmat(selvox) = 2; % largest t-score
+
+stat.image = zeros(size(clusterslabelmat));
+stat.image(selvox) = 1;
 %-------------------------------------%
 
 %-------------------------------------%

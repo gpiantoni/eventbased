@@ -69,6 +69,13 @@ else
   load([mdir mfile '_vol_' cfg.vol.type '.mat'], 'vol')
   load([mdir mfile '_lead_' cfg.vol.type '.mat'], 'lead')
   
+  if isfield(cfg, 'bnd2lead') && isfield(cfg.bnd2lead, 'mni') ...
+      && isfield(cfg.bnd2lead.mni, 'warp') && strcmp(cfg.bnd2lead.mni.warp, 'yes')
+    load(sprintf('/data1/toolbox/fieldtrip/template/sourcemodel/standard_grid3d%dmm.mat', ...
+      cfg.bnd2lead.mni.resolution), 'grid'); % TODO: change absolute path to relative
+    grid = ft_convert_units(grid, 'mm');
+  end
+  
 end
 %-----------------%
 
@@ -212,6 +219,8 @@ for e = 1:numel(cfg.poweffect)
     freq = ft_freqanalysis(cfg1, data);
     %-----------------%
     
+    %---------------------------%
+    %-baseline
     %-----------------%
     %-source analysis
     cfg1 = [];
@@ -228,14 +237,40 @@ for e = 1:numel(cfg.poweffect)
     cfg1.elec         = sens;
     
     souPre{f}       = ft_sourceanalysis(cfg1, freq);
+    souPre{f}.cfg = [];
+    %-----------------%
+    
+    %-----------------%
+    %-load MNI grid
+    if ~strcmp(cfg.vol.type, 'template') ...
+        && isfield(cfg, 'bnd2lead') && isfield(cfg.bnd2lead, 'mni') ...
+        && isfield(cfg.bnd2lead.mni, 'warp') && strcmp(cfg.bnd2lead.mni.warp, 'yes')
+      souPre{f}.grid = grid;
+    end
+    %-----------------%
+    %---------------------------%
 
+    %---------------------------%
+    %-main analysis
+    %-----------------%
     %-keep filters only for source analysis
     cfg1.(cfg1.method).keepfilter   = 'yes';
     cfg1.(cfg1.method).realfilter   = 'yes';
-
+    
     cfg1.latency    = powpeak(f).time;
     source{f}       = ft_sourceanalysis(cfg1, freq);
+    source{f}.cfg = [];
     %-----------------%
+    
+    %-----------------%
+    %-load MNI grid
+    if ~strcmp(cfg.vol.type, 'template') ...
+        && isfield(cfg, 'bnd2lead') && isfield(cfg.bnd2lead, 'mni') ...
+        && isfield(cfg.bnd2lead.mni, 'warp') && strcmp(cfg.bnd2lead.mni.warp, 'yes')
+      source{f}.grid = grid;
+    end
+    %-----------------%
+    %---------------------------%
     
   end
 

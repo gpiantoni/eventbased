@@ -69,6 +69,13 @@ else
   load([mdir mfile '_vol_' cfg.vol.type '.mat'], 'vol')
   load([mdir mfile '_lead_' cfg.vol.type '.mat'], 'lead')
   
+  if isfield(cfg, 'bnd2lead') && isfield(cfg.bnd2lead, 'mni') ...
+      && isfield(cfg.bnd2lead.mni, 'warp') && strcmp(cfg.bnd2lead.mni.warp, 'yes')
+    load(sprintf('/data1/toolbox/fieldtrip/template/sourcemodel/standard_grid3d%dmm.mat', ...
+      cfg.bnd2lead.mni.resolution), 'grid'); % TODO: change absolute path to relative
+    grid = ft_convert_units(grid, 'mm');
+  end
+  
 end
 %-----------------%
 
@@ -141,6 +148,14 @@ for e = 1:numel(cfg.erpeffect)
   [~, ichan] = intersect(lead.cfg.elec.label, datachan);
   ichan = sort(ichan); % ichan in a good order
   
+  if size(vol.mat,1) == numel(lead.cfg.elec.label)
+    volchan = vol;
+    volchan.mat = vol.mat(ichan,:);
+  else
+    output = sprintf('%scannot modify vol because first dimension (% 4d) does not match the number of electrodes (% 4d)\n', ...
+      output, size(vol.mat,1), numel(lead.cfg.elec.label));
+  end
+  
   leadchan = lead;
   leadinside = lead.inside;
   if size(leadinside,1) ~= 1; leadinside = leadinside'; end
@@ -179,6 +194,16 @@ for e = 1:numel(cfg.erpeffect)
     cfg3.feedback = 'none';
     
     souPre{f} = ft_sourceanalysis(cfg3, avgPre);
+    souPre{f}.cfg = [];
+    %-----------------%
+
+    %-----------------%
+    %-load MNI grid
+    if ~strcmp(cfg.vol.type, 'template') ...
+        && isfield(cfg, 'bnd2lead') && isfield(cfg.bnd2lead, 'mni') ...
+        && isfield(cfg.bnd2lead.mni, 'warp') && strcmp(cfg.bnd2lead.mni.warp, 'yes')
+      souPre{f}.grid = grid;
+    end
     %-----------------%
     %---------------------------%
     
@@ -198,6 +223,16 @@ for e = 1:numel(cfg.erpeffect)
     source{f} = ft_sourceanalysis(cfg3, avgPost);
     
     source{f}.avg.nai = log(source{f}.avg.pow ./ souPre{f}.avg.pow);
+    source{f}.cfg = [];
+    %-----------------%
+    
+    %-----------------%
+    %-load MNI grid
+    if ~strcmp(cfg.vol.type, 'template') ...
+        && isfield(cfg, 'bnd2lead') && isfield(cfg.bnd2lead, 'mni') ...
+        && isfield(cfg.bnd2lead.mni, 'warp') && strcmp(cfg.bnd2lead.mni.warp, 'yes')
+      source{f}.grid = grid;
+    end
     %-----------------%
     %---------------------------%
     
