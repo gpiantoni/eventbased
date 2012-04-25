@@ -54,6 +54,7 @@ stat = ft_sourcestatistics(cfg3, gdat, gpre);
 if ~isfield(stat, 'posclusters') 
   soupeak = [0 0 0];
   output = sprintf('no clusters at all in the data\n');
+  stat.image = zeros(stat.dim);
   return
 end  
 %-----------------%
