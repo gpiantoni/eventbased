@@ -77,7 +77,18 @@ cfg3.design = [ones(1,nsubj) ones(1,nsubj).*2; 1:nsubj 1:nsubj];
 cfg3.ivar   = 1;
 cfg3.uvar   = 2;
 
-cfg3.latency = gdat.time([1 end]);
+if iserp && isfield(cfg.gerp, 'time') && ~isempty(cfg.gerp.time)
+  cfg3.latency = cfg.gerp.time;
+elseif ~iserp && isfield(cfg.gpow, 'time') && ~isempty(cfg.gpow.time)
+  cfg3.latency = cfg.gpow.time;
+else
+  cfg3.latency = gdat.time([1 end]);
+end
+
+if ~iserp && isfield(cfg.gpow, 'freq') && ~isempty(cfg.gpow.freq)
+  cfg3.frequency = cfg.gpow.freq;
+end
+
 cfg3.neighbours = neigh;
 cfg3.feedback = 'etf';
 

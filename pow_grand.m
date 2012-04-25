@@ -16,6 +16,9 @@ function pow_grand(cfg)
 %  .pow.bl: if empty, no baseline. Otherwise:
 %  .pow.bl.baseline: two scalars with baseline windows
 %  .pow.bl.baselinetype: type of baseline ('relchange')
+%
+%  .gpow.time: time limit for statistics (two scalars)
+%  .gpow.freq: freq limit for statistics (two scalars)
 % 
 %  .gpow.outliers: logical (print tables with number of points above a
 %  certain number of standard deviation, experimental code)
@@ -174,7 +177,7 @@ if ~isempty(gpow)
   %---------------------------%
   %-statistics for main effects
   if ~isempty(cfg.poweffect)
-    [powpeak outtmp] = reportcluster(gfreq{cfg.poweffect}, cfg);
+    [powpeak outtmp] = reportcluster(cfg, gfreq{cfg.poweffect});
     
     save([cfg.dpow cfg.proj '_powpeak'], 'powpeak')
     output = [output outtmp];

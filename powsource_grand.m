@@ -16,7 +16,7 @@ function powsource_grand(cfg)
 %  .powsource.maxvox: max number of significant voxels to be used in soupeak
 %
 % Options if you want to create significance mask
-%  .powsource.nifti: directory where you want to save the masks
+%  .powsource.nifti: directory and initial part of the name where you want to save the masks
 %  .dti.ref: template for mask ('/usr/share/data/fsl-mni152-templates/MNI152_T1_1mm_brain.nii.gz')
 %
 % OUT

@@ -15,6 +15,8 @@ function erp_grand(cfg)
 %  .derp: directory to save ERP data
 %  .erpeffect: effect of interest to create erppeak. If empty, no stats.
 %
+%  .gerp.time: time limit for statistics (two scalars)
+%
 %  .gerp.chan(1).name = 'name of channel group';
 %  .gerp.chan(1).chan =  cell with labels of channels of interest
 %  .gerp.bline = two scalars indicating the time window for baseline in s
@@ -90,7 +92,7 @@ if ~isempty(gerp)
   %---------------------------%
   %-statistics for main effects
   if ~isempty(cfg.erpeffect)
-    [erppeak outtmp] = reportcluster(gerpall{cfg.erpeffect}, cfg);
+    [erppeak outtmp] = reportcluster(cfg, gerpall{cfg.erpeffect});
     
     save([cfg.derp cfg.cond '_erppeak'], 'erppeak')
     output = [output outtmp];
