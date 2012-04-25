@@ -1,4 +1,4 @@
-function [clpeak output] = reportcluster(gdat, cfg)
+function [clpeak output] = reportcluster(cfg, gdat)
 %REPORTCLUSTER get cluster which are different from zero, even if not significant
 % The clusters to determine the main results of the analysis, for example
 % to concentrate the source reconstruction
