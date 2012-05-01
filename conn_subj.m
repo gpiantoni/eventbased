@@ -196,7 +196,7 @@ for kstat = 1:numel(cfg.statconn.ttest2)
       %-FIELDTRIP calculate model
       %-----------------%
       %-mvar
-      if strcmpi(cfg.conn.mvar, 'yes')
+      if cfg.conn.mvar
         cfg2 = [];
         cfg2.order = cfg.conn.order;
         cfg2.toolbox = cfg.conn.toolbox;
