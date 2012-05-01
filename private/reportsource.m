@@ -35,15 +35,57 @@ cfg3.correctm    = 'cluster';
 cfg3.clusterstatistic = cfg.clusterstatistics; % 'maxsize' or 'max' ('max' might be better for focal sources)
 cfg3.numrandomization = 1e5;
 cfg3.design = [ones(1,nsubj) ones(1,nsubj).*2; 1:nsubj 1:nsubj];
-cfg3.ivar   = 1;
-cfg3.uvar   = 2;
-cfg3.feedback = 'none';
+cfg3.ivar = 1;
+cfg3.uvar = 2;
+cfg3.feedback = 'etf';
 
 cfg3.parameter = param;
 cfg3.dim = gdat.dim;
 
-cfg3.alpha       = 0.05;
-cfg3.clusteralpha = cfg.clusteralpha;
+cfg3.alpha = 0.05;
+
+%---------------------------%
+%-get value for clusteralpha
+if isnumeric(cfg.clusteralpha)
+  
+  cfg3.clusteralpha = cfg.clusteralpha;
+  
+elseif ischar(cfg.clusteralpha) && cfg.clusteralpha(end)=='%'
+  
+  %-----------------%
+  %-use adaptive threshold
+  ratio = sscanf(cfg.clusteralpha, '%f%%');
+  ratio = 1 - ratio/100;
+  
+  %-------%
+  %-get t-stat
+  tstat = @(x) mean(x,2) ./ (std(x,[],2)) *sqrt(size(x,2));
+  x1 = cat(2, gpre.trial.pow);
+  x2 = cat(2, gdat.trial.pow);
+  
+  t = tstat(x2 - x1);
+  t_thr = quantile(abs(t(~isnan(t))), ratio); % t-stat at the cfg.clusteralpha quantile
+  %-------%
+  
+  %-------%
+  %-threshold as p-value
+  df = size(x1,2)-1;
+  cfg3.clusteralpha = 2 * (1 - tcdf(t_thr, df));
+  %-------%
+  
+  %-------%
+  %-output
+  outtmp = sprintf('using adaptive threshold at %s, which corresponds to t-stat % 6.4f, P-value % 10.2e\n', ...
+    cfg.clusteralpha, t_thr, cfg3.clusteralpha);
+  outtmp = regexprep(outtmp, '%', '%%'); % otherwise fprint gets confused for normal % sign
+  output = [output outtmp];
+  %-------%
+  
+  %-----------------%
+  
+end
+%---------------------------%
+
 stat = ft_sourcestatistics(cfg3, gdat, gpre);
 %-------------------------------------%
 
@@ -51,14 +93,14 @@ stat = ft_sourcestatistics(cfg3, gdat, gpre);
 %-find clusters
 %-----------------%
 %-if there are no clusters at all
-if ~isfield(stat, 'posclusters') 
+if ~isfield(stat, 'posclusters')
   soupeak = [0 0 0];
   output = sprintf('no clusters at all in the data\n');
   stat.image = zeros(stat.dim);
   return
-end  
+end
 %-----------------%
- 
+
 %-----------------%
 %-report cluster
 clusterthr = .8;
@@ -94,10 +136,10 @@ for i = 1:numel(signcl)
   
   clmat = find(clusterslabelmat == i);
   pos = stat.pos(clmat,:);
-
+  
   areas = mni2ba(pos);
   areastext = unique({areas.IBASPM116});
-   
+  
   outtmp = sprintf('    %s cluster% 3.f: P = %4.3f, size =% 5.f, [% 5.1f % 5.1f % 5.1f], %s\n', ...
     posnegtxt, i, clusters(i).prob, numel(clmat), mean(pos(:,1)), mean(pos(:,2)), mean(pos(:,3)), sprintf(' %s', areastext{:}));
   output = [output outtmp];
@@ -140,7 +182,7 @@ stat.image(selvox) = 1;
 %-prepare figure
 backgrnd = isnan(clusterslabelmat); % separate NaN to be used as background
 
-%-prepare axis 
+%-prepare axis
 xpos = unique(stat.pos(:,1));
 ypos = unique(stat.pos(:,2));
 zpos = unique(stat.pos(:,3));

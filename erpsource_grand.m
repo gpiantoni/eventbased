@@ -13,6 +13,7 @@ function erpsource_grand(cfg)
 % Options from reportsource:
 %  .erpsource.clusterstatistics: 'maxsize' or 'max'
 %  .erpsource.clusteralpha: level to select sensors (default 0.05)
+%                           it can be a string in format '5%' to take top 5 voxels and put them in a cluster.
 %  .erpsource.maxvox: max number of significant voxels to be used in soupeak
 %
 % Options if you want to create significance mask

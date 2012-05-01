@@ -13,6 +13,7 @@ function powsource_grand(cfg)
 % Options from reportsource:
 %  .powsource.clusterstatistics: 'maxsize' or 'max'
 %  .powsource.clusteralpha: level to select sensors (default 0.05)
+%                           it can be a string in format '5%' to take top 5 voxels and put them in a cluster.
 %  .powsource.maxvox: max number of significant voxels to be used in soupeak
 %
 % Options if you want to create significance mask
