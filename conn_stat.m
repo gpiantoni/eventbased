@@ -19,7 +19,7 @@ function conn_stat(cfg)
 %  [cfg.log connsum]: values from the plots to report in csv
 % 
 % FIGURES
-%  gtrs_CONNMETHOD_LABEL1_LABEL2: connectivity over time, with one subplot per frequency
+%  gtrs_LABEL1_LABEL2_CONNMETHOD: connectivity over time, with one subplot per frequency
 %
 % Part of EVENTBASED group-analysis
 % see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND, 
@@ -137,7 +137,7 @@ for chan1 = 1:numel(gconn.label)
       
       %--------%
       %-save and link
-      pngname = sprintf('gtrs_%s_%s_%s', cfg.conn.method, gconn.label{chan1}, gconn.label{chan2});
+      pngname = sprintf('gtrs_%s_%s_%s', gconn.label{chan1}, gconn.label{chan2}, cfg.conn.method);
       saveas(gcf, [cfg.log filesep pngname '.png'])
       close(gcf); drawnow
       
