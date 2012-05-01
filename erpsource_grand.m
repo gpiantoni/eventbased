@@ -141,9 +141,7 @@ save([cfg.derp cfg.cond '_soupeak'], 'soupeak')
 %-----------------%
 %-save
 for p = 1:numel(erpstat)
-  chan = erpstat{p}.cfg.channel;
   erpstat{p}.cfg = []; % this is huge
-  erpstat{p}.cfg.channel = chan;
 end
 save([cfg.derp cfg.cond '_granderpsource'], 'erpstat', '-v7.3')
 %-----------------%

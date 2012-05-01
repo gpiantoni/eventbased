@@ -141,9 +141,7 @@ save([cfg.dpow cfg.proj '_soupeak'], 'soupeak')
 %-----------------%
 %-save
 for p = 1:numel(powstat)
-  chan = powstat{p}.cfg.channel;
   powstat{p}.cfg = []; % this is huge
-  powstat{p}.cfg.channel = chan;
 end
 save([cfg.dpow cfg.proj '_grandpowsource'], 'powstat', '-v7.3')
 %-----------------%

@@ -259,7 +259,9 @@ for e = 1:numel(cfg.poweffect)
     
     cfg1.latency    = powpeak(f).time;
     source{f}       = ft_sourceanalysis(cfg1, freq);
+    chan = source{f}.cfg.channel;
     source{f}.cfg = [];
+    source{f}.cfg.channel = chan;
     %-----------------%
     
     %-----------------%

@@ -223,7 +223,9 @@ for e = 1:numel(cfg.erpeffect)
     source{f} = ft_sourceanalysis(cfg3, avgPost);
     
     source{f}.avg.nai = log(source{f}.avg.pow ./ souPre{f}.avg.pow);
+    chan = source{f}.cfg.channel;
     source{f}.cfg = [];
+    source{f}.cfg.channel = chan;
     %-----------------%
     
     %-----------------%
