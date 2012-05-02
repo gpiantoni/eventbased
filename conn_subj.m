@@ -56,6 +56,12 @@ function conn_subj(cfg, subj)
 %
 % OUT
 %  [cfg.dcon 'COND_CONNMETHOD_001_TEST']
+%  If .conn.type is 'cca', it also returns the model check. The file has
+%    subj, condition, toi, ADF, KPSS, residuals, consistency
+%  where 
+%    ADF, KPSS check the covariance stationary (should be 0, can give different results)
+%    residuals tells you if the residuals, after fitting GC, are not white
+%    consistency gives you how much variance the model explains (better if > 80)
 %
 % FIGURES
 %  montconn_001: imagesc of montage for subject used to construct virtual electrode
