@@ -173,7 +173,7 @@ fclose(fid);
 %-performNormalization (copied from ft_freqbaseline)
 function data = performNormalization(timeVec, data, baseline, baselinetype)
 
-baselineTimes = (timeVec >= baseline(1) & timeVec <= baseline(2));
+baselineTimes = (timeVec + eps(10) >= baseline(1) & timeVec - eps(10) <= baseline(2));
 
 % compute mean of time/frequency quantity in the baseline interval,
 % ignoring NaNs, and replicate this over time dimension
