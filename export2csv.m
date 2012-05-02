@@ -1,6 +1,6 @@
 function export2csv(cfg)
 %EXPORT2CSV write results in csv file
-% It will write the cfg, erppeak (and soupeak), powpeak (and soupeak), and 
+% It will write the cfg, erppeak (and soupeak), powpeak (and soupeak), and
 % results from connectivity analysis.
 %
 % You add columns with specific results. You need to specify:
@@ -8,7 +8,7 @@ function export2csv(cfg)
 % where 'functionname' is as:
 %   [output] = functionname(cfg)
 % and output should contain no new lines but commas to separate values
-% 
+%
 % TODO:
 %   - powcorr
 %   - testing
@@ -260,7 +260,7 @@ if exist([cfg.log filesep 'connsum.mat'], 'file')
     end
     %-----------------%
     
-   % fprintf(fid, '\n');
+    fprintf(fid, '\n');
   end
   %---------------------------%
   
