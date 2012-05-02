@@ -279,6 +279,7 @@ for kstat = 1:numel(cfg.statconn.ttest2)
         %- granger for each time window
         X = cca_detrend_mtrial(X, Nr, Nl);
         X = cca_rm_temporalmean_mtrial(X, Nr, Nl);
+        X = cca_rm_ensemblemean(X, Nr, Nl);
         
         %-------%
         %-model order
@@ -301,6 +302,7 @@ for kstat = 1:numel(cfg.statconn.ttest2)
           csvfile = sprintf('%s/cca_modelorder_%s.csv', cfg.log, cfg.conn.order);
           csvtext = sprintf('''%04d'',''%s'',%1.2f,%d\n', ...
             subj, condname, cfg.conn.toi(t), order);
+          
           fid = fopen(csvfile, 'a+');
           fwrite(fid, csvtext);
           fclose(fid);
@@ -310,6 +312,51 @@ for kstat = 1:numel(cfg.statconn.ttest2)
         
         ret = cca_granger_regress_mtrial(X, Nr, Nl, order);
         gcmat(:,:,1,t) = transpose(ret.gc);
+        %-----------------%
+        
+        %-----------------%
+        %-check the model
+        %-------%
+        %-covariance ADF
+        % is covariance non-stationary? should be 0
+        adf = cca_check_cov_stat_mtrial(X, Nr, Nl, 10);
+        adfr = numel(find(adf)) / numel(adf);
+        %-------%
+        
+        %-------%
+        %-covariance KPSS
+        % is covariance non-stationary? should be 0
+        [kh,kpss] = cca_kpss_mtrial(X, Nr, Nl);
+        khr = numel(find(kh==0)) / numel(kh);
+        %-------%
+        
+        %-------%
+        %-white residuals
+        % ratio of significant residuals, should be 0
+        nvar = size(X,1);
+        dwthresh = 0.05/nvar;    % critical threshold, Bonferroni corrected
+        dw = ret.waut < dwthresh;
+        dwr = numel(find(dw)) / numel(dw);
+        %-------%
+        
+        %-------%
+        %-model consistency
+        % check model consistency, ie. proportion of correlation structure of the
+        % data accounted for by the MVAR model
+        % should be more than 80
+        %-------%
+        
+        %-------%
+        %-write to file
+        % subj, condition, toi, ADF, KPSS, white residuals, consistency
+        csvfile = sprintf('%s/cca_modelcheck.csv', cfg.log);
+        csvtext = sprintf('''%04d'',''%s'',%1.2f,%1.2f,%1.2f,%1.2f,%1.2f\n', ...
+          subj, condname, cfg.conn.toi(t), adfr, khr, dwr, ret.cons);
+        
+        fid = fopen(csvfile, 'a+');
+        fwrite(fid, csvtext);
+        fclose(fid);
+        %-------%
         %-----------------%
         
       end
