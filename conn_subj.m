@@ -36,7 +36,9 @@ function conn_subj(cfg, subj)
 %  .conn.type: 'cca' or 'ft'
 %    if 'cca' (use Anil Seth's implementation):
 %      .conn.method: 'gc' (only this method is available, it's time-domain based) 
-%      .conn.order: scalar indicating model order
+%      .conn.order: scalar indicating model order or 'aic' or 'bic'
+%                   If 'aic' or 'bic', it estimates the model order and
+%                   writes it down estimated model order in csv in log dir.
 %
 %    if 'ft' (use Fieldtrip implementation):
 %      .conn.method: can be symmetric or asymmetric (a string of one of the below)
@@ -278,7 +280,35 @@ for kstat = 1:numel(cfg.statconn.ttest2)
         X = cca_detrend_mtrial(X, Nr, Nl);
         X = cca_rm_temporalmean_mtrial(X, Nr, Nl);
         
-        ret = cca_granger_regress_mtrial(X, Nr, Nl, cfg.conn.order);
+        %-------%
+        %-model order
+        if ~ischar(cfg.conn.order)
+          order = cfg.conn.order;
+          
+        else % estimate model order
+          [bic, aic] = cca_find_model_order_mtrial(X,Nr, Nl, 2, 20);
+          
+          if strcmpi(cfg.conn.order, 'bic')
+            order = bic;
+          elseif strcmpi(cfg.conn.order, 'aic')
+            order = aic;
+          end
+          
+          %-output
+          output = sprintf('%s At time % 6.2f, model order estimated with %s is% 3d\n', ...
+            output, cfg.conn.toi(t), cfg.conn.order, order);
+          
+          csvfile = sprintf('%s/cca_modelorder_%s.csv', cfg.log, cfg.conn.order);
+          csvtext = sprintf('''%04d'',''%s'',%1.2f,%d\n', ...
+            subj, condname, cfg.conn.toi(t), order);
+          fid = fopen(csvfile, 'a+');
+          fwrite(fid, csvtext);
+          fclose(fid);
+          
+        end
+        %-------%
+        
+        ret = cca_granger_regress_mtrial(X, Nr, Nl, order);
         gcmat(:,:,1,t) = transpose(ret.gc);
         %-----------------%
         
