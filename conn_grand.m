@@ -5,6 +5,8 @@ function conn_grand(cfg)
 %  .cond: name to be used in projects/PROJNAME/subjects/0001/MOD/CONDNAME/
 %  .dcon: directory with connectivity data
 %  .log: name of the file and directory with analysis log
+%  .conn.test: a cell with the condition defined by redef. 
+%              It can, but need not, be identical to cfg.test
 %  .conn.method: method used for connectivity
 %  .conn.toi: vector with time points to run connectivity on
 %  .gconn.freq:
@@ -108,12 +110,11 @@ gconn.mat = nan(numel(gconn.label), numel(gconn.label), numel(gconn.time), size(
 
 %---------------------------%
 %-loop over conditions
-for kstat = 1:numel(cfg.statconn.ttest2)
-  k = cfg.statconn.ttest2(kstat);
+for k = 1:numel(cfg.conn.test)
   
   %-----------------%
   %-file for each cond
-  condname = regexprep(cfg.test{k}, '*', '');
+  condname = regexprep(cfg.conn.test{k}, '*', '');
   subjfile = @(s) sprintf('%s%s_%s_%02.f_%s.mat', cfg.dcon, cfg.cond, cfg.conn.method, s, condname);
   allname = cellfun(subjfile, num2cell(cfg.subjall), 'uni', 0);
   

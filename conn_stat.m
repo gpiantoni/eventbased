@@ -13,6 +13,7 @@ function conn_stat(cfg)
 %  .statconn.bl.baseline: two scalars with baseline windows (if empty, no baseline)
 %  .statconn.bl.baselinetype: type of baseline ('relchange' 'relative' 'absolute')
 %
+%  .statconn.ttest2: two index values of cfg.conn.test to compare directly
 %  .statconn.time: cell with two scalars. Each cell gives the time window to test the t-test between conditions
 % 
 % OUT

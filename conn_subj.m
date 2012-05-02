@@ -8,7 +8,8 @@ function conn_subj(cfg, subj)
 %  .cond: name to be used in projects/PROJNAME/subjects/0001/MOD/CONDNAME/
 %  .endname: includes previous steps '_seldata_gclean_preproc_redef'
 %  .log: name of the file and directory with analysis log
-%  .test: a cell with the condition defined by redef. This function will loop over cfg.test
+%  .conn.test: a cell with the condition defined by redef. 
+%              It can, but need not, be identical to cfg.test
 %  .dcon: directory to save connectivity data
 % 
 %  .conn.areas: 'channel' or 'dipole' or 'erppeak' or 'powpeak'
@@ -51,8 +52,6 @@ function conn_subj(cfg, subj)
 %          .conn.order: scalar indicating model order
 %        if FALSE:
 %          .conn.foi: frequency of interest (best if identical to .pow.foi)
-%
-%  .statconn.ttest2: two scalars indexing the conditions to compare (run conn_subj only on interesting conditions)
 %
 % OUT
 %  [cfg.dcon 'COND_CONNMETHOD_001_TEST']
@@ -155,12 +154,11 @@ close(gcf); drawnow
 
 %-------------------------------------%
 %-loop over conditions
-for kstat = 1:numel(cfg.statconn.ttest2)
-  k = cfg.statconn.ttest2(kstat);
+for k = 1:numel(cfg.conn.test)
   
   %-----------------%
   %-input and output for each condition
-  allfile = dir([ddir cfg.test{k} cfg.endname '.mat']); % files matching a preprocessing
+  allfile = dir([ddir cfg.conn.test{k} cfg.endname '.mat']); % files matching a preprocessing
 
   condname = regexprep(cfg.test{k}, '*', '');
   outputfile = sprintf('%s_%s_%02.f_%s', cfg.cond, cfg.conn.method, subj, condname);
