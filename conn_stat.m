@@ -50,7 +50,7 @@ end
 
 %-------------------------------------%
 %-loop over labels
-sem = @(x) std(x,[],3) / sqrt(size(x,3));
+sem = @(x) nanstd(x,[],3) / sqrt(size(x,3));
 connsum = []; % summary of connectivity (for gosd2csv)
 cnt = 0;
 
@@ -88,9 +88,9 @@ for chan1 = 1:numel(gconn.label)
           x = performNormalization(cfg.conn.toi, x, cfg.statconn.bl.baseline, cfg.statconn.bl.baselinetype);
         end
         
-        conntime = mean(x, 3); % connectivity over time
+        conntime = nanmean(x, 3); % connectivity over time
         % plot(cfg.conn.toi, conntime)
-        xax = repmat(cfg.conn.toi, [numel(cfg.test) 1]);
+        xax = repmat(cfg.conn.toi, [numel(cfg.conn.test) 1]);
         errorbar(xax', conntime, sem(x))
         %-------%
         
@@ -100,8 +100,8 @@ for chan1 = 1:numel(gconn.label)
         connsum(cnt).chan1 = gconn.label{chan1};
         connsum(cnt).chan2 = gconn.label{chan2};
         connsum(cnt).freq  = sprintf('% 3.f-% 3.f', gconn.freq{f}(1), gconn.freq{f}(2));
-        connsum(cnt).cond1 = regexprep(cfg.test{cfg.statconn.ttest2(1)}, '*', '');
-        connsum(cnt).cond2 = regexprep(cfg.test{cfg.statconn.ttest2(2)}, '*', '');
+        connsum(cnt).cond1 = regexprep(cfg.conn.test{cfg.statconn.ttest2(1)}, '*', '');
+        connsum(cnt).cond2 = regexprep(cfg.conn.test{cfg.statconn.ttest2(2)}, '*', '');
            
         for t = 1:numel(cfg.statconn.time)
           t1 = nearest(cfg.conn.toi, cfg.statconn.time{t}(1));
@@ -130,7 +130,7 @@ for chan1 = 1:numel(gconn.label)
         xlim(cfg.conn.toi([1 end]))
         xlabel('time (s)')
         ylabel(cfg.conn.method);
-        legend(cfg.test{:})
+        legend(cfg.conn.test{:}, 'Location', 'NorthWest')
         %-------%
         
       end

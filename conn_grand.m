@@ -71,7 +71,7 @@ end
 %-create grand file
 %-------%
 %-load one example 
-condname = regexprep(cfg.test{cfg.statconn.ttest2(1)}, '*', ''); % it does not matter
+condname = regexprep(cfg.conn.test{cfg.statconn.ttest2(1)}, '*', ''); % it does not matter
 outputfile = sprintf('%s_%s*_%s.mat', cfg.cond, cfg.conn.method, condname);
   
 allsub = dir([cfg.dcon outputfile]);
@@ -104,7 +104,7 @@ end
 gconn.label = stat.label;
 gconn.time = cfg.conn.toi;
 gconn.freq = mat2cell(connfreq, size(connfreq,1), [2]);
-gconn.mat = nan(numel(gconn.label), numel(gconn.label), numel(gconn.time), size(gconn.freq,1), numel(cfg.test), numel(cfg.subjall));
+gconn.mat = nan(numel(gconn.label), numel(gconn.label), numel(gconn.time), size(gconn.freq,1), numel(cfg.conn.test), numel(cfg.subjall));
 %-----------------%
 %---------------------------%
 
