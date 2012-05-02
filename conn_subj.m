@@ -160,7 +160,7 @@ for k = 1:numel(cfg.conn.test)
   %-input and output for each condition
   allfile = dir([ddir cfg.conn.test{k} cfg.endname '.mat']); % files matching a preprocessing
 
-  condname = regexprep(cfg.test{k}, '*', '');
+  condname = regexprep(cfg.conn.test{k}, '*', '');
   outputfile = sprintf('%s_%s_%02.f_%s', cfg.cond, cfg.conn.method, subj, condname);
   %-----------------%
   
@@ -179,7 +179,7 @@ for k = 1:numel(cfg.conn.test)
     
   else
     output = sprintf('%sCould not find any file in %s for test %s\n', ...
-      output, ddir, cfg.test{k});
+      output, ddir, cfg.conn.test{k});
     continue
     
   end
