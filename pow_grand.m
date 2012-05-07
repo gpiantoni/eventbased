@@ -17,8 +17,8 @@ function pow_grand(cfg)
 %  .pow.bl.baseline: two scalars with baseline windows
 %  .pow.bl.baselinetype: type of baseline ('relchange')
 %
-%  .gpow.time: time limit for statistics (two scalars)
-%  .gpow.freq: freq limit for statistics (two scalars)
+%  .gpow.test.time: time limit for statistics (two scalars)
+%  .gpow.test.freq: freq limit for statistics (two scalars)
 % 
 %  .gpow.outliers: logical (print tables with number of points above a
 %  certain number of standard deviation, experimental code)

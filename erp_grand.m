@@ -15,7 +15,7 @@ function erp_grand(cfg)
 %  .derp: directory to save ERP data
 %  .erpeffect: effect of interest to create erppeak. If empty, no stats.
 %
-%  .gerp.time: time limit for statistics (two scalars)
+%  .gerp.test.time: time limit for statistics (two scalars)
 %
 %  .gerp.chan(1).name = 'name of channel group';
 %  .gerp.chan(1).chan =  cell with labels of channels of interest

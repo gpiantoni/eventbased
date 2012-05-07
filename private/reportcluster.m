@@ -77,16 +77,16 @@ cfg3.design = [ones(1,nsubj) ones(1,nsubj).*2; 1:nsubj 1:nsubj];
 cfg3.ivar   = 1;
 cfg3.uvar   = 2;
 
-if iserp && isfield(cfg.gerp, 'time') && ~isempty(cfg.gerp.time)
-  cfg3.latency = cfg.gerp.time;
-elseif ~iserp && isfield(cfg.gpow, 'time') && ~isempty(cfg.gpow.time)
-  cfg3.latency = cfg.gpow.time;
+if iserp && isfield(cfg.gerp, 'test') && isfield(cfg.gerp.test, 'time')&& ~isempty(cfg.gerp.test.time)
+  cfg3.latency = cfg.gerp.test.time;
+elseif ~iserp && isfield(cfg.gpow, 'test') && isfield(cfg.gpow.test, 'time')&& ~isempty(cfg.gpow.test.time)
+  cfg3.latency = cfg.gpow.test.time;
 else
   cfg3.latency = gdat.time([1 end]);
 end
 
-if ~iserp && isfield(cfg.gpow, 'freq') && ~isempty(cfg.gpow.freq)
-  cfg3.frequency = cfg.gpow.freq;
+if ~iserp && isfield(cfg.gpow, 'test') && isfield(cfg.gpow.test, 'freq') && ~isempty(cfg.gpow.test.freq)
+  cfg3.frequency = cfg.gpow.test.freq;
 end
 
 cfg3.neighbours = neigh;
