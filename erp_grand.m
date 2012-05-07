@@ -91,8 +91,8 @@ if ~isempty(gerp)
   
   %---------------------------%
   %-statistics for main effects
-  if ~isempty(cfg.erpeffect)
-    [erppeak outtmp] = reportcluster(cfg, gerpall{cfg.erpeffect});
+  for p = cfg.erpeffect
+    [erppeak outtmp] = reportcluster(cfg, gerpall{p});
     
     condname = regexprep(cfg.test{p}, '*', '');
     save([cfg.derp cfg.cond condname '_erppeak'], 'erppeak')
@@ -153,7 +153,7 @@ if ~isempty(gerp)
       cfg4 = [];
       %-define representative dataset to get timeinfo and max abs color
       if ~isempty(cfg.erpeffect) 
-        i_gerp = cfg.erpeffect;
+        i_gerp = cfg.erpeffect(1);
       else
         i_gerp = 1;
       end

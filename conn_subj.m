@@ -103,7 +103,7 @@ elseif strcmp(cfg.conn.areas, 'dipole')
   load([cfg.derp cfg.cond '_granderp'], 'gerp')
   %-------%
   
-  mont = topodipole(cfg.conn.dip, gerp{cfg.erpeffect});
+  mont = topodipole(cfg.conn.dip, gerp{cfg.erpeffect(1)});
   
 elseif strcmp(cfg.conn.areas, 'erppeak') || strcmp(cfg.conn.areas, 'powpeak')
   

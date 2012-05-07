@@ -93,14 +93,13 @@ end
 
 %-------------------------------------%
 %-loop over conditions
-for e = 1:numel(cfg.erpeffect)
-  k = cfg.erpeffect(e);
-  
+for p = cfg.erpeffect
+ 
   %-----------------%
   %-input and output for each condition
-  allfile = dir([ddir cfg.test{k} cfg.endname '.mat']); % files matching a preprocessing
+  allfile = dir([ddir cfg.test{p} cfg.endname '.mat']); % files matching a preprocessing
   
-  condname = regexprep(cfg.test{k}, '*', '');
+  condname = regexprep(cfg.test{p}, '*', '');
   outputfile = sprintf('erpsource_%02.f_%s', subj, condname);
   %-----------------%
   
@@ -119,7 +118,7 @@ for e = 1:numel(cfg.erpeffect)
     
   else
     output = sprintf('%sCould not find any file in %s for test %s\n', ...
-      output, ddir, cfg.test{k});
+      output, ddir, cfg.test{p});
     continue
     
   end

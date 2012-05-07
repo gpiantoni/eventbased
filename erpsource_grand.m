@@ -8,7 +8,8 @@ function erpsource_grand(cfg)
 %  .rslt: directory images are saved into
 %
 %  .derp: directory to save ERP data
-%  .erpeffect: effect of interest to create erppeak. If empty, no stats.
+%  .erpeffect: index of interest to create erppeak, can be a row vector,
+%              but it only uses the first one
 %
 % Options from reportsource:
 %  .erpsource.clusterstatistics: 'maxsize' or 'max'
@@ -42,12 +43,11 @@ tic_t = tic;
 
 %---------------------------%
 %-loop over conditions
-for e = 1:numel(cfg.erpeffect)
-  k = cfg.erpeffect(e);
+for p = cfg.erpeffect
   
   %-----------------%
   %-file for each cond
-  condname = regexprep(cfg.test{k}, '*', '');
+  condname = regexprep(cfg.test{p}, '*', '');
   subjfile = @(s) sprintf('%serpsource_%02.f_%s.mat', cfg.derp, s, condname);
   allname = cellfun(subjfile, num2cell(cfg.subjall), 'uni', 0);
   
@@ -77,8 +77,8 @@ for e = 1:numel(cfg.erpeffect)
     cfg1 = [];
     cfg1.keepindividual = 'yes';
     cfg1.parameter = 'pow'; % instead of nai
-    gerpsouPre{k,a} = ft_sourcegrandaverage(cfg1, spre{:,a});
-    gerpsource{k,a} = ft_sourcegrandaverage(cfg1, sall{:,a});
+    gerpsouPre{p,a} = ft_sourcegrandaverage(cfg1, spre{:,a});
+    gerpsource{p,a} = ft_sourcegrandaverage(cfg1, sall{:,a});
   end
   %-----------------%
   
@@ -101,14 +101,14 @@ soupeak = [];
 for p = 1:numel(erppeak)
   output = sprintf('%s\n%s:\n', output, erppeak(p).name);
   h = figure;
-  [soupos erpstat{p} outtmp] = reportsource(cfg.erpsource, gerpsource{cfg.erpeffect, p}, gerpsouPre{cfg.erpeffect,p});
+  [soupos erpstat{p} outtmp] = reportsource(cfg.erpsource, gerpsource{cfg.erpeffect(1), p}, gerpsouPre{cfg.erpeffect(1),p});
   soupeak(p).pos = soupos;
   soupeak(p).center = mean(soupos,1);
   soupeak(p).name = erppeak(p).name;
   output = [output outtmp];
   
   %--------%
-  pngname = sprintf('gerppeak_%1.f_%s', cfg.erpeffect, erppeak(p).name);
+  pngname = sprintf('gerppeak_%1.f_%s', cfg.erpeffect(1), erppeak(p).name);
   saveas(gcf, [cfg.log filesep pngname '.png'])
   close(gcf); drawnow
   

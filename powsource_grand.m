@@ -8,7 +8,8 @@ function powsource_grand(cfg)
 %  .rslt: directory images are saved into
 %
 %  .dpow: directory to save POW data
-%  .poweffect: index of interest to create powpeak, can be a row vector.
+%  .poweffect: index of interest to create powpeak, can be a row vector,
+%              but it only uses the first one
 %
 % Options from reportsource:
 %  .powsource.clusterstatistics: 'maxsize' or 'max'

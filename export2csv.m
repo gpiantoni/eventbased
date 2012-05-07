@@ -58,7 +58,7 @@ for st = 1:numel(cfg.step)
     case 'erp_subj'
       output = [output realign(struct2log(cfg.erp, 'csv'), mincol)];
     case 'erp_grand'
-      output = [output sprintf('%f,', cfg.erpeffect)];
+      output = [output sprintf(' %f', cfg.erpeffect) ','];
       
     case 'erpsource_subj'
       output = [output realign(struct2log(cfg.erpsource.erp, 'csv'), mincol)];
