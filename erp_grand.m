@@ -94,7 +94,8 @@ if ~isempty(gerp)
   if ~isempty(cfg.erpeffect)
     [erppeak outtmp] = reportcluster(cfg, gerpall{cfg.erpeffect});
     
-    save([cfg.derp cfg.cond '_erppeak'], 'erppeak')
+    condname = regexprep(cfg.test{p}, '*', '');
+    save([cfg.derp cfg.cond condname '_erppeak'], 'erppeak')
     output = [output outtmp];
   end
   %---------------------------%
