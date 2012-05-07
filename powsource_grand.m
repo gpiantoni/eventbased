@@ -136,14 +136,14 @@ for p = 1:numel(powpeak)
 
 end
 
-save([cfg.dpow cfg.proj '_soupeak'], 'soupeak')
+save([cfg.dpow cfg.cond '_soupeak'], 'soupeak')
 
 %-----------------%
 %-save
 for p = 1:numel(powstat)
   powstat{p}.cfg = []; % this is huge
 end
-save([cfg.dpow cfg.proj '_grandpowsource'], 'powstat', '-v7.3')
+save([cfg.dpow cfg.cond '_grandpowsource'], 'powstat', '-v7.3')
 %-----------------%
 %---------------------------%
 

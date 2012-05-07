@@ -119,7 +119,7 @@ if numel(dir(cfg.derp)) > 2 % dir is not empty
   if strcmp(cfg.erpsource.areas, 'manual')
     erppeak = cfg.erpsource.erppeak;
   elseif strcmp(cfg.erpsource.areas, 'erppeak')
-    load([cfg.derp cfg.proj '_erppeak'], 'erppeak')
+    load([cfg.derp cfg.cond '_erppeak'], 'erppeak')
   end
   %-------%
   
@@ -127,8 +127,8 @@ if numel(dir(cfg.derp)) > 2 % dir is not empty
   %-load ERP source peaks
   sou = false;
   
-  if exist([cfg.derp cfg.proj '_soupeak.mat'], 'file')
-    load([cfg.derp cfg.proj '_soupeak'], 'soupeak')
+  if exist([cfg.derp cfg.cond '_soupeak.mat'], 'file')
+    load([cfg.derp cfg.cond '_soupeak'], 'soupeak')
     
     if numel({erppeak.name}) == numel({soupeak.name}) && ...
         all(strcmp({erppeak.name}, {soupeak.name}))
@@ -178,8 +178,8 @@ if numel(dir(cfg.dpow)) > 2 % dir is not empty
     powpeak = cfg.powsource.powpeak;
     
   elseif strcmp(cfg.powsource.areas, 'powpeak')
-    if exist([cfg.dpow cfg.proj '_powpeak.mat'], 'file')
-      load([cfg.dpow cfg.proj '_powpeak'], 'powpeak')
+    if exist([cfg.dpow cfg.cond '_powpeak.mat'], 'file')
+      load([cfg.dpow cfg.cond '_powpeak'], 'powpeak')
     end
   end
   %-------%
@@ -188,8 +188,8 @@ if numel(dir(cfg.dpow)) > 2 % dir is not empty
   %-load POW source peaks
   sou = false;
   
-  if exist([cfg.dpow cfg.proj '_soupeak.mat'], 'file')
-    load([cfg.dpow cfg.proj '_soupeak'], 'soupeak')
+  if exist([cfg.dpow cfg.cond '_soupeak.mat'], 'file')
+    load([cfg.dpow cfg.cond '_soupeak'], 'soupeak')
     
     if numel({powpeak.name}) == numel({soupeak.name}) && ...
         all(strcmp({powpeak.name}, {soupeak.name}))
