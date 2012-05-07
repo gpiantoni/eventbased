@@ -92,7 +92,8 @@ end
 if strcmp(cfg.powsource.areas, 'manual')
   powpeak = cfg.powsource.powpeak;
 elseif strcmp(cfg.powsource.areas, 'powpeak')
-  load([cfg.dpow cfg.proj '_powpeak'], 'powpeak')
+  condname = regexprep(cfg.test{p}, '*', '');
+  load([cfg.dpow cfg.cond condname '_powpeak'], 'powpeak')
 end
 %-----------------%
 

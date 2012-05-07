@@ -83,7 +83,7 @@ end
 
 %-----------------%
 %-save
-save([cfg.dpow cfg.proj '_grandpowcorr'], 'gpow')
+save([cfg.dpow cfg.cond '_grandpowcorr'], 'gpow')
 %-----------------%
 %---------------------------%
 
@@ -101,7 +101,8 @@ if ~isempty(gpow)
     [powcorrpeak outtmp] = reportcluster(gfreq{cfg.powcorreffect}, cfg);
     outtmp = sprintf('%sattention! .wndw is adjusted incorrectly based on cfg.pow, not cfg.powcorr\n', output);
     
-    save([cfg.dpow cfg.proj '_powcorrpeak'], 'powcorrpeak')
+    condname = regexprep(cfg.test{p}, '*', '');
+    save([cfg.dpow cfg.cond condname '_powcorrpeak'], 'powcorrpeak')
     output = [output outtmp];
   end
   %---------------------------%

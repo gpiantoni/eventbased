@@ -115,7 +115,7 @@ elseif strcmp(cfg.conn.areas, 'erppeak') || strcmp(cfg.conn.areas, 'powpeak')
     inputfile = sprintf('erpsource_%02.f_%s', subj, condname);
     load([cfg.derp inputfile], 'source')
     
-    load([cfg.derp cfg.cond '_soupeak'], 'soupeak')
+    load([cfg.derp cfg.cond condname '_erppeak'], 'erppeak')
     %-------%
     
   elseif strcmp(cfg.conn.areas, 'powpeak')
@@ -126,6 +126,7 @@ elseif strcmp(cfg.conn.areas, 'erppeak') || strcmp(cfg.conn.areas, 'powpeak')
     inputfile = sprintf('powsource_%02.f_%s', subj, condname);
     load([cfg.dpow inputfile], 'source')
     
+    load([cfg.dpow cfg.cond condname '_powpeak'], 'powpeak')
     load([cfg.dpow cfg.cond '_soupeak'], 'soupeak')
     %-------%
     

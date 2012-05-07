@@ -93,7 +93,8 @@ end
 if strcmp(cfg.erpsource.areas, 'manual')
   erppeak = cfg.erpsource.erppeak;
 elseif strcmp(cfg.erpsource.areas, 'erppeak')
-  load([cfg.derp cfg.cond '_erppeak'], 'erppeak')
+  condname = regexprep(cfg.test{p}, '*', '');
+  load([cfg.derp cfg.cond condname '_erppeak'], 'erppeak')
 end
 %-----------------%
 
