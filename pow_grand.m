@@ -179,7 +179,7 @@ if ~isempty(gpow)
   for p = cfg.poweffect
     [powpeak outtmp] = reportcluster(cfg, gfreq{p});
     
-    save([cfg.dpow cfg.proj '_powpeak'], 'powpeak')
+    save([cfg.dpow cfg.cond '_powpeak'], 'powpeak')
     output = [output outtmp];
   end
   %---------------------------%
