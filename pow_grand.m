@@ -24,7 +24,7 @@ function pow_grand(cfg)
 %  certain number of standard deviation, experimental code)
 %
 %  .dpow: directory to save POW data
-%  .poweffect: effect of interest to create powpeak. If empty, no stats.
+%  .poweffect: index of interest to create powpeak, can be a row vector. If empty, no stats.
 %
 %  .gpow.chan(1).name = 'name of channel group';
 %  .gpow.chan(1).chan =  cell with labels of channels of interest
@@ -176,8 +176,8 @@ if ~isempty(gpow)
   
   %---------------------------%
   %-statistics for main effects
-  if ~isempty(cfg.poweffect)
-    [powpeak outtmp] = reportcluster(cfg, gfreq{cfg.poweffect});
+  for p = cfg.poweffect
+    [powpeak outtmp] = reportcluster(cfg, gfreq{p});
     
     save([cfg.dpow cfg.proj '_powpeak'], 'powpeak')
     output = [output outtmp];

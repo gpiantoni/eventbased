@@ -13,7 +13,7 @@ function powcorr_grand(cfg)
 %                If empty, it does not plot topo.
 %
 %  .dpow: directory to save POWCORR data
-%  .powcorreffect: effect of interest to create powcorrpeak. If empty, no stats.
+%  .powcorreffect: index of interest to create powcorrpeak, can be a row vector. If empty, no stats.
 %
 %  .gpowcorr.chan(1).name = 'name of channel group';
 %  .gpowcorr.chan(1).chan =  cell with labels of channels of interest
@@ -97,7 +97,7 @@ if ~isempty(gpow)
   
   %---------------------------%
   %-statistics for main effects
-  if ~isempty(cfg.poweffect)
+  for p = cfg.powcorreffect
     [powcorrpeak outtmp] = reportcluster(gfreq{cfg.powcorreffect}, cfg);
     outtmp = sprintf('%sattention! .wndw is adjusted incorrectly based on cfg.pow, not cfg.powcorr\n', output);
     

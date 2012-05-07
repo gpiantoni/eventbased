@@ -28,7 +28,7 @@ function conn_subj(cfg, subj)
 %                              .time: one or two scalars, time of the ERP of interest
 %   
 %    if 'erppeak' or 'powpeak' (use beamformer to construct virtual electrode):
-%      .erpeffect or .poweffect: vector of condition used for source reconstruction
+%      .erpeffect or .poweffect: index of condition used for source reconstruction (if vector, only takes the first)
 %      .derp or .dpow: directory with ERP or POW data
 %      .conn.fixedmom: logical (use the same moment for source or change it every time)
 %    
@@ -111,7 +111,7 @@ elseif strcmp(cfg.conn.areas, 'erppeak') || strcmp(cfg.conn.areas, 'powpeak')
     
     %-------%
     %-load sources of erp
-    condname = regexprep(cfg.test{cfg.erpeffect}, '*', '');
+    condname = regexprep(cfg.test{cfg.erpeffect(1)}, '*', '');
     inputfile = sprintf('erpsource_%02.f_%s', subj, condname);
     load([cfg.derp inputfile], 'source')
     
@@ -122,7 +122,7 @@ elseif strcmp(cfg.conn.areas, 'erppeak') || strcmp(cfg.conn.areas, 'powpeak')
     
     %-------%
     %-load source of pow
-    condname = regexprep(cfg.test{cfg.poweffect}, '*', '');
+    condname = regexprep(cfg.test{cfg.poweffect(1)}, '*', '');
     inputfile = sprintf('powsource_%02.f_%s', subj, condname);
     load([cfg.dpow inputfile], 'source')
     

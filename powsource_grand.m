@@ -8,7 +8,7 @@ function powsource_grand(cfg)
 %  .rslt: directory images are saved into
 %
 %  .dpow: directory to save POW data
-%  .poweffect: effect of interest to create powpeak. If empty, no stats.
+%  .poweffect: index of interest to create powpeak, can be a row vector.
 %
 % Options from reportsource:
 %  .powsource.clusterstatistics: 'maxsize' or 'max'
@@ -42,12 +42,11 @@ tic_t = tic;
 
 %---------------------------%
 %-loop over conditions
-for e = 1:numel(cfg.poweffect)
-  k = cfg.poweffect(e);
+for p = cfg.poweffect
   
   %-----------------%
   %-file for each cond
-  condname = regexprep(cfg.test{k}, '*', '');
+  condname = regexprep(cfg.test{p}, '*', '');
   subjfile = @(s) sprintf('%spowsource_%02.f_%s.mat', cfg.dpow, s, condname);
   allname = cellfun(subjfile, num2cell(cfg.subjall), 'uni', 0);
   
@@ -76,8 +75,8 @@ for e = 1:numel(cfg.poweffect)
   for a = 1:size(sall,2) % this is powpeak, but implicit
     cfg1 = [];
     cfg1.keepindividual = 'yes';
-    gpowsouPre{k,a} = ft_sourcegrandaverage(cfg1, spre{:,a});
-    gpowsource{k,a} = ft_sourcegrandaverage(cfg1, sall{:,a});
+    gpowsouPre{p,a} = ft_sourcegrandaverage(cfg1, spre{:,a});
+    gpowsource{p,a} = ft_sourcegrandaverage(cfg1, sall{:,a});
   end
   %-----------------%
   

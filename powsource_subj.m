@@ -10,7 +10,7 @@ function powsource_subj(cfg, subj)
 %  .test: a cell with the condition defined by redef. This function will loop over cfg.test
 %  .dpow: directory to save ERP data
 %
-%  .poweffect: effect of interest for source reconstruction, can be a vector (this field is shared with pow_grand.m, maybe it's not a good idea)
+%  .poweffect: index of interest to create powpeak, can be a row vector (this field is shared with pow_grand.m, maybe it's not a good idea)
 %
 %  .vol.type: 'template' or subject-specific ('dipoli' or 'openmeeg')
 %    if template, specify template .vol.template (should contain vol, lead, sens)
@@ -97,14 +97,13 @@ end
 
 %-------------------------------------%
 %-loop over conditions
-for e = 1:numel(cfg.poweffect)
-  k = cfg.poweffect(e);
+for p = cfg.poweffect
   
   %-----------------%
   %-input and output for each condition
-  allfile = dir([ddir cfg.test{k} cfg.endname '.mat']); % files matching a preprocessing
+  allfile = dir([ddir cfg.test{p} cfg.endname '.mat']); % files matching a preprocessing
   
-  condname = regexprep(cfg.test{k}, '*', '');
+  condname = regexprep(cfg.test{p}, '*', '');
   outputfile = sprintf('powsource_%02.f_%s', subj, condname);
   %-----------------%
 
@@ -123,7 +122,7 @@ for e = 1:numel(cfg.poweffect)
     
   else
     output = sprintf('%sCould not find any file in %s for test %s\n', ...
-      output, ddir, cfg.test{k});
+      output, ddir, cfg.test{p});
     continue
     
   end

@@ -74,7 +74,7 @@ for st = 1:numel(cfg.step)
     case 'pow_subj'
       output = [output realign(struct2log(cfg.pow, 'csv'), mincol)];
     case 'pow_grand'
-      output = [output sprintf('%f,', cfg.poweffect)];
+      output = [output sprintf(' %f', cfg.poweffect) ','];
       
     case 'powsource_subj'
       output = [output sprintf('%s,', cfg.powsource.areas)];
