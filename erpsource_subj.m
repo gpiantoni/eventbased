@@ -74,74 +74,22 @@ for p = cfg.erpeffect
   %---------------------------%
   
   %---------------------------%
-  %-read and prepare data
-  %-----------------%
-  %-input and output for each condition
-  allfile = dir([ddir cfg.test{p} cfg.endname '.mat']); % files matching a preprocessing
+  %-read data
+  [data badchan] = load_data(cfg, subj, p);
+  if isempty(data)
+    output = sprintf('%sCould not find any file for test %s\n', ...
+      output, cfg.test{p});
+    continue
+  end
   
   condname = regexprep(cfg.test{p}, '*', '');
   outputfile = sprintf('erpsource_%02.f_%s', subj, condname);
-  %-----------------%
+  %---------------------------%
   
-  %-----------------%
-  %-concatenate only if you have more datasets
-  if numel(allfile) > 1
-    spcell = @(name) sprintf('%s%s', ddir, name);
-    allname = cellfun(spcell, {allfile.name}, 'uni', 0);
-    
-    cfg1 = [];
-    cfg1.inputfile = allname;
-    data = ft_appenddata(cfg1);
-    
-  elseif numel(allfile) == 1
-    load([ddir allfile(1).name], 'data')
-    
-  else
-    output = sprintf('%sCould not find any file in %s for test %s\n', ...
-      output, ddir, cfg.test{p});
-    continue
-    
-  end
-  %-----------------%
-  
-  %-----------------%
-  %-find bad channels (bad channel if bad in at least one dataset)
-  if ~iscell(data.cfg.previous) % not appenddata
-    badchan = ft_findcfg(data.cfg, 'badchannel');
-    
-  else
-    
-    badchan = {};
-    for i = 1:numel(data.cfg.previous)
-      badtemp = ft_findcfg(data.cfg.previous{i}, 'badchannel');
-      badchan = union(badchan, badtemp);
-    end
-    
-  end
-  %-----------------%
-  
-  %-----------------%
+  %---------------------------%
   %-remove bad channels from leadfield
   datachan = ft_channelselection([{'all'}; cellfun(@(x) ['-' x], badchan, 'uni', false)], data.label);
-  
-  [~, ichan] = intersect(lead.cfg.elec.label, datachan);
-  ichan = sort(ichan); % ichan in a good order
-  
-  if size(vol.mat,1) == numel(lead.cfg.elec.label)
-    volchan = vol;
-    volchan.mat = vol.mat(ichan,:);
-  else
-    output = sprintf('%scannot modify vol because first dimension (% 4d) does not match the number of electrodes (% 4d)\n', ...
-      output, size(vol.mat,1), numel(lead.cfg.elec.label));
-  end
-  
-  leadchan = lead;
-  leadinside = lead.inside;
-  if size(leadinside,1) ~= 1; leadinside = leadinside'; end
-  for l = leadinside
-    leadchan.leadfield{l} = lead.leadfield{l}(ichan,:);
-  end
-  %-----------------%
+  [leadchan] = prepare_leadchan(lead, datachan);
   %---------------------------%
   
   for f = 1:numel(erppeak)
