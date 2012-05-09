@@ -15,7 +15,7 @@ function erpsource_subj(cfg, subj)
 %
 %  .vol.type: 'template' or subject-specific ('dipoli' or 'openmeeg')
 %    if template, specify template .vol.template (should contain vol, lead, sens)
-%    if not template, specify 
+%    if not template, specify
 %      .vol.mod: 'smri'
 %      .vol.cond: 't1'
 %      .proj: because the project name is part of the MRI name
@@ -37,8 +37,8 @@ function erpsource_subj(cfg, subj)
 %  [cfg.derp 'erpsource_001_TEST']: source data for period of interest and baseline for each subject
 %
 % Part of EVENTBASED single-subject
-% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND, 
-% POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND, 
+% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND,
+% POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND,
 % POWCORR_SUBJ, POWCORR_GRAND,
 % CONN_SUBJ, CONN_GRAND, CONN_STAT
 
@@ -78,24 +78,26 @@ else
   
 end
 %-----------------%
-
-%-----------------%
-%-use predefined or ERP-peaks for areas of interest
-if strcmp(cfg.erpsource.areas, 'manual')
-  erppeak = cfg.erpsource.erppeak;
-  
-elseif strcmp(cfg.erpsource.areas, 'erppeak')
-  condname = regexprep(cfg.test{cfg.erpeffect(1)}, '*', '');
-  load([cfg.derp cfg.cond condname '_erppeak'], 'erppeak')
-  
-end
-%-----------------%
 %---------------------------%
 
 %-------------------------------------%
 %-loop over conditions
 for p = cfg.erpeffect
- 
+  
+  %---------------------------%
+  %-use predefined or ERP-peaks for areas of interest
+  if strcmp(cfg.erpsource.areas, 'manual')
+    erppeak = cfg.erpsource.erppeak;
+    
+  elseif strcmp(cfg.erpsource.areas, 'erppeak')
+    condname = regexprep(cfg.test{cfg.erpeffect}, '*', '');
+    load([cfg.derp cfg.cond condname '_erppeak'], 'erppeak')
+    
+  end
+  %---------------------------%
+  
+  %---------------------------%
+  %-read and prepare data
   %-----------------%
   %-input and output for each condition
   allfile = dir([ddir cfg.test{p} cfg.endname '.mat']); % files matching a preprocessing
@@ -163,6 +165,7 @@ for p = cfg.erpeffect
     leadchan.leadfield{l} = lead.leadfield{l}(ichan,:);
   end
   %-----------------%
+  %---------------------------%
   
   for f = 1:numel(erppeak)
     
@@ -196,7 +199,7 @@ for p = cfg.erpeffect
     souPre{f} = ft_sourceanalysis(cfg3, avgPre);
     souPre{f}.cfg = [];
     %-----------------%
-
+    
     %-----------------%
     %-load MNI grid
     if ~strcmp(cfg.vol.type, 'template') ...

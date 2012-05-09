@@ -78,28 +78,30 @@ else
   
 end
 %-----------------%
-
-%-----------------%
-%-use predefined or power-peaks for areas of interest
-if strcmp(cfg.powsource.areas, 'manual')
-  powpeak = cfg.powsource.powpeak;
-  
-elseif strcmp(cfg.powsource.areas, 'powpeak')
-  condname = regexprep(cfg.test{p}, '*', '');
-  load([cfg.dpow cfg.cond condname '_powpeak'], 'powpeak')
-  
-elseif strcmp(cfg.powsource.areas, 'powcorrpeak')
-  load([cfg.dpow cfg.cond '_powcorrpeak'], 'powcorrpeak')
-  powpeak = powcorrpeak;
-  
-end
-%-----------------%
 %---------------------------%
 
 %-------------------------------------%
 %-loop over conditions
 for p = cfg.poweffect
+
+  %---------------------------%
+  %-use predefined or power-peaks for areas of interest
+  if strcmp(cfg.powsource.areas, 'manual')
+    powpeak = cfg.powsource.powpeak;
+    
+  elseif strcmp(cfg.powsource.areas, 'powpeak')
+    condname = regexprep(cfg.test{p}, '*', '');
+    load([cfg.dpow cfg.cond condname '_powpeak'], 'powpeak')
+    
+  elseif strcmp(cfg.powsource.areas, 'powcorrpeak')
+    load([cfg.dpow cfg.cond '_powcorrpeak'], 'powcorrpeak')
+    powpeak = powcorrpeak;
+    
+  end
+  %---------------------------%
   
+  %---------------------------%
+  %-read and prepare data
   %-----------------%
   %-input and output for each condition
   allfile = dir([ddir cfg.test{p} cfg.endname '.mat']); % files matching a preprocessing
@@ -159,13 +161,14 @@ for p = cfg.poweffect
     leadchan.leadfield{l} = lead.leadfield{l}(ichan,:);
   end
   %-----------------%
+  %---------------------------%
   
   for f = 1:numel(powpeak)
     
     fprintf('\n   ->->-> Running % 2.f powpeak (%s) <-<-<-\n', f, powpeak(f).name);
     
-    %-----------------%
-    %-more precise source reconstruction
+    %---------------------------%
+    %-more precise freq analysis reconstruction
     %-------%
     %-check that baseline contains always data, otherwise shrink the time
     % window
@@ -217,7 +220,7 @@ for p = cfg.poweffect
     cfg1.feedback = 'none';
     cfg1.channel = datachan;
     freq = ft_freqanalysis(cfg1, data);
-    %-----------------%
+    %---------------------------%
     
     %---------------------------%
     %-baseline
