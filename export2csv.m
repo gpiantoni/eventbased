@@ -27,7 +27,11 @@ output = [output sprintf(' %s', cfg.step{cfg.run}) ','];
 
 %-------------------------------------%
 %-loop over steps
-output = [output sprintf('%s,', cfg.vol.type)];
+if isfield(cfg, 'vol')
+  output = [output sprintf('%s,', cfg.vol.type)];
+else
+  output = [output ','];
+end
 
 for st = 1:numel(cfg.step)
   output = [output cfg.step{st} ','];
@@ -116,10 +120,21 @@ if numel(dir(cfg.derp)) > 2 % dir is not empty
   %-erppeak and soupeak
   %-------%
   %-get erppeak
-  if strcmp(cfg.erpsource.areas, 'manual')
-    erppeak = cfg.erpsource.erppeak;
-  elseif strcmp(cfg.erpsource.areas, 'erppeak')
-    load([cfg.derp cfg.cond '_erppeak'], 'erppeak')
+  if isfield(cfg, 'erpsource') && ... % in case it's not specified at all
+      strcmp(cfg.erpsource.areas, 'manual')
+    erppeak = {cfg.erpsource.erppeak};
+    
+  else % if strcmp(cfg.erpsource.areas, 'erppeak')
+    
+    for p = cfg.erpeffect
+      condname = regexprep(cfg.test{p}, '*', '');
+      if exist([cfg.derp cfg.cond condname '_erppeak.mat'], 'file')
+        load([cfg.derp cfg.cond condname '_erppeak'], 'erppeak')
+        erppeakall{p} = erppeak;
+      end
+    end
+    
+    erppeak = erppeakall;
   end
   %-------%
   
@@ -130,8 +145,8 @@ if numel(dir(cfg.derp)) > 2 % dir is not empty
   if exist([cfg.derp cfg.cond '_soupeak.mat'], 'file')
     load([cfg.derp cfg.cond '_soupeak'], 'soupeak')
     
-    if numel({erppeak.name}) == numel({soupeak.name}) && ...
-        all(strcmp({erppeak.name}, {soupeak.name}))
+    if numel({erppeak{1}.name}) == numel({soupeak.name}) && ...
+        all(strcmp({erppeak{1}.name}, {soupeak.name}))
       sou = true;
     end
   end
@@ -140,22 +155,24 @@ if numel(dir(cfg.derp)) > 2 % dir is not empty
   
   %-----------------%
   %-loop over peaks (sorted by time)
-  [~, peaktime] = sort([erppeak.time]);
-  
-  for i = peaktime
-    output = [output sprintf('%s,%1.3f,%1.3f,', ...
-      erppeak(i).name, erppeak(i).time, erppeak(i).wndw)];
-    if strcmp(cfg.erpsource.areas, 'erppeak')
-      output = [output sprintf('%1.3f,', erppeak(i).pval)];
-    else
-      output = [output ','];
-    end
+  for p = 1:numel(erppeak)
+    [~, peaktime] = sort([erppeak{p}.time]);
     
-    if sou
-      output = [output sprintf('[%1.2f %1.2f %1.2f], %1.f,', ...
-        soupeak(i).center(1), soupeak(i).center(2), soupeak(i).center(3), size(soupeak(i).pos,1))];
-    else
-      output = [output ',,'];
+    for i = peaktime
+      output = [output sprintf('%s,%1.3f,%1.3f,', ...
+        erppeak(i).name, erppeak{p}(i).time, erppeak{p}(i).wndw)];
+      if strcmp(cfg.erpsource.areas, 'erppeak')
+        output = [output sprintf('%1.3f,', erppeak{p}(i).pval)];
+      else
+        output = [output ','];
+      end
+      
+      if sou
+        output = [output sprintf('[%1.2f %1.2f %1.2f], %1.f,', ...
+          soupeak(i).center(1), soupeak(i).center(2), soupeak(i).center(3), size(soupeak(i).pos,1))];
+      else
+        output = [output ',,'];
+      end
     end
   end
   %-----------------%
@@ -165,7 +182,6 @@ output = realign(output, mincol*4); % to be tested
 %-----------------%
 %---------------------------%
 
-
 %---------------------------%
 %-POW
 if numel(dir(cfg.dpow)) > 2 % dir is not empty
@@ -174,13 +190,21 @@ if numel(dir(cfg.dpow)) > 2 % dir is not empty
   %-powpeak and soupeak
   %-------%
   %-get powpeak
-  if strcmp(cfg.powsource.areas, 'manual')
-    powpeak = cfg.powsource.powpeak;
+  if isfield(cfg, 'powsource') && ... % in case it's not specified at all
+      strcmp(cfg.powsource.areas, 'manual')
+    powpeak = {cfg.powsource.powpeak};
     
-  elseif strcmp(cfg.powsource.areas, 'powpeak')
-    if exist([cfg.dpow cfg.cond '_powpeak.mat'], 'file')
-      load([cfg.dpow cfg.cond '_powpeak'], 'powpeak')
+  else % if strcmp(cfg.powsource.areas, 'powpeak')
+    
+    for p = cfg.poweffect
+      condname = regexprep(cfg.test{p}, '*', '');
+      if exist([cfg.dpow cfg.cond condname '_powpeak.mat'], 'file')
+        load([cfg.dpow cfg.cond condname '_powpeak'], 'powpeak')
+        powpeakall{p} = powpeak;
+      end
     end
+    
+    powpeak = powpeakall;
   end
   %-------%
   
@@ -191,8 +215,8 @@ if numel(dir(cfg.dpow)) > 2 % dir is not empty
   if exist([cfg.dpow cfg.cond '_soupeak.mat'], 'file')
     load([cfg.dpow cfg.cond '_soupeak'], 'soupeak')
     
-    if numel({powpeak.name}) == numel({soupeak.name}) && ...
-        all(strcmp({powpeak.name}, {soupeak.name}))
+    if numel({powpeak{1}.name}) == numel({soupeak.name}) && ... % only the first poweffect has source
+        all(strcmp({powpeak{1}.name}, {soupeak.name}))
       sou = true;
     end
   end
@@ -201,28 +225,31 @@ if numel(dir(cfg.dpow)) > 2 % dir is not empty
   
   %-----------------%
   %-loop over peaks (sorted by time)
-  [~, peaktime] = sort([powpeak.time]);
-  
-  for i = peaktime
-    output = [output sprintf('%s,%1.3f,%1.3f,%1.3f,%1.3f,', ...
-      powpeak(i).name, powpeak(i).time, powpeak(i).wndw, powpeak(i).freq, powpeak(i).band)];
-    if strcmp(cfg.powsource.areas, 'powpeak')
-      output = [output sprintf('%1.4f,', powpeak(i).pval)];
-    else
-      output = [output ','];
-    end
+  for p = 1:numel(powpeak)
+    [~, peaktime] = sort([powpeak{p}.time]);
     
-    if sou
-      output = [output sprintf('[%1.2f %1.2f %1.2f], %1.f,', ...
-        soupeak(i).center(1), soupeak(i).center(2), soupeak(i).center(3), size(soupeak(i).pos,1))];
-    else
-      output = [output ',,'];
+    for i = peaktime
+      output = [output sprintf('%s,%1.3f,%1.3f,%1.3f,%1.3f,', ...
+        powpeak{p}(i).name, powpeak{p}(i).time, powpeak{p}(i).wndw, powpeak{p}(i).freq, powpeak{p}(i).band)];
+      if isfield(cfg, 'powsource') && ... % in case it's not specified at all
+          strcmp(cfg.powsource.areas, 'powpeak')
+        output = [output sprintf('%1.4f,', powpeak{p}(i).pval)];
+      else
+        output = [output ','];
+      end
+      
+      if sou && p == 1 % only the first poweffect has source
+        output = [output sprintf('[%1.2f %1.2f %1.2f], %1.f,', ...
+          soupeak(i).center(1), soupeak(i).center(2), soupeak(i).center(3), size(soupeak(i).pos,1))];
+      else
+        output = [output ',,'];
+      end
     end
   end
   %-----------------%
   
 end
-output = realign(output, mincol*4); % to be tested
+output = realign(output, mincol*4);
 %---------------------------%
 %-------------------------------------%
 
