@@ -26,6 +26,7 @@ function erpsource_subj(cfg, subj)
 %      .erpsource.erppeak(1).time = 0.10; % center of the time window
 %      .erpsource.erppeak(1).wndw = 0.05; % length of the time window
 %    if 'erppeak', it reads the significant peaks calculated by erp_grand
+%                  erppeak is specific to each condition
 %
 %  .erpsource.erp: a structure with cfg to pass to ft_timelockanalysis (it's better if identical to cfg.erp)
 %  .erpsource.bline: one number in s, the center of the covariance window of the baseline (the window length depends on erppeak)

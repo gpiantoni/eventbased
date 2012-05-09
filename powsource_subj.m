@@ -27,6 +27,7 @@ function powsource_subj(cfg, subj)
 %      .powsource.powpeak(1).freq = 10; % center of the frequency
 %      .powsource.powpeak(1).band = 4; % width of the frequency band
 %    if 'powpeak', it reads the significant peaks calculated by pow_grand
+%                  powpeak is specific to each condition
 %
 %  .powsource.bline: one number in s, the center of the covariance window of the baseline (the window length depends on powpeak)
 %
