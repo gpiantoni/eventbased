@@ -122,6 +122,20 @@ function [val] = tochar(fld)
     
   elseif isa(fld, 'function_handle')
     val = sprintf(' %s', func2str(fld));
+
+  elseif islogical(fld)
+    if fld
+      val = ' TRUE';
+    else
+      val = ' FALSE';
+    end
+    
+  elseif islogical(fld)
+    if fld
+      val = ' TRUE';
+    else
+      val = ' FALSE';
+    end
     
   else
     val = 'unrecognized input';
