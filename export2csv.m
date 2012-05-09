@@ -159,8 +159,8 @@ if numel(dir(cfg.derp)) > 2 % dir is not empty
     [~, peaktime] = sort([erppeak{p}.time]);
     
     for i = peaktime
-      output = [output sprintf('%s,%1.3f,%1.3f,', ...
-        erppeak(i).name, erppeak{p}(i).time, erppeak{p}(i).wndw)];
+      output = [output sprintf('p%d, %s,%1.3f,%1.3f,', ...
+        p, erppeak(i).name, erppeak{p}(i).time, erppeak{p}(i).wndw)];
       if strcmp(cfg.erpsource.areas, 'erppeak')
         output = [output sprintf('%1.3f,', erppeak{p}(i).pval)];
       else
@@ -229,8 +229,8 @@ if numel(dir(cfg.dpow)) > 2 % dir is not empty
     [~, peaktime] = sort([powpeak{p}.time]);
     
     for i = peaktime
-      output = [output sprintf('%s,%1.3f,%1.3f,%1.3f,%1.3f,', ...
-        powpeak{p}(i).name, powpeak{p}(i).time, powpeak{p}(i).wndw, powpeak{p}(i).freq, powpeak{p}(i).band)];
+      output = [output sprintf('p%d, %s,%1.3f,%1.3f,%1.3f,%1.3f,', ...
+        p, powpeak{p}(i).name, powpeak{p}(i).time, powpeak{p}(i).wndw, powpeak{p}(i).freq, powpeak{p}(i).band)];
       if isfield(cfg, 'powsource') && ... % in case it's not specified at all
           strcmp(cfg.powsource.areas, 'powpeak')
         output = [output sprintf('%1.4f,', powpeak{p}(i).pval)];
