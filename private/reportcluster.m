@@ -17,6 +17,7 @@ function [clpeak output] = reportcluster(cfg, gdat)
 % it might be made more flexible.
 %
 % The sizes of the frequency band and time window are defined by FWHM
+% Peaks used for the analysis should be significant below cfg.cluster.thr
 
 %-----------------%
 %-check data
@@ -112,14 +113,13 @@ end
 %-------------------------------------%
 %-report cluster
 clpeak = [];
-clusterthr = .9;
 
 %-----------------%
 %-positive cluster
 if isempty(stat.posclusters)
   poscl = [];
 else
-  poscl = find([stat.posclusters.prob] < clusterthr);
+  poscl = find([stat.posclusters.prob] < cfg.cluster.thr);
 end
 
 for i = 1:numel(poscl)
@@ -196,7 +196,7 @@ end
 if isempty(stat.negclusters)
   negcl = [];
 else
-  negcl = find([stat.negclusters.prob] < clusterthr);
+  negcl = find([stat.negclusters.prob] < cfg.cluster.thr);
 end
 
 for i = 1:numel(negcl)

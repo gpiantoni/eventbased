@@ -14,6 +14,8 @@ function erp_grand(cfg)
 %
 %  .derp: directory to save ERP data
 %  .erpeffect: effect of interest to create erppeak. If empty, no stats.
+%  If stats,
+%    .cluster.thr: threshold to consider clusters are erppeaks
 %
 %  .gerp.test.time: time limit for statistics (two scalars)
 %

@@ -25,6 +25,8 @@ function pow_grand(cfg)
 %
 %  .dpow: directory to save POW data
 %  .poweffect: index of interest to create powpeak, can be a row vector. If empty, no stats.
+%  If stats,
+%    .cluster.thr: threshold to consider clusters are powpeaks
 %
 %  .gpow.chan(1).name = 'name of channel group';
 %  .gpow.chan(1).chan =  cell with labels of channels of interest
