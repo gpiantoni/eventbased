@@ -54,7 +54,7 @@ tic_t = tic;
 %-dir and files
 ddir = sprintf('%s%04.f/%s/%s/', cfg.data, subj, cfg.mod, cfg.cond); % data
 
-[vol, lead, sens] = load_headshape(cfg);
+[vol, lead, sens] = load_headshape(cfg, subj);
 %---------------------------%
 
 %-------------------------------------%
@@ -182,6 +182,11 @@ for p = cfg.erpeffect
     if ~strcmp(cfg.vol.type, 'template') ...
         && isfield(cfg, 'bnd2lead') && isfield(cfg.bnd2lead, 'mni') ...
         && isfield(cfg.bnd2lead.mni, 'warp') && cfg.bnd2lead.mni.warp
+      
+      load(sprintf('%s/template/sourcemodel/standard_grid3d%dmm.mat', ...
+        fileparts(which('ft_defaults')), cfg.bnd2lead.mni.resolution), 'grid');
+      grid = ft_convert_units(grid, 'mm');
+      
       souPre{f}.pos = grid.pos;
     end
     %-----------------%
@@ -213,11 +218,7 @@ for p = cfg.erpeffect
     if ~strcmp(cfg.vol.type, 'template') ...
         && isfield(cfg, 'bnd2lead') && isfield(cfg.bnd2lead, 'mni') ...
         && isfield(cfg.bnd2lead.mni, 'warp') && cfg.bnd2lead.mni.warp
-      
-      load(sprintf('%s/template/sourcemodel/standard_grid3d%dmm.mat', ...
-        fileparts(which('ft_defaults')), cfg.bnd2lead.mni.resolution), 'grid'); 
-      
-      grid = ft_convert_units(grid, 'mm');
+
       source{f}.pos = grid.pos;
     end
     %-----------------%
