@@ -2,23 +2,28 @@ function erp_subj(cfg, subj)
 %ERP_SUBJ create subject-specific erp
 %
 % CFG
-%  .data: name of projects/PROJNAME/subjects/
-%  .mod: name of the modality used in recordings and projects
-%  .cond: name to be used in projects/PROJNAME/subjects/0001/MOD/CONDNAME/
-%  .endname: includes previous steps '_seldata_gclean_preproc_redef'
-%  .test: a cell with the condition defined by redef. This function will loop over cfg.test
-%  .log: name of the file and directory with analysis log
-%  .derp: directory to save ERP data
+%  .data: path of /data1/projects/PROJNAME/subjects/
+%  .rec: RECNAME in /data1/projects/PROJNAME/recordings/RECNAME/
+%  .nick: NICKNAME in /data1/projects/PROJNAME/subjects/0001/MOD/NICKNAME/
+%  .mod: modality, MOD in /data1/projects/PROJNAME/subjects/0001/MOD/NICKNAME/
+%  .endname: includes preprocessing steps (e.g. '_seldata_gclean_preproc_redef')
+%
+%  .log: name of the file and directory to save log
+%  .derp: directory for ERP data
+%  .erp.cond: cell with conditions (e.g. {'*cond1' '*cond2'})'
 %
 %  .erp: a structure with cfg to pass to ft_timelockanalysis
 %
+% IN:
+%  data in /PROJNAME/subjects/0001/MOD/NICKNAME/
+% 
 % OUT
-%  [cfg.derp 'erp_001_TEST']: timelock analysis for single-subject
+%  [cfg.derp 'erp_SUBJCODE_CONDNAME']: timelock analysis for single-subject
 %
 % Part of EVENTBASED single-subject
 % see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND, 
 % POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND, 
-% POWCORR_SUBJ, POWCORR_GRAND,
+% POWCORR_SUBJ, POWCORR_GRAND, POWSTAT_SUBJ, POWSTAT_GRAND, 
 % CONN_SUBJ, CONN_GRAND, CONN_STAT
 
 %---------------------------%
@@ -30,7 +35,7 @@ tic_t = tic;
 
 %-------------------------------------%
 %-loop over conditions
-for k = 1:numel(cfg.erp.cond) % DOC: CFG.ERP.COND
+for k = 1:numel(cfg.erp.cond)
   cond     = cfg.erp.cond{k};
   condname = regexprep(cond, '*', '');
   
@@ -43,7 +48,7 @@ for k = 1:numel(cfg.erp.cond) % DOC: CFG.ERP.COND
     continue
   end
   
-  outputfile = sprintf('erp_%02.f_%s', subj, condname);
+  outputfile = sprintf('erp_%04d_%s', subj, condname);
   %---------------------------%
   
   %---------------------------%

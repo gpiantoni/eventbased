@@ -1,14 +1,38 @@
 function [data badchan] = load_data(cfg, subj, cond)
 %LOAD_DATA load data, and optionally get bad channels
-% TODO: a better way to pass data to read
+% Use as:
+%   [data badchan] = load_data(cfg, subj, cond)
+%
+% CFG
+%  .data: path of /data1/projects/PROJNAME/subjects/
+%  .rec: RECNAME in /data1/projects/PROJNAME/recordings/RECNAME/
+%  .nick: NICKNAME in /data1/projects/PROJNAME/subjects/0001/MOD/NICKNAME/
+%  .mod: modality, MOD in /data1/projects/PROJNAME/subjects/0001/MOD/NICKNAME/
+%  .endname: includes preprocessing steps (e.g. '_seldata_gclean_preproc_redef')
+%
+% SUBJ
+%   number indicating the subject number
+%
+% COND
+%   a string with the name used to read the data. The file name is
+%   structured as: RECNAME_NICKNAME_SUBJCODE_MOD_COND_endname
+%   So, you need to specify COND with astericks only if necessary
+%
+% DATA
+%   data in the specified condition
+% 
+% BADCHANNEL
+%   if gclean has been run, it'll return the labels of the channels
+%   labelled as bad
 % 
 % Part of EVENTBASED/PRIVATE
 
 %-----------------%
 %-input and output for each condition
-ddir = sprintf('%s%04.f/%s/%s/', cfg.data, subj, cfg.mod, cfg.cond); % data
+ddir = sprintf('%s%04d/%s/%s/', cfg.data, subj, cfg.mod, cfg.nick); % data
+beginname = sprintf('%s_%s_%04d_%s_', cfg.rec, cfg.nick, subj, cfg.mod); % beginning of datafile
 
-allfile = dir([ddir cond cfg.endname '.mat']); % files matching a preprocessing
+allfile = dir([ddir beginname cond cfg.endname '.mat']); % files matching a preprocessing
 %-----------------%
 
 %-----------------%

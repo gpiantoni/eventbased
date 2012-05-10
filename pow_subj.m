@@ -2,13 +2,15 @@ function pow_subj(cfg, subj)
 %POW_SUBJ create subject-specific pow
 %
 % CFG
-%  .data: name of projects/PROJNAME/subjects/
-%  .mod: name of the modality used in recordings and projects
-%  .cond: name to be used in projects/PROJNAME/subjects/0001/MOD/CONDNAME/
-%  .endname: includes previous steps '_seldata_gclean_preproc_redef'
-%  .log: name of the file and directory with analysis log
-%  .test: a cell with the condition defined by redef. This function will loop over cfg.test
-%  .dpow: directory to save POW data
+%  .data: path of /data1/projects/PROJNAME/subjects/
+%  .rec: RECNAME in /data1/projects/PROJNAME/recordings/RECNAME/
+%  .nick: NICKNAME in /data1/projects/PROJNAME/subjects/0001/MOD/NICKNAME/
+%  .mod: modality, MOD in /data1/projects/PROJNAME/subjects/0001/MOD/NICKNAME/
+%  .endname: includes preprocessing steps (e.g. '_seldata_gclean_preproc_redef')
+%
+%  .log: name of the file and directory to save log
+%  .dpow: directory for POW data
+%  .pow.cond: cell with conditions (e.g. {'*cond1' '*cond2'})'
 %
 %  .pow: a structure with cfg to pass to ft_freqanalysis
 %  .pow.outliers: logical (print tables with number of points above a
@@ -19,13 +21,16 @@ function pow_subj(cfg, subj)
 %
 % Baseline correction is applied in POW_GRAND
 %
+% IN:
+%  data in /PROJNAME/subjects/0001/MOD/NICKNAME/
+%
 % OUT
-%  [cfg.dpow 'pow_001_TEST']: power analysis for single-subject
+%  [cfg.dpow 'pow_SUBJCODE_COND']: power analysis for single-subject
 %
 % Part of EVENTBASED single-subject
-% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND,
-% POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND,
-% POWCORR_SUBJ, POWCORR_GRAND,
+% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND, 
+% POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND, 
+% POWCORR_SUBJ, POWCORR_GRAND, POWSTAT_SUBJ, POWSTAT_GRAND, 
 % CONN_SUBJ, CONN_GRAND, CONN_STAT
 
 %---------------------------%
@@ -50,7 +55,7 @@ for k = 1:numel(cfg.pow.cond) % DOC: CFG.POW.COND
     continue
   end
   
-  outputfile = sprintf('pow_%02.f_%s', subj, condname);
+  outputfile = sprintf('pow_%04d_%s', subj, condname);
   %---------------------------%
   
   %---------------------------%
