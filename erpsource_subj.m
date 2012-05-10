@@ -10,7 +10,7 @@ function erpsource_subj(cfg, subj)
 %
 %  .log: name of the file and directory to save log
 %  .derp: directory for ERP data
-%  .erpsource.cond: cell with conditions (e.g. {'*cond1' '*cond2'})'
+%  .erpsource.cond: cell with conditions (e.g. {'*cond1' '*cond2'})
 %
 %  .vol.type: 'template' or subject-specific ('dipoli' or 'openmeeg')
 %    if 'template'
@@ -69,7 +69,7 @@ for k = 1:numel(cfg.erpsource.cond)
     erppeak = cfg.erpsource.erppeak;
   elseif strcmp(cfg.erpsource.areas, 'erppeak')
     peakname = regexprep(cfg.erp.refcond, '*', '');
-    load([cfg.derp cfg.cond peakname '_erppeak'], 'erppeak')
+    load([cfg.derp cfg.nick peakname '_erppeak'], 'erppeak')
   end
   %---------------------------%
   

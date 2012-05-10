@@ -1,10 +1,10 @@
 function seldata(cfg, subj)
 %SELDATA get data from recordings and put them in subject directory
-% it recreates the "cfg.cond" folder for each subject
+% it recreates the "cfg.nick" folder for each subject
 %
 % CFG
-%  .recs: name of recordings/RECNAME/subjects/
-%  .mod: name of the modality used in recordings and projects
+%  .recs: path of /data1/projects/PROJNAME/recordings/RECNAME/subjects/
+%  .mod: modality, MOD in /data1/projects/PROJNAME/subjects/SUBJCODE/MOD/NICKNAME/
 %  .rcnd: specific name of the condition of interest in the raw recording folder
 %  .data: name of projects/PROJNAME/subjects/
 %  .cond: name to be used in projects/PROJNAME/subjects/0001/MOD/CONDNAME/
@@ -30,15 +30,15 @@ function seldata(cfg, subj)
 
 %---------------------------%
 %-start log
-output = sprintf('(p%02.f) %s started at %s on %s\n', ...
+output = sprintf('(p%04d) %s started at %s on %s\n', ...
   subj, mfilename,  datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
 tic_t = tic;
 %---------------------------%
 
 %---------------------------%
 %-dir and files
-rdir = sprintf('%s%04.f/%s/%s/', cfg.recs, subj, cfg.mod, 'raw'); % recording raw
-ddir = sprintf('%s%04.f/%s/%s/', cfg.data, subj, cfg.mod, cfg.cond); % data
+rdir = sprintf('%s%04d/%s/%s/', cfg.recs, subj, cfg.mod, 'raw'); % recording raw
+ddir = sprintf('%s%04d/%s/%s/', cfg.data, subj, cfg.mod, cfg.nick); % data
 if isdir(ddir); rmdir(ddir, 's'); end
 mkdir(ddir)
 
@@ -113,7 +113,7 @@ end
 %---------------------------%
 %-end log
 toc_t = toc(tic_t);
-outtmp = sprintf('(p%02.f) %s ended at %s on %s after %s\n\n', ...
+outtmp = sprintf('(p%04d) %s ended at %s on %s after %s\n\n', ...
   subj, mfilename, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'), ...
   datestr( datenum(0, 0, 0, 0, 0, toc_t), 'HH:MM:SS'));
 output = [output outtmp];

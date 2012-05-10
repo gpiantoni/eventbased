@@ -1,4 +1,4 @@
-function [soupeak stat output] = reportsource(cfg, gdat, gpre)
+function [soupeak stat output] = reportsource(cfg, gdat1, gdat2)
 %REPORTSOURCE get cluster which are different from baseline, even if not significant
 % The clusters to determine the main results of the analysis, for example
 % to concentrate the source reconstruction
@@ -10,14 +10,14 @@ function [soupeak stat output] = reportsource(cfg, gdat, gpre)
 %-------------------------------------%
 %-check data
 output = '';
-nsubj = numel(gdat.trial);
+nsubj = numel(gdat1.trial);
 
 %-----------------%
 %-pow or nai
-if isfield(gdat.avg, 'nai')
+if isfield(gdat1.avg, 'nai')
   param = 'nai';
   
-elseif isfield(gdat.avg, 'pow')
+elseif isfield(gdat1.avg, 'pow')
   param = 'pow';
   
 else
@@ -40,7 +40,7 @@ cfg3.uvar = 2;
 cfg3.feedback = 'etf';
 
 cfg3.parameter = param;
-cfg3.dim = gdat.dim;
+cfg3.dim = gdat1.dim;
 
 cfg3.alpha = 0.05;
 
@@ -60,8 +60,8 @@ elseif ischar(cfg.clusteralpha) && cfg.clusteralpha(end)=='%'
   %-------%
   %-get t-stat
   tstat = @(x) mean(x,2) ./ (std(x,[],2)) *sqrt(size(x,2));
-  x1 = cat(2, gpre.trial.pow);
-  x2 = cat(2, gdat.trial.pow);
+  x1 = cat(2, gdat2.trial.pow);
+  x2 = cat(2, gdat1.trial.pow);
   
   t = tstat(x2 - x1);
   t_thr = quantile(abs(t(~isnan(t))), ratio); % t-stat at the cfg.clusteralpha quantile
@@ -86,7 +86,7 @@ elseif ischar(cfg.clusteralpha) && cfg.clusteralpha(end)=='%'
 end
 %---------------------------%
 
-stat = ft_sourcestatistics(cfg3, gdat, gpre);
+stat = ft_sourcestatistics(cfg3, gdat1, gdat2);
 %-------------------------------------%
 
 %-------------------------------------%

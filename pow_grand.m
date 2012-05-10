@@ -178,7 +178,7 @@ end
 
 %-----------------%
 %-save
-save([cfg.dpow cfg.cond '_grandpow'], 'gpow')
+save([cfg.dpow cfg.nick '_grandpow'], 'gpow')
 %-----------------%
 %---------------------------%
 %-----------------------------------------------%
@@ -238,7 +238,7 @@ if ~isempty(gpow)
       
     end
     
-    save([cfg.dpow cfg.cond condname '_powpeak'], 'powpeak')
+    save([cfg.dpow cfg.nick condname '_powpeak'], 'powpeak')
     output = [output outtmp];
     %---------------------------%
     

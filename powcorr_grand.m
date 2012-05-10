@@ -34,7 +34,7 @@ function powcorr_grand(cfg)
 %  .rslt: directory images are saved into
 %
 % IN
-%  [cfg.derp 'erp_SUBJCODE_CONDNAME']: timelock analysis for single-subject
+%  [cfg.derp 'erp_SUBJ_COND']: timelock analysis for single-subject
 %
 % OUT
 %  [cfg.dpow 'COND_grandpow']: power analysis for all subjects
@@ -63,7 +63,7 @@ tic_t = tic;
 %---------------------------%
 %-loop over conditions
 gpowcorr = [];
-for k = 1:numel(cfg.powcorr.cond) % DOC: CFG.POWCORR.COND
+for k = 1:numel(cfg.powcorr.cond)
   cond     = cfg.powcorr.cond{k};
   condname = regexprep(cond, '*', '');
   
@@ -99,7 +99,7 @@ end
 
 %-----------------%
 %-save
-save([cfg.dpow cfg.cond '_grandpowcorr'], 'gpowcorr')
+save([cfg.dpow cfg.nick '_grandpowcorr'], 'gpowcorr')
 %-----------------%
 %---------------------------%
 
@@ -158,7 +158,7 @@ if ~isempty(gpowcorr)
       
     end
     
-    save([cfg.dpow cfg.cond condname '_powcorrpeak'], 'powcorrpeak')
+    save([cfg.dpow cfg.nick condname '_powcorrpeak'], 'powcorrpeak')
     output = [output outtmp];
     %---------------------------%
     
