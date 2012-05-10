@@ -15,7 +15,7 @@ function erp_subj(cfg, subj)
 %  .erp: a structure with cfg to pass to ft_timelockanalysis
 %
 % IN:
-%  data in /PROJNAME/subjects/0001/MOD/NICKNAME/
+%  data in /PROJNAME/subjects/SUBJCODE/MOD/NICKNAME/
 % 
 % OUT
 %  [cfg.derp 'erp_SUBJCODE_CONDNAME']: timelock analysis for single-subject

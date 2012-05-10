@@ -17,7 +17,7 @@ function pow_subj(cfg, subj)
 % Baseline correction is applied in POW_GRAND
 %
 % IN:
-%  data in /PROJNAME/subjects/0001/MOD/NICKNAME/
+%  data in /PROJNAME/subjects/SUBJCODE/MOD/NICKNAME/
 %
 % OUT
 %  [cfg.dpow 'pow_SUBJCODE_COND']: power analysis for single-subject

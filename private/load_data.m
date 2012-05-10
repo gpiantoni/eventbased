@@ -6,8 +6,8 @@ function [data badchan] = load_data(cfg, subj, cond)
 % CFG
 %  .data: path of /data1/projects/PROJNAME/subjects/
 %  .rec: RECNAME in /data1/projects/PROJNAME/recordings/RECNAME/
-%  .nick: NICKNAME in /data1/projects/PROJNAME/subjects/0001/MOD/NICKNAME/
-%  .mod: modality, MOD in /data1/projects/PROJNAME/subjects/0001/MOD/NICKNAME/
+%  .nick: NICKNAME in /data1/projects/PROJNAME/subjects/SUBJCODE/MOD/NICKNAME/
+%  .mod: modality, MOD in /data1/projects/PROJNAME/subjects/SUBJCODE/MOD/NICKNAME/
 %  .endname: includes preprocessing steps (e.g. '_seldata_gclean_preproc_redef')
 %
 % SUBJ

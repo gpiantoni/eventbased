@@ -19,7 +19,7 @@ function powcorr_subj(cfg, subj)
 %  .powcorr.log: logical (take the log of power, strongly advised)
 %
 % IN:
-%  data in /PROJNAME/subjects/0001/MOD/NICKNAME/
+%  data in /PROJNAME/subjects/SUBJCODE/MOD/NICKNAME/
 %
 % OUT
 %  [cfg.dpow 'powcorr_SUBJCODE_COND']: power correlation for single-subject

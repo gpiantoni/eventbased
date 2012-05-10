@@ -1,6 +1,22 @@
 function  [vol, lead, sens] = load_headshape(cfg, subj)
 %LOAD_HEADSHAPE load headshape
+% Use as:
+%   [vol, lead, sens] = load_headshape(cfg, subj)
 %
+% CFG
+%  .vol.type: 'template' or subject-specific ('dipoli' or 'openmeeg')
+%    if template
+%      .vol.template: file with template containing vol, lead, sens
+%    if not template
+%      .data: path of /data1/projects/PROJNAME/subjects/
+%      .rec: RECNAME in /data1/projects/PROJNAME/recordings/RECNAME/
+%
+% SUBJ
+%   number indicating the subject number
+%
+% VOL, LEAD, SENS
+%   vol, lead and sens to be used for source reconstruction
+% 
 % Part of EVENTBASED/PRIVATE
 
 if strcmp(cfg.vol.type, 'template')
