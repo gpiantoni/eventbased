@@ -161,9 +161,9 @@ if ~isempty(gerp)
     cfg3.ylim = 'maxabs';
     ft_singleplotER(cfg3, gerp{:});
     
-    legend(cfg.test)
+    legend('cond1', 'cond2')
     
-    title(cfg.gerp.chan(c).name)
+    title([condname ' ' cfg.gerp.chan(c).name])
     %--------%
     %-----------------%
     

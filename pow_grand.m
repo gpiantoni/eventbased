@@ -333,7 +333,7 @@ if ~isempty(gpow)
         cfg4.zlim = cfg.gpow.freq{f};
         ft_singleplotER(cfg4, gtime{:});
         
-        legend(cfg.test)
+        legend('cond1', 'cond2')
         ylabel(cfg4.parameter)
         
         freqname = sprintf('f%02.f-%02.f', cfg.gpow.freq{f}(1), cfg.gpow.freq{f}(2));
