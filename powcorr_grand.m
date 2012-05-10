@@ -33,7 +33,7 @@ function powcorr_grand(cfg)
 % POWCORR_SUBJ, POWCORR_GRAND,
 % CONN_SUBJ, CONN_GRAND, CONN_STAT
 
-% practically identical to pow_grand but not powpeaks
+% practically identical to pow_grand
 % pow -> powcorr; cfg.gpow -> cfg.gpowcorr
 
 %---------------------------%
@@ -47,12 +47,13 @@ tic_t = tic;
 %-read the data
 %---------------------------%
 %-loop over conditions
-gpow = [];
-for k = 1:numel(cfg.test)
+gpowcorr = [];
+for k = 1:numel(cfg.powcorr.cond) % DOC: CFG.POWCORR.COND
+  cond     = cfg.powcorr.cond{k};
+  condname = regexprep(cond, '*', '');
   
   %-----------------%
   %-file for each cond
-  condname = regexprep(cfg.test{k}, '*', '');
   subjfile = @(s) sprintf('%spowcorr_%02.f_%s.mat', cfg.dpow, s, condname);
   allname = cellfun(subjfile, num2cell(cfg.subjall), 'uni', 0);
   
@@ -75,15 +76,15 @@ for k = 1:numel(cfg.test)
   
   cfg2 = [];
   cfg2.variance = 'yes';
-  gpow{k} = ft_freqdescriptives(cfg2, gfreq{k});
-  gpow{k}.tscore =  gpow{k}.powspctrm ./ gpow{k}.powspctrmsem;
+  gpowcorr{k} = ft_freqdescriptives(cfg2, gfreq{k});
+  gpowcorr{k}.tscore =  gpowcorr{k}.powspctrm ./ gpowcorr{k}.powspctrmsem;
   %-----------------%
   
 end
 
 %-----------------%
 %-save
-save([cfg.dpow cfg.cond '_grandpowcorr'], 'gpow')
+save([cfg.dpow cfg.cond '_grandpowcorr'], 'gpowcorr')
 %-----------------%
 %---------------------------%
 
@@ -93,141 +94,129 @@ if ~isempty(cfg.sens.layout)
   load(cfg.sens.layout, 'layout');
 end
 
-if ~isempty(gpow)
+if ~isempty(gpowcorr)
   
-  %---------------------------%
-  %-statistics for main effects
-  for p = cfg.powcorreffect
-    [powcorrpeak outtmp] = reportcluster(gfreq{cfg.powcorreffect}, cfg);
-    outtmp = sprintf('%sattention! .wndw is adjusted incorrectly based on cfg.pow, not cfg.powcorr\n', output);
+  %-------------------------------------%
+  %-loop over statistics conditions
+  for t = 1:numel(cfg.gpowcorr.stat.cond) % DOC: cfg.gpowcorr.stat.cond as cell
     
-    condname = regexprep(cfg.test{p}, '*', '');
+    %---------------------------%
+    %-statistics for effects of interest
+    if numel(cfg.gpowcorr.stat.cond{t}) == 1
+      
+      %-----------------%
+      %-compare against baseline
+      cond = cfg.gpowcorr.stat.cond{t}{1};
+      i_cond = strfind(cfg.powcorr.cond, cond);
+      condname = regexprep(cond, '*', '');
+      
+      [powcorrpeak outtmp] = reportcluster(cfg, gfreq{i_cond});
+      %-----------------%
+      
+      %-----------------%
+      %-data for plot
+      gplot = gpowcorr{i_cond};
+      gtime{1} = gplot; % to plot freq fluctuations over time
+      %-----------------%
+      
+    else
+      
+      %-----------------%
+      %-compare two conditions
+      cond1 = cfg.gpowcorr.stat.cond{t}{1};
+      cond2 = cfg.gpowcorr.stat.cond{t}{2};
+      i_cond1 = strfind(cfg.powcorr.cond, cond1);
+      i_cond2 = strfind(cfg.powcorr.cond, cond2);
+      condname = [regexprep(cond1, '*', '') '_' regexprep(cond2, '*', '')];
+      
+      [powcorrpeak outtmp] = reportcluster(cfg, gfreq{i_cond1}, gfreq{i_cond2});
+      %-----------------%
+      
+      %-----------------%
+      %-data for plot
+      gplot = gpowcorr{i_cond1};
+      gplot.tscore = log(gpowcorr{i_cond1}.tscore ./ gpowcorr{i_cond2}.tscore);
+      
+      gtime{1} = gpowcorr{i_cond1}; % to plot freq fluctuations over time
+      gtime{2} = gpowcorr{i_cond2}; % to plot freq fluctuations over time
+      %-----------------%
+      
+    end
+    
     save([cfg.dpow cfg.cond condname '_powcorrpeak'], 'powcorrpeak')
     output = [output outtmp];
-  end
-  %---------------------------%
-  
-  %---------------------------%
-  %-singleplotTFR
-  for t = 1:numel(cfg.test)
+    %---------------------------%
     
-    %-----------------%
+    %---------------------------%
     %-loop over channels
     for c = 1:numel(cfg.gpowcorr.chan)
       
-      %--------%
+      %-----------------%
       %-figure
       h = figure;
       set(h, 'Renderer', 'painters')
-      %--------%
       
       %--------%
       %-options
       cfg3 = [];
       cfg3.channel = cfg.gpowcorr.chan(c).chan;
-      cfg3.zlim = 'maxabs';
+      cfg3.zlim = [-4 4];
       cfg3.parameter = 'tscore';
-      ft_singleplotTFR(cfg3, gpow{t});
+      ft_singleplotTFR(cfg3, gplot);
       colorbar
       
-      title([cfg.test{t} ' ' cfg.gpowcorr.chan(c).name])
+      title([condname ' ' cfg.gpowcorr.chan(c).name])
       %--------%
-      
-      %--------%
-      %-save and link
-      condname = regexprep(cfg.test{t}, '*', '');
-      pngname = sprintf('gpowcorr_tfr_c%02.f_%s', c, condname);
-      saveas(gcf, [cfg.log filesep pngname '.png'])
-      close(gcf); drawnow
-      
-      [~, logfile] = fileparts(cfg.log);
-      system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
-      %--------%
-      
-    end
-    %-----------------%
-    
-  end
-  %---------------------------%
-  
-  %---------------------------%
-  %-singleplotER (multiple conditions at once)
-  for c = 1:numel(cfg.gpowcorr.chan)
-    
-    %-----------------%
-    %-loop over freq
-    for f = 1:numel(cfg.gpowcorr.freq)
-      
-      %--------%
-      %-figure
-      h = figure;
-      set(h, 'Renderer', 'painters')
-      %--------%
-      
-      %--------%
-      %-plot
-      cfg4 = [];
-      cfg4.channel = cfg.gpowcorr.chan(c).chan;
-      cfg4.parameter = 'tscore';
-      cfg4.zlim = cfg.gpowcorr.freq{f};
-      ft_singleplotER(cfg4, gpow{:});
-      
-      legend(cfg.test)
-      ylabel(cfg4.parameter)
-      
-      freqname = sprintf('f%02.f-%02.f', cfg.gpowcorr.freq{f}(1), cfg.gpowcorr.freq{f}(2));
-      title([cfg.gpowcorr.chan(c).name, ' ' freqname])
-      %--------%
-      
-      %--------%
-      %-save and link
-      pngname = sprintf('gpowcorr_val_c%02.f_%s', c, freqname);
-      saveas(gcf, [cfg.log filesep pngname '.png'])
-      close(gcf); drawnow
-      
-      [~, logfile] = fileparts(cfg.log);
-      system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
-      %--------%
-      
-    end
-    %-----------------%
-    
-  end
-  %---------------------------%
-  
-  %---------------------------%
-  %-topoplotTFR (loop over tests)
-  if ~isempty(cfg.sens.layout)
-    for t = 1:numel(cfg.test)
+      %-----------------%
       
       %-----------------%
+      %-save and link
+      pngname = sprintf('gpow_tfr_c%02.f_%s', c, condname);
+      saveas(gcf, [cfg.log filesep pngname '.png'])
+      close(gcf); drawnow
+      
+      [~, logfile] = fileparts(cfg.log);
+      system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
+      %-----------------%
+      
+    end
+    %---------------------------%
+    
+    %---------------------------%
+    %-topoplotTFR (loop over tests)
+    if ~isempty(cfg.sens.layout)
+      
       %-loop over freq
       for f = 1:numel(cfg.gpowcorr.freq)
         
-        %--------%
+        %-----------------%
         %-figure
         h = figure;
         set(h, 'Renderer', 'painters')
-        %--------%
         
         %--------%
-        %-plot
+        %-options
         cfg5 = [];
         cfg5.parameter = 'tscore';
         cfg5.layout = layout;
-        cfg5.xlim = gpow{t}.time;
+        
         cfg5.ylim = cfg.gpowcorr.freq{f};
-        cfg5.zlim = 'maxabs';
+        cfg5.zlim = [-4 4];
         cfg5.style = 'straight';
         cfg5.marker = 'off';
         cfg5.comment = 'xlim';
         cfg5.commentpos = 'title';
-        ft_topoplotER(cfg5, gpow{t});
-        %--------%
         
+        %-no topoplot if the data contains NaN
+        onedat = squeeze(gpowcorr{t}.tscore(1, cfg.gpowcorr.freq{f}(1), :)); % take one example, lowest frequency
+        cfg5.xlim = gpowcorr{t}.time(~isnan(onedat));
+        
+        ft_topoplotER(cfg5, gplot);
         %--------%
+        %-----------------%
+        
+        %-----------------%
         %-save and link
-        condname = regexprep(cfg.test{t}, '*', '');
         freqname = sprintf('f%02.f-%02.f', cfg.gpowcorr.freq{f}(1), cfg.gpowcorr.freq{f}(2));
         
         pngname = sprintf('gpowcorr_topo_%s_%s', condname, freqname);
@@ -236,16 +225,62 @@ if ~isempty(gpow)
         
         [~, logfile] = fileparts(cfg.log);
         system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
-        %--------%
+        %-----------------%
+        
+      end
+      
+    end
+    %---------------------------%
+    
+    %---------------------------%
+    %-singleplotER (multiple conditions at once)
+    for c = 1:numel(cfg.gpowcorr.chan)
+      
+      %-loop over freq
+      for f = 1:numel(cfg.gpowcorr.freq)
+        
+        %-----------------%
+        %-figure
+        h = figure;
+        set(h, 'Renderer', 'painters')
         
         %--------%
+        %-plot
+        cfg4 = [];
+        cfg4.channel = cfg.gpowcorr.chan(c).chan;
+        cfg4.parameter = 'tscore';
+        cfg4.zlim = cfg.gpow.freq{f};
+        ft_singleplotER(cfg4, gtime{:});
+        
+        legend('cond1', 'cond2')
+        ylabel(cfg4.parameter)
+        
+        freqname = sprintf('f%02.f-%02.f', cfg.gpowcorr.freq{f}(1), cfg.gpowcorr.freq{f}(2));
+        title([condname ' ' cfg.gpowcorr.chan(c).name ' ' freqname])
+        %--------%
+        %-----------------%
+        
+        %-----------------%
+        %-save and link
+        pngname = sprintf('gpowcorr_val_%s_c%02.f_%s', condname, c, freqname);
+        saveas(gcf, [cfg.log filesep pngname '.png'])
+        close(gcf); drawnow
+        
+        [~, logfile] = fileparts(cfg.log);
+        system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
+        %-----------------%
+        
       end
       %-----------------%
       
     end
+    %---------------------------%
+    
   end
-  %---------------------------%
+  %-------------------------------------%
+  
 end
+%-----------------------------------------------%
 
 %---------------------------%
 %-end log

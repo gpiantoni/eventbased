@@ -52,37 +52,34 @@ tic_t = tic;
 
 %---------------------------%
 %-dir and files
-ddir = sprintf('%s%04.f/%s/%s/', cfg.data, subj, cfg.mod, cfg.cond); % data
-
 [vol, lead, sens] = load_headshape(cfg, subj);
 %---------------------------%
 
 %-------------------------------------%
 %-loop over conditions
-for p = cfg.erpeffect
+for k = 1:numel(cfg.erpsource.cond) % DOC: CFG.ERPSOURCE.COND
+  cond     = cfg.erpsource.cond{k};
+  condname = regexprep(cond, '*', '');
   
   %---------------------------%
-  %-use predefined or ERP-peaks for areas of interest
+  %-use predefined or erppeaks for areas of interest
   if strcmp(cfg.erpsource.areas, 'manual')
     erppeak = cfg.erpsource.erppeak;
-    
   elseif strcmp(cfg.erpsource.areas, 'erppeak')
-    condname = regexprep(cfg.test{cfg.erpeffect}, '*', '');
-    load([cfg.derp cfg.cond condname '_erppeak'], 'erppeak')
-    
+    peakname = regexprep(cfg.erp.refcond, '*', ''); % DOC: CFG.ERP.REFCOND
+    load([cfg.derp cfg.cond peakname '_erppeak'], 'erppeak')
   end
   %---------------------------%
   
   %---------------------------%
   %-read data
-  [data badchan] = load_data(cfg, subj, p);
+  [data badchan] = load_data(cfg, subj, cond);
   if isempty(data)
-    output = sprintf('%sCould not find any file for test %s\n', ...
-      output, cfg.test{p});
+    output = sprintf('%sCould not find any file for condition %s\n', ...
+      output, cond);
     continue
   end
-  
-  condname = regexprep(cfg.test{p}, '*', '');
+
   outputfile = sprintf('erpsource_%02.f_%s', subj, condname);
   %---------------------------%
   
@@ -166,7 +163,7 @@ for p = cfg.erpeffect
     if ~strcmp(cfg.vol.type, 'template') ...
         && isfield(cfg, 'bnd2lead') && isfield(cfg.bnd2lead, 'mni') ...
         && isfield(cfg.bnd2lead.mni, 'warp') && cfg.bnd2lead.mni.warp
-
+      
       source{f}.pos = grid.pos;
     end
     %-----------------%

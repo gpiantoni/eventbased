@@ -32,44 +32,25 @@ output = sprintf('(p%02.f) %s started at %s on %s\n', ...
 tic_t = tic;
 %---------------------------%
 
-%---------------------------%
-%-dir and files
-ddir = sprintf('%s%04.f/%s/%s/', cfg.data, subj, cfg.mod, cfg.cond); % data
-%---------------------------%
-
 %-------------------------------------%
 %-loop over conditions
-for k = 1:numel(cfg.test)
+for k = 1:numel(cfg.powcorr.cond) % DOC: CFG.POWCORR.COND
+  cond     = cfg.powcorr.cond{k};
+  condname = regexprep(cond, '*', '');
   
-  %-----------------%
-  %-input and output for each condition
-  allfile = dir([ddir cfg.test{k} cfg.endname '.mat']); % files matching a preprocessing
-  
-  condname = regexprep(cfg.test{k}, '*', '');
-  outputfile = sprintf('powcorr_%02.f_%s', subj, condname);
-  %-----------------%
-  
-  %-----------------%
-  %-concatenate only if you have more datasets
-  if numel(allfile) > 1
-    spcell = @(name) sprintf('%s%s', ddir, name);
-    allname = cellfun(spcell, {allfile.name}, 'uni', 0);
-    
-    cfg1 = [];
-    cfg1.inputfile = allname;
-    data = ft_appenddata(cfg1);
-    
-  elseif numel(allfile) == 1
-    load([ddir allfile(1).name], 'data')
-    
-  else
-    output = sprintf('%sCould not find any file in %s for test %s\n', ...
-      output, ddir, cfg.test{k});
-    
+  %---------------------------%
+  %-read data
+  [data] = load_data(cfg, subj, cond);
+  if isempty(data)
+    output = sprintf('%sCould not find any file for condition %s\n', ...
+      output, cond);
+    continue
   end
-  %-----------------%
   
-  %-----------------%
+  outputfile = sprintf('powcorr_%02.f_%s', subj, condname);
+  %---------------------------%
+  
+  %---------------------------%
   %-calculate power
   cfg2 = cfg.powcorr;
   cfg2.feedback = 'none';
@@ -79,9 +60,9 @@ for k = 1:numel(cfg.test)
   if isfield(cfg.powcorr, 'toi')
     data.time = cfg.powcorr.toi;
   end
-  %-----------------%
+  %---------------------------%
   
-  %-----------------%
+  %---------------------------%
   %-fix baseline
   if ~isempty(cfg.powcorr.bl.baseline)
     cfg3 = cfg.powcorr.bl;
@@ -91,9 +72,9 @@ for k = 1:numel(cfg.test)
     freq = data;
     
   end
-  %-----------------%
+  %---------------------------%
   
-  %-----------------%
+  %---------------------------%
   %-regression at each point
   if cfg.powcorr.log
     freq.powspctrm = log(freq.powspctrm);
@@ -114,14 +95,14 @@ for k = 1:numel(cfg.test)
     end
   end
   warning('on', 'MATLAB:rankDeficientMatrix')
-  %-----------------%
+  %---------------------------%
   
-  %-----------------%
+  %---------------------------%
   %-restructure freq for multiple subjects
   freq = rmfield(freq, 'trialinfo');
   freq.dimord = freq.dimord(5:end);
   freq.powspctrm = powspctrm;
-  %-----------------%
+  %---------------------------%
   
   save([cfg.dpow outputfile], 'freq')
   

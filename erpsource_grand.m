@@ -43,11 +43,12 @@ tic_t = tic;
 
 %---------------------------%
 %-loop over conditions
-for p = cfg.erpeffect
+for k = 1:numel(cfg.erpsource.cond) % DOC: CFG.ERPSOURCE.COND
+  cond     = cfg.erpsource.cond{k};
+  condname = regexprep(cond, '*', '');
   
   %-----------------%
   %-file for each cond
-  condname = regexprep(cfg.test{p}, '*', '');
   subjfile = @(s) sprintf('%serpsource_%02.f_%s.mat', cfg.derp, s, condname);
   allname = cellfun(subjfile, num2cell(cfg.subjall), 'uni', 0);
   
@@ -93,8 +94,8 @@ end
 if strcmp(cfg.erpsource.areas, 'manual')
   erppeak = cfg.erpsource.erppeak;
 elseif strcmp(cfg.erpsource.areas, 'erppeak')
-  condname = regexprep(cfg.test{p}, '*', '');
-  load([cfg.derp cfg.cond condname '_erppeak'], 'erppeak')
+  peakname = regexprep(cfg.erp.refcond, '*', ''); % DOC: CFG.ERP.REFCOND
+  load([cfg.derp cfg.cond peakname '_erppeak'], 'erppeak')
 end
 %-----------------%
 
