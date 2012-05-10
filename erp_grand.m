@@ -33,8 +33,8 @@ function erp_grand(cfg)
 %  gerp_topo_COND: topoplot ERP for each condition, over time
 %
 % Part of EVENTBASED group-analysis
-% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND, 
-% POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND, 
+% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND,
+% POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND,
 % POWCORR_SUBJ, POWCORR_GRAND,
 % CONN_SUBJ, CONN_GRAND, CONN_STAT
 
@@ -48,11 +48,12 @@ tic_t = tic;
 %---------------------------%
 %-loop over conditions
 gerp = [];
-for k = 1:numel(cfg.test)
+for k = 1:numel(cfg.erp.cond) % DOC: CFG.ERP.COND
+  cond     = cfg.erp.cond{k};
+  condname = regexprep(cond, '*', '');
   
   %-----------------%
   %-file for each cond
-  condname = regexprep(cfg.test{k}, '*', '');
   subjfile = @(s) sprintf('%serp_%02.f_%s.mat', cfg.derp, s, condname);
   allname = cellfun(subjfile, num2cell(cfg.subjall), 'uni', 0);
   
@@ -91,12 +92,53 @@ end
 
 if ~isempty(gerp)
   
-  %---------------------------%
-  %-statistics for main effects
-  for p = cfg.erpeffect
-    [erppeak outtmp] = reportcluster(cfg, gerpall{p});
+  %-------------------------------------%
+  %-loop over statistics conditions
+  for t = 1:numel(cfg.gerp.stat.cond) % DOC: cfg.gerp.stat.cond as cell
     
-    condname = regexprep(cfg.test{p}, '*', '');
+    %---------------------------%
+    %-statistics for effects of interest
+    if numel(cfg.gerp.stat.cond{t}) == 1
+      
+      %-----------------%
+      %-compare against baseline
+      cond = cfg.gerp.stat.cond{t}{1};
+      i_cond = strfind(cfg.erp.cond, cond);
+      condname = regexprep(cond, '*', '');
+      
+      [erppeak outtmp] = reportcluster(cfg, gfreq{i_cond});
+      %-----------------%
+      
+      %-----------------%
+      %-data for plot
+      gplot = gerp{i_cond};
+      gtime{1} = gplot; % to plot freq fluctuations over time
+      %-----------------%
+      
+    else
+      
+      %-----------------%
+      %-compare two conditions
+      cond1 = cfg.gerp.stat.cond{t}{1};
+      cond2 = cfg.gerp.stat.cond{t}{2};
+      i_cond1 = strfind(cfg.erp.cond, cond1);
+      i_cond2 = strfind(cfg.erp.cond, cond2);
+      condname = [regexprep(cond1, '*', '') '_' regexprep(cond2, '*', '')];
+      
+      [erppeak outtmp] = reportcluster(cfg, gfreq{i_cond1}, gfreq{i_cond2});
+      %-----------------%
+      
+      %-----------------%
+      %-data for plot
+      gplot = gerp{i_cond1};
+      gplot.avg = log(gerp{i_cond1}.avg ./ gerp{i_cond2}.avg);
+      
+      gtime{1} = gerp{i_cond1}; % to plot freq fluctuations over time
+      gtime{2} = gerp{i_cond2}; % to plot freq fluctuations over time
+      %-----------------%
+      
+    end
+    
     save([cfg.derp cfg.cond condname '_erppeak'], 'erppeak')
     output = [output outtmp];
   end
@@ -106,11 +148,10 @@ if ~isempty(gerp)
   %-singleplotER (multiple conditions at once)
   for c = 1:numel(cfg.gerp.chan)
     
-    %--------%
+    %-----------------%
     %-figure
     h = figure;
     set(h, 'Renderer', 'painters')
-    %--------%
     
     %--------%
     %-plot
@@ -124,16 +165,17 @@ if ~isempty(gerp)
     
     title(cfg.gerp.chan(c).name)
     %--------%
+    %-----------------%
     
-    %--------%
+    %-----------------%
     %-save and link
-    pngname = sprintf('gerp_erp_c%02.f', c);
+    pngname = sprintf('gerp_erp_%s_c%02.f', condname, c);
     saveas(gcf, [cfg.log filesep pngname '.png'])
     close(gcf); drawnow
     
     [~, logfile] = fileparts(cfg.log);
     system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
-    %--------%
+    %-----------------%
     
   end
   %---------------------------%
@@ -141,52 +183,41 @@ if ~isempty(gerp)
   %---------------------------%
   %-topoplotTFR (loop over tests)
   if ~isempty(cfg.sens.layout)
-    for t = 1:numel(cfg.test)
-      
-      %--------%
-      %-figure
-      h = figure;
-      set(h, 'Renderer', 'painters')
-      %--------%
-      
-      %--------%
-      %-plot
-      
-      cfg4 = [];
-      %-define representative dataset to get timeinfo and max abs color
-      if ~isempty(cfg.erpeffect) 
-        i_gerp = cfg.erpeffect(1);
-      else
-        i_gerp = 1;
-      end
-      
-      timelim = gerp{i_gerp}.time([1 end]);
-      cfg4.xlim = timelim(1):.1:timelim(2); % one plot every 100 ms
-  
-      colorlim = max(max(abs(gerp{i_gerp}.avg)));
-      cfg4.zlim = [-1 1] * colorlim;
-
-      cfg4.layout = layout;
-      cfg4.style = 'straight';
-      cfg4.marker = 'off';
-      cfg4.comment = 'xlim';
-      cfg4.commentpos = 'title';
-      
-      ft_topoplotER(cfg4, gerp{t});
-      %--------%
-      
-      %--------%
-      %-save and link
-      condname = regexprep(cfg.test{t}, '*', '');
-      pngname = sprintf('gerp_topo_%s', condname);
-      saveas(gcf, [cfg.log filesep pngname '.png'])
-      close(gcf); drawnow
-      
-      [~, logfile] = fileparts(cfg.log);
-      system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
-      %--------%
-      
-    end
+    
+    %-----------------%
+    %-figure
+    h = figure;
+    set(h, 'Renderer', 'painters')
+    
+    %--------%
+    %-plot
+    cfg4 = [];
+    
+    timelim = gplot.time([1 end]);
+    cfg4.xlim = timelim(1):.1:timelim(2); % one plot every 100 ms
+    
+    cfg4.zlim = 'maxabs';
+    
+    cfg4.layout = layout;
+    cfg4.style = 'straight';
+    cfg4.marker = 'off';
+    cfg4.comment = 'xlim';
+    cfg4.commentpos = 'title';
+    
+    ft_topoplotER(cfg4, gplot);
+    %--------%
+    %-----------------%
+    
+    %-----------------%
+    %-save and link
+    pngname = sprintf('gerp_topo_%s', condname);
+    saveas(gcf, [cfg.log filesep pngname '.png'])
+    close(gcf); drawnow
+    
+    [~, logfile] = fileparts(cfg.log);
+    system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
+    %-----------------%
+    
   end
   %---------------------------%
   
