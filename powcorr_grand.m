@@ -1,40 +1,55 @@
 function powcorr_grand(cfg)
-%POWCORR_GRAND grand power average for powcorr
+%POWCORR_GRAND grand power average
 % 1) read single subject-data and create gpowcorr in cfg.dpow
-% 2) do statistics for condition indicated by cfg.powcorreffect, to create powcorrpeak
-% 3) plot the topoplot over time and singleplot for some electrodes
+% 2) do statistics for condition indicated by cfg.gpowcorr.stat.cond
+% 3) plot the topoplot over time, frequency and singleplot for some electrodes
 %
 % CFG
-%  .cond: name to be used in projects/PROJNAME/subjects/0001/MOD/CONDNAME/
-%  .test: a cell with the condition defined by redef.
+%-Average
+%  .nick: NICKNAME to save files specific to each NICKNAME
 %  .log: name of the file and directory with analysis log
-%  .rslt: directory images are saved into
+%  .subjall: index of the number of subjects
+%
+%  .dpow: directory with ERP data
+%  .powcorr.cond: conditions to make averages
+%
+%-Statistics
+%  .gpowcorr.stat.cond: cells within cell (e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}})
+%        but you cannot have more than 2 conditions (it's always a t-test).
+%   If empty, not statistics.
+%   If stats,
+%     .gpowcorr.test.time: time limit for statistics (two scalars)
+%     .gpowcorr.test.freq: freq limit for statistics (two scalars)
+%     .cluster.thr: threshold to consider clusters are erppeaks
+%
+%-Plot
+%  .gpowcorr.chan(1).name: 'name_of_channels'
+%  .gpowcorr.chan(1).chan: cell with labels of channels of interest
+%  .gpowcorr.freq(1).name: 'name_of_frequency'
+%  .gpowcorr.freq(1).freq: two scalars with the frequency limits
+% 
 %  .sens.layout: file with layout. It should be a mat containing 'layout'
 %                If empty, it does not plot topo.
+%  
+%  .rslt: directory images are saved into
 %
-%  .dpow: directory to save POWCORR data
-%  .powcorreffect: index of interest to create powcorrpeak, can be a row vector. If empty, no stats.
-%
-%  .gpowcorr.chan(1).name = 'name of channel group';
-%  .gpowcorr.chan(1).chan =  cell with labels of channels of interest
+% IN
+%  [cfg.derp 'erp_SUBJCODE_CONDNAME']: timelock analysis for single-subject
 %
 % OUT
-%  [cfg.dpow 'COND_grandpowcorr']: power analysis for all subjects
-%  [cfg.dpow 'COND_powcorrpeak']: significant peaks in the POWCORR
+%  [cfg.dpow 'COND_grandpow']: power analysis for all subjects
+%  [cfg.dpow 'COND_powpeak']: significant peaks in the POW
 %
-% FIGURES
-%  gpowcorr_tfr_c01_COND: time-frequency plot POWCORR, for each condition, for one channel group
-%  gpowcorr_val_c01_FREQ: singleplot POWCORR, all conditions, for one channel group, one frequency
-%  gpowcorr_topo_COND_FREQ: topoplot POWCORR for each condition and frequency, over time
+% FIGURES (saved in cfg.log and, if not empty, cfg.rslt)
+%  gpow_tfr_CHAN_COND: time-frequency plot POW, for each condition, for one channel group
+%  gpow_val_CHAN_FREQ: singleplot POW, all conditions, for one channel group, one frequency
+%  gpow_topo_COND_FREQ: topoplot POW for each condition and frequency, over time
 %
 % Part of EVENTBASED group-analysis
-% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND,
-% POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND,
-% POWCORR_SUBJ, POWCORR_GRAND,
+% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND, 
+% POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND, 
+% POWCORR_SUBJ, POWCORR_GRAND, POWSTAT_SUBJ, POWSTAT_GRAND, 
 % CONN_SUBJ, CONN_GRAND, CONN_STAT
-
-% practically identical to pow_grand
-% pow -> powcorr; cfg.gpow -> cfg.gpowcorr
 
 %---------------------------%
 %-start log
@@ -171,7 +186,7 @@ if ~isempty(gpowcorr)
       
       %-----------------%
       %-save and link
-      pngname = sprintf('gpow_tfr_c%02.f_%s', c, condname);
+      pngname = sprintf('gpow_tfr_c%02.f_%s', cfg.gpowcorr.chan(c).name, condname);
       saveas(gcf, [cfg.log filesep pngname '.png'])
       close(gcf); drawnow
       
@@ -200,7 +215,7 @@ if ~isempty(gpowcorr)
         cfg5.parameter = 'tscore';
         cfg5.layout = layout;
         
-        cfg5.ylim = cfg.gpowcorr.freq{f};
+        cfg5.ylim = cfg.gpowcorr.freq(f).freq;
         cfg5.zlim = [-4 4];
         cfg5.style = 'straight';
         cfg5.marker = 'off';
@@ -208,7 +223,7 @@ if ~isempty(gpowcorr)
         cfg5.commentpos = 'title';
         
         %-no topoplot if the data contains NaN
-        onedat = squeeze(gpowcorr{t}.tscore(1, cfg.gpowcorr.freq{f}(1), :)); % take one example, lowest frequency
+        onedat = squeeze(gpowcorr{t}.tscore(1, cfg.gpowcorr.freq(f).freq(1), :)); % take one example, lowest frequency
         cfg5.xlim = gpowcorr{t}.time(~isnan(onedat));
         
         ft_topoplotER(cfg5, gplot);
@@ -217,9 +232,7 @@ if ~isempty(gpowcorr)
         
         %-----------------%
         %-save and link
-        freqname = sprintf('f%02.f-%02.f', cfg.gpowcorr.freq{f}(1), cfg.gpowcorr.freq{f}(2));
-        
-        pngname = sprintf('gpowcorr_topo_%s_%s', condname, freqname);
+        pngname = sprintf('gpowcorr_topo_%s_%s', cfg.gpowcorr.chan(c).name, cfg.gpowcorr.freq(f).name);
         saveas(gcf, [cfg.log filesep pngname '.png'])
         close(gcf); drawnow
         
@@ -249,20 +262,19 @@ if ~isempty(gpowcorr)
         cfg4 = [];
         cfg4.channel = cfg.gpowcorr.chan(c).chan;
         cfg4.parameter = 'tscore';
-        cfg4.zlim = cfg.gpow.freq{f};
+        cfg4.zlim = cfg.gpowcorr.freq(f).freq;
         ft_singleplotER(cfg4, gtime{:});
         
         legend('cond1', 'cond2')
         ylabel(cfg4.parameter)
         
-        freqname = sprintf('f%02.f-%02.f', cfg.gpowcorr.freq{f}(1), cfg.gpowcorr.freq{f}(2));
-        title([condname ' ' cfg.gpowcorr.chan(c).name ' ' freqname])
+        title([condname ' ' cfg.gpowcorr.chan(c).name ' ' cfg.gpowcorr.freq(f).name])
         %--------%
         %-----------------%
         
         %-----------------%
         %-save and link
-        pngname = sprintf('gpowcorr_val_%s_c%02.f_%s', condname, c, freqname);
+        pngname = sprintf('gpowcorr_val_%s_%s_%s', condname, cfg.gpowcorr.chan(c).name, cfg.gpowcorr.freq(f).name);
         saveas(gcf, [cfg.log filesep pngname '.png'])
         close(gcf); drawnow
         

@@ -1,49 +1,63 @@
 function pow_grand(cfg)
 %POW_GRAND grand power average
 % 1) read single subject-data and create gpow in cfg.dpow
-% 2) do statistics for condition indicated by cfg.poweffect, to create powpeak
-% 3) plot the topoplot over time and singleplot for some electrodes
+% 2) do statistics for condition indicated by cfg.gpow.stat.cond
+% 3) plot the topoplot over time, frequency and singleplot for some electrodes
 %
 % CFG
-%  .cond: name to be used in projects/PROJNAME/subjects/0001/MOD/CONDNAME/
-%  .test: a cell with the condition defined by redef.
+%-Average
+%  .nick: NICKNAME to save files specific to each NICKNAME
 %  .log: name of the file and directory with analysis log
-%  .rslt: directory images are saved into
-%  .sens.layout: file with layout. It should be a mat containing 'layout'
-%                If empty, it does not plot topo.
+%  .subjall: index of the number of subjects
+%
+%  .dpow: directory with ERP data
+%  .pow.cond: conditions to make averages
 %
 %  Baseline correction at the single-subject level:
 %  .pow.bl: if empty, no baseline. Otherwise:
 %  .pow.bl.baseline: two scalars with baseline windows
 %  .pow.bl.baselinetype: type of baseline ('relchange')
 %
-%  .gpow.test.time: time limit for statistics (two scalars)
-%  .gpow.test.freq: freq limit for statistics (two scalars)
-%
 %  .gpow.outliers: logical (print tables with number of points above a
 %  certain number of standard deviation, experimental code)
 %
-%  .dpow: directory to save POW data
-%  .poweffect: index of interest to create powpeak, can be a row vector. If empty, no stats.
-%  If stats,
-%    .cluster.thr: threshold to consider clusters are powpeaks
+%-Statistics
+%  .gpow.stat.cond: cells within cell (e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}})
+%        but you cannot have more than 2 conditions (it's always a t-test).
+%   If empty, not statistics.
+%   If stats,
+%     .gpow.test.time: time limit for statistics (two scalars)
+%     .gpow.test.freq: freq limit for statistics (two scalars)
+%     .cluster.thr: threshold to consider clusters are erppeaks
 %
-%  .gpow.chan(1).name = 'name of channel group';
-%  .gpow.chan(1).chan =  cell with labels of channels of interest
+%-Plot
+%  .gpow.bline: two scalars indicating the time window for baseline in s (only for plotting, TODO: check if necessary for normal analysis as well)
+%  .gpow.chan(1).name: 'name_of_channels'
+%  .gpow.chan(1).chan: cell with labels of channels of interest
+%  .gpow.freq(1).name: 'name_of_frequency'
+%  .gpow.freq(1).freq: two scalars with the frequency limits
+% 
+%  .sens.layout: file with layout. It should be a mat containing 'layout'
+%                If empty, it does not plot topo.
+%  
+%  .rslt: directory images are saved into
+%
+% IN
+%  [cfg.derp 'erp_SUBJCODE_CONDNAME']: timelock analysis for single-subject
 %
 % OUT
 %  [cfg.dpow 'COND_grandpow']: power analysis for all subjects
 %  [cfg.dpow 'COND_powpeak']: significant peaks in the POW
 %
-% FIGURES
+% FIGURES (saved in cfg.log and, if not empty, cfg.rslt)
 %  gpow_tfr_c01_COND: time-frequency plot POW, for each condition, for one channel group
 %  gpow_val_c01_FREQ: singleplot POW, all conditions, for one channel group, one frequency
 %  gpow_topo_COND_FREQ: topoplot POW for each condition and frequency, over time
 %
 % Part of EVENTBASED group-analysis
-% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND,
-% POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND,
-% POWCORR_SUBJ, POWCORR_GRAND,
+% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND, 
+% POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND, 
+% POWCORR_SUBJ, POWCORR_GRAND, POWSTAT_SUBJ, POWSTAT_GRAND, 
 % CONN_SUBJ, CONN_GRAND, CONN_STAT
 
 %---------------------------%
@@ -58,7 +72,7 @@ tic_t = tic;
 %---------------------------%
 %-loop over conditions
 gpow = [];
-for k = 1:numel(cfg.pow.cond) % DOC: CFG.POW.COND
+for k = 1:numel(cfg.pow.cond)
   cond     = cfg.pow.cond{k};
   condname = regexprep(cond, '*', '');
   
@@ -179,7 +193,7 @@ if ~isempty(gpow)
   
   %-------------------------------------%
   %-loop over statistics conditions
-  for t = 1:numel(cfg.gpow.stat.cond) % DOC: cfg.gpow.stat.cond as cell
+  for t = 1:numel(cfg.gpow.stat.cond)
     
     %---------------------------%
     %-statistics for effects of interest
@@ -281,7 +295,7 @@ if ~isempty(gpow)
         cfg5.parameter = 'powspctrm';
         cfg5.layout = layout;
         
-        cfg5.ylim = cfg.gpow.freq{f};
+        cfg5.ylim = cfg.gpow.freq(f).freq;
         cfg5.zlim = 'maxabs';
         cfg5.style = 'straight';
         cfg5.marker = 'off';
@@ -289,7 +303,7 @@ if ~isempty(gpow)
         cfg5.commentpos = 'title';
         
         %-no topoplot if the data contains NaN
-        onedat = squeeze(gpow{t}.powspctrm(1, cfg.gpow.freq{f}(1), :)); % take one example, lowest frequency
+        onedat = squeeze(gpow{t}.powspctrm(1, cfg.gpow.freq(f).freq(1), :)); % take one example, lowest frequency
         cfg5.xlim = gpow{t}.time(~isnan(onedat));
         
         ft_topoplotER(cfg5, gplot);
@@ -298,9 +312,7 @@ if ~isempty(gpow)
         
         %-----------------%
         %-save and link
-        freqname = sprintf('f%02.f-%02.f', cfg.gpow.freq{f}(1), cfg.gpow.freq{f}(2));
-        
-        pngname = sprintf('gpow_topo_%s_%s', condname, freqname);
+        pngname = sprintf('gpow_topo_%s_%s', condname, cfg.gpow.freq(f).name);
         saveas(gcf, [cfg.log filesep pngname '.png'])
         close(gcf); drawnow
         
@@ -330,20 +342,19 @@ if ~isempty(gpow)
         cfg4 = [];
         cfg4.channel = cfg.gpow.chan(c).chan;
         cfg4.parameter = 'powspctrm';
-        cfg4.zlim = cfg.gpow.freq{f};
+        cfg4.zlim = cfg.gpow.freq(f).freq;
         ft_singleplotER(cfg4, gtime{:});
         
         legend('cond1', 'cond2')
         ylabel(cfg4.parameter)
         
-        freqname = sprintf('f%02.f-%02.f', cfg.gpow.freq{f}(1), cfg.gpow.freq{f}(2));
-        title([condname ' ' cfg.gpow.chan(c).name ' ' freqname])
+        title([condname ' ' cfg.gpow.chan(c).name ' ' cfg.gpow.freq(f).name])
         %--------%
         %-----------------%
         
         %-----------------%
         %-save and link
-        pngname = sprintf('gpow_val_%s_c%02.f_%s', condname, c, freqname);
+        pngname = sprintf('gpow_val_%s_%s_%s', condname, cfg.gpow.chan(c).name, cfg.gpow.freq(f).freq);
         saveas(gcf, [cfg.log filesep pngname '.png'])
         close(gcf); drawnow
         

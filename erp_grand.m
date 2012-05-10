@@ -1,41 +1,51 @@
 function erp_grand(cfg)
 %ERP_GRAND grand time lock analysis.
 % 1) read single subject-data and create gerp in cfg.derp
-% 2) do statistics for condition indicated by cfg.erpeffect, to create erppeak
+% 2) do statistics for condition indicated by cfg.gerp.stat.cond
 % 3) plot the topoplot over time and singleplot for some electrodes
 %
 % CFG
-%  .cond: name to be used in projects/PROJNAME/subjects/0001/MOD/CONDNAME/
-%  .test: a cell with the condition defined by redef.
+%-Average
+%  .nick: NICKNAME to save files specific to each NICKNAME
 %  .log: name of the file and directory with analysis log
-%  .rslt: directory images are saved into
+%  .subjall: index of the number of subjects
+%
+%  .derp: directory with ERP data
+%  .erp.cond: conditions to make averages
+%
+%-Statistics
+%  .gerp.stat.cond: cells within cell (e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}})
+%        but you cannot have more than 2 conditions (it's always a t-test).
+%   If empty, not statistics.
+%   If stats,
+%     .gerp.test.time: time limit for statistics (two scalars)
+%     .cluster.thr: threshold to consider clusters are erppeaks
+%
+%-Plot
+%  .gerp.bline: two scalars indicating the time window for baseline in s (only for plotting, TODO: check if necessary for normal analysis as well)
+%  .gerp.chan(1).name: 'name_of_channels'
+%  .gerp.chan(1).chan: cell with labels of channels of interest
+% 
 %  .sens.layout: file with layout. It should be a mat containing 'layout'
 %                If empty, it does not plot topo.
+%  
+%  .rslt: directory images are saved into
 %
-%  .derp: directory to save ERP data
-%  .erpeffect: effect of interest to create erppeak. If empty, no stats.
-%  If stats,
-%    .cluster.thr: threshold to consider clusters are erppeaks
-%
-%  .gerp.test.time: time limit for statistics (two scalars)
-%
-%  .gerp.chan(1).name = 'name of channel group';
-%  .gerp.chan(1).chan =  cell with labels of channels of interest
-%  .gerp.bline = two scalars indicating the time window for baseline in s
-%  (only for plotting, TODO: check if necessary for normal analysis as well)
+% IN
+%  [cfg.derp 'erp_SUBJCODE_CONDNAME']: timelock analysis for single-subject
 %
 % OUT
 %  [cfg.derp 'COND_granderp']: timelock analysis for all subjects
 %  [cfg.derp 'COND_erppeak']: significant peaks in the ERP
 %
-% FIGURES
+% FIGURES (saved in cfg.log and, if not empty, cfg.rslt)
 %  gerp_erp_c01: singleplot ERP, all conditions, for one channel group
 %  gerp_topo_COND: topoplot ERP for each condition, over time
 %
 % Part of EVENTBASED group-analysis
-% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND,
-% POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND,
-% POWCORR_SUBJ, POWCORR_GRAND,
+% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND, 
+% POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND, 
+% POWCORR_SUBJ, POWCORR_GRAND, POWSTAT_SUBJ, POWSTAT_GRAND, 
 % CONN_SUBJ, CONN_GRAND, CONN_STAT
 
 %---------------------------%
@@ -48,7 +58,7 @@ tic_t = tic;
 %---------------------------%
 %-loop over conditions
 gerp = [];
-for k = 1:numel(cfg.erp.cond) % DOC: CFG.ERP.COND
+for k = 1:numel(cfg.erp.cond) 
   cond     = cfg.erp.cond{k};
   condname = regexprep(cond, '*', '');
   
@@ -80,7 +90,7 @@ end
 
 %-----------------%
 %-save
-save([cfg.derp cfg.cond '_granderp'], 'gerp')
+save([cfg.derp cfg.nick '_granderp'], 'gerp')
 %-----------------%
 %---------------------------%
 
@@ -94,7 +104,7 @@ if ~isempty(gerp)
   
   %-------------------------------------%
   %-loop over statistics conditions
-  for t = 1:numel(cfg.gerp.stat.cond) % DOC: cfg.gerp.stat.cond as cell
+  for t = 1:numel(cfg.gerp.stat.cond)
     
     %---------------------------%
     %-statistics for effects of interest
@@ -106,7 +116,7 @@ if ~isempty(gerp)
       i_cond = strfind(cfg.erp.cond, cond);
       condname = regexprep(cond, '*', '');
       
-      [erppeak outtmp] = reportcluster(cfg, gfreq{i_cond});
+      [erppeak outtmp] = reportcluster(cfg, gerpall{i_cond});
       %-----------------%
       
       %-----------------%
@@ -125,7 +135,7 @@ if ~isempty(gerp)
       i_cond2 = strfind(cfg.erp.cond, cond2);
       condname = [regexprep(cond1, '*', '') '_' regexprep(cond2, '*', '')];
       
-      [erppeak outtmp] = reportcluster(cfg, gfreq{i_cond1}, gfreq{i_cond2});
+      [erppeak outtmp] = reportcluster(cfg, gerpall{i_cond1}, gerpall{i_cond2});
       %-----------------%
       
       %-----------------%
@@ -139,7 +149,7 @@ if ~isempty(gerp)
       
     end
     
-    save([cfg.derp cfg.cond condname '_erppeak'], 'erppeak')
+    save([cfg.derp cfg.nick condname '_erppeak'], 'erppeak')
     output = [output outtmp];
   end
   %---------------------------%

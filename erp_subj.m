@@ -9,7 +9,7 @@ function erp_subj(cfg, subj)
 %  .endname: includes preprocessing steps (e.g. '_seldata_gclean_preproc_redef')
 %
 %  .log: name of the file and directory to save log
-%  .derp: directory for ERP data
+%  .derp: directory with ERP data
 %  .erp.cond: cell with conditions (e.g. {'*cond1' '*cond2'})'
 %
 %  .erp: a structure with cfg to pass to ft_timelockanalysis
