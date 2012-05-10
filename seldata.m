@@ -3,18 +3,29 @@ function seldata(cfg, subj)
 % it recreates the "cfg.nick" folder for each subject
 %
 % CFG
-%  .recs: path of /data1/projects/PROJNAME/recordings/RECNAME/subjects/
-%  .mod: modality, MOD in /data1/projects/PROJNAME/subjects/SUBJCODE/MOD/NICKNAME/
+%  .recs: path of /data1/projects/PROJ/recordings/REC/subjects/
+%  .mod: modality, MOD in /data1/projects/PROJ/subjects/SUBJ/MOD/NICK/
 %  .rcnd: specific name of the condition of interest in the raw recording folder
-%  .data: name of projects/PROJNAME/subjects/
-%  .cond: name to be used in projects/PROJNAME/subjects/0001/MOD/CONDNAME/
-%  .log: name of the file and directory with analysis log
+%  .data: name of projects/PROJ/subjects/
+%  .nick: NICK in /data1/projects/PROJ/subjects/SUBJ/MOD/NICK/
+%  .log: name of the file and directory to save log
 % 
 %  .sens.file: file with EEG sensors. It can be sfp or mat.
 % 
-%  .seldata.trialfun: name of the trialfun used to read the data before preprocessing, the function should be in PROJNAME_private/
-%  .seldata.selchan: channels to read. It can be a vector or a cell of strings with the elec names on file (Micromed elec names are '  1' '  2'  '  3'
-%  .seldata.label: if not empty, labels of electrodes to rename (same length as seldata.selchan)
+%  .seldata.trialfun: name of the trialfun used to read the data, see below.
+%                     The function should be in NICK_private/ 
+%  .seldata.selchan: channels to read. It can be a vector or a cell of
+%                    strings with the elec names on file (Micromed elec
+%                    names are '  1' '  2'  '  3') 
+%  .seldata.label: if not empty, labels of electrodes to rename (same
+%                  length as seldata.selchan) 
+%
+% IN
+%  raw data in any format Fieldtrip can read in the recording folder:
+%  /data1/projects/PROJ/recordings/REC/subjects/SUBJ/MOD/RAW/
+% 
+% OUT
+%  data in FieldTrip format in /data1/projects/PROJ/subjects/SUBJ/MOD/NICK/
 %
 % You need to write your own function to read the data and the events.
 % Call the function something like "trialfun_XXX" and use as:
@@ -30,7 +41,7 @@ function seldata(cfg, subj)
 
 %---------------------------%
 %-start log
-output = sprintf('(p%04d) %s started at %s on %s\n', ...
+output = sprintf('%s (%04d) began at %s on %s\n', ...
   subj, mfilename,  datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
 tic_t = tic;
 %---------------------------%
@@ -113,7 +124,7 @@ end
 %---------------------------%
 %-end log
 toc_t = toc(tic_t);
-outtmp = sprintf('(p%04d) %s ended at %s on %s after %s\n\n', ...
+outtmp = sprintf('%s (%04d) ended at %s on %s after %s\n\n', ...
   subj, mfilename, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'), ...
   datestr( datenum(0, 0, 0, 0, 0, toc_t), 'HH:MM:SS'));
 output = [output outtmp];
