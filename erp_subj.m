@@ -2,11 +2,11 @@ function erp_subj(cfg, subj)
 %ERP_SUBJ create subject-specific erp
 %
 % CFG
-%  .data: path of /data1/projects/PROJNAME/subjects/
-%  .rec: RECNAME in /data1/projects/PROJNAME/recordings/RECNAME/
-%  .nick: NICKNAME in /data1/projects/PROJNAME/subjects/0001/MOD/NICKNAME/
-%  .mod: modality, MOD in /data1/projects/PROJNAME/subjects/0001/MOD/NICKNAME/
-%  .endname: includes preprocessing steps (e.g. '_seldata_gclean_preproc_redef')
+%  .data: path of /data1/projects/PROJ/subjects/
+%  .rec: REC in /data1/projects/PROJ/recordings/REC/
+%  .nick: NICK in /data1/projects/PROJ/subjects/0001/MOD/NICK/
+%  .mod: modality, MOD in /data1/projects/PROJ/subjects/0001/MOD/NICK/
+%  .endname: includes preprocessing steps (e.g. '_seldata_gclean_redef')
 %
 %  .log: name of the file and directory to save log
 %  .derp: directory with ERP data
@@ -15,10 +15,10 @@ function erp_subj(cfg, subj)
 %  .erp: a structure with cfg to pass to ft_timelockanalysis
 %
 % IN:
-%  data in /PROJNAME/subjects/SUBJCODE/MOD/NICKNAME/
+%  data in /PROJ/subjects/SUBJ/MOD/NICK/
 % 
 % OUT
-%  [cfg.derp 'erp_SUBJCODE_CONDNAME']: timelock analysis for single-subject
+%  [cfg.derp 'erp_SUBJ_COND']: timelock analysis for single-subject
 %
 % Part of EVENTBASED single-subject
 % see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND, 
@@ -28,8 +28,8 @@ function erp_subj(cfg, subj)
 
 %---------------------------%
 %-start log
-output = sprintf('(p%04d) %s started at %s on %s\n', ...
-  subj, mfilename,  datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
+output = sprintf('%s (%04d) began at %s on %s\n', ...
+  mfilename, subj, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
 tic_t = tic;
 %---------------------------%
 
@@ -66,8 +66,8 @@ end
 %---------------------------%
 %-end log
 toc_t = toc(tic_t);
-outtmp = sprintf('(p%04d) %s ended at %s on %s after %s\n\n', ...
-  subj, mfilename, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'), ...
+outtmp = sprintf('%s (%04d) ended at %s on %s after %s\n\n', ...
+  mfilename, subj, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'), ...
   datestr( datenum(0, 0, 0, 0, 0, toc_t), 'HH:MM:SS'));
 output = [output outtmp];
 

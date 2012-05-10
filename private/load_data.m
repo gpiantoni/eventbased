@@ -4,10 +4,10 @@ function [data badchan] = load_data(cfg, subj, cond)
 %   [data badchan] = load_data(cfg, subj, cond)
 %
 % CFG
-%  .data: path of /data1/projects/PROJNAME/subjects/
-%  .rec: RECNAME in /data1/projects/PROJNAME/recordings/RECNAME/
-%  .nick: NICKNAME in /data1/projects/PROJNAME/subjects/SUBJCODE/MOD/NICKNAME/
-%  .mod: modality, MOD in /data1/projects/PROJNAME/subjects/SUBJCODE/MOD/NICKNAME/
+%  .data: path of /data1/projects/PROJ/subjects/
+%  .rec: REC in /data1/projects/PROJ/recordings/REC/
+%  .nick: NICK in /data1/projects/PROJ/subjects/SUBJCODE/MOD/NICK/
+%  .mod: modality, MOD in /data1/projects/PROJ/subjects/SUBJCODE/MOD/NICK/
 %  .endname: includes preprocessing steps (e.g. '_seldata_gclean_preproc_redef')
 %
 % SUBJ
@@ -15,7 +15,8 @@ function [data badchan] = load_data(cfg, subj, cond)
 %
 % COND
 %   a string with the name used to read the data. The file name is
-%   structured as: RECNAME_NICKNAME_SUBJCODE_MOD_COND_endname
+%   structured as: REC_NICK_SUBJ_MOD_COND_endname
+%   COND should not have leading or trailing underscores
 %   So, you need to specify COND with astericks only if necessary
 %
 % DATA
@@ -30,7 +31,7 @@ function [data badchan] = load_data(cfg, subj, cond)
 %-----------------%
 %-input and output for each condition
 ddir = sprintf('%s%04d/%s/%s/', cfg.data, subj, cfg.mod, cfg.nick); % data
-beginname = sprintf('%s_%s_%04d_%s_', cfg.rec, cfg.nick, subj, cfg.mod); % beginning of datafile
+beginname = sprintf('%s_%s_%04d_%s_', cfg.nick, cfg.rec, subj, cfg.mod); % beginning of datafile
 
 allfile = dir([ddir beginname cond cfg.endname '.mat']); % files matching a preprocessing
 %-----------------%
@@ -55,8 +56,16 @@ end
 %-----------------%
 
 %-----------------%
+%-if empty
+if isempty(data)
+  badchan = [];
+  return
+end
+%-----------------%
+
+%-----------------%
 %-find bad channels (bad channel if bad in at least one dataset)
-if ~iscell(data.cfg.previous) % not appenddata
+if ~isfield(data.cfg, 'previous') || ~iscell(data.cfg.previous) % not appenddata
   badchan = ft_findcfg(data.cfg, 'badchannel');
   
 else
