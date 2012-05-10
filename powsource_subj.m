@@ -57,7 +57,9 @@ tic_t = tic;
 
 %-------------------------------------%
 %-loop over conditions
-for p = cfg.poweffect
+for k = 1:numel(cfg.powsource.cond) % DOC: CFG.POWSOURCE.COND
+  cond     = cfg.powsource.cond{k};
+  condname = regexprep(cond, '*', '');
 
   %---------------------------%
   %-use predefined or power-peaks for areas of interest
@@ -65,11 +67,12 @@ for p = cfg.poweffect
     powpeak = cfg.powsource.powpeak;
     
   elseif strcmp(cfg.powsource.areas, 'powpeak')
-    condname = regexprep(cfg.test{p}, '*', '');
-    load([cfg.dpow cfg.cond condname '_powpeak'], 'powpeak')
+    peakname = regexprep(cfg.pow.refcond, '*', ''); % DOC: CFG.POW.REFCOND
+    load([cfg.dpow cfg.cond peakname '_powpeak'], 'powpeak')
     
   elseif strcmp(cfg.powsource.areas, 'powcorrpeak')
-    load([cfg.dpow cfg.cond '_powcorrpeak'], 'powcorrpeak')
+    peakname = regexprep(cfg.powcorr.refcond, '*', ''); % DOC: CFG.POWCORR.REFCOND
+    load([cfg.dpow cfg.cond peakname '_powcorrpeak'], 'powcorrpeak')
     powpeak = powcorrpeak;
     
   end
@@ -77,14 +80,13 @@ for p = cfg.poweffect
   
   %---------------------------%
   %-read data
-  [data badchan] = load_data(cfg, subj, p);
+  [data badchan] = load_data(cfg, subj, cond);
   if isempty(data)
-    output = sprintf('%sCould not find any file for test %s\n', ...
-      output, cfg.test{p});
+    output = sprintf('%sCould not find any file for condition %s\n', ...
+      output, cond);
     continue
   end
   
-  condname = regexprep(cfg.test{p}, '*', '');
   outputfile = sprintf('powsource_%02.f_%s', subj, condname);
   %---------------------------%
 

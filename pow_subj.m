@@ -35,45 +35,25 @@ output = sprintf('(p%02.f) %s started at %s on %s\n', ...
 tic_t = tic;
 %---------------------------%
 
-%---------------------------%
-%-dir and files
-ddir = sprintf('%s%04.f/%s/%s/', cfg.data, subj, cfg.mod, cfg.cond); % data
-%---------------------------%
-
 %-------------------------------------%
 %-loop over conditions
-for k = 1:numel(cfg.test)
+for k = 1:numel(cfg.pow.cond) % DOC: CFG.POW.COND
+  cond     = cfg.pow.cond{k};
+  condname = regexprep(cond, '*', '');
   
-  %-----------------%
-  %-input and output for each condition
-  allfile = dir([ddir cfg.test{k} cfg.endname '.mat']); % files matching a preprocessing
-  
-  condname = regexprep(cfg.test{k}, '*', '');
-  outputfile = sprintf('pow_%02.f_%s', subj, condname);
-  %-----------------%
-  
-  %-----------------%
-  %-concatenate only if you have more datasets
-  if numel(allfile) > 1
-    spcell = @(name) sprintf('%s%s', ddir, name);
-    allname = cellfun(spcell, {allfile.name}, 'uni', 0);
-    
-    cfg1 = [];
-    cfg1.inputfile = allname;
-    data = ft_appenddata(cfg1);
-    
-  elseif numel(allfile) == 1
-    load([ddir allfile(1).name], 'data')
-    
-  else
-    output = sprintf('%sCould not find any file in %s for test %s\n', ...
-      output, ddir, cfg.test{k});
+  %---------------------------%
+  %-read data
+  [data] = load_data(cfg, subj, cond);
+  if isempty(data)
+    output = sprintf('%sCould not find any file for condition %s\n', ...
+      output, cond);
     continue
-    
   end
-  %-----------------%
   
-  %-----------------%
+  outputfile = sprintf('pow_%02.f_%s', subj, condname);
+  %---------------------------%
+  
+  %---------------------------%
   %-calculate power
   cfg2 = cfg.pow;
   cfg2.feedback = 'etf';
@@ -87,22 +67,22 @@ for k = 1:numel(cfg.test)
   if isfield(cfg.pow, 'toi')
     freq.time = cfg.pow.toi;
   end
-  %-----------------%
+  %---------------------------%
   
-  %-----------------%
+  %---------------------------%
   %-deal with outliers
   if cfg.pow.outliers
     
-    %-------%
+    %-----------------%
     %-compute sd across trials
     trlsd = zeros(size(freq.powspctrm,1), 1);
     for i = 1:size(freq.powspctrm,1)
       i_powspctrm = freq.powspctrm(i, :, :, :);
       trlsd(i) = nanstd(i_powspctrm(:),1);
     end
-    %-------%
+    %-----------------%
     
-    %-------%
+    %-----------------%
     %-compute average (and reject outliers if necessary)
     cfg4 = [];
     
@@ -119,9 +99,9 @@ for k = 1:numel(cfg.test)
     end
     
     freq = ft_freqdescriptives(cfg4, freq);
-    %-------%
+    %-----------------%
     
-    %-------%
+    %-----------------%
     %-plot feedback on montage
     figure
     plot(trlsd, '.')
@@ -139,10 +119,10 @@ for k = 1:numel(cfg.test)
     pngfile = [cfg.log filesep 'powoutliers_' sprintf('%03.f', subj) '_' condname '.png'];
     saveas(gcf, pngfile);
     close(gcf); drawnow
-    %-------%
-    
+    %-----------------%
+
   end
-  %-----------------%
+  %---------------------------%
   
   save([cfg.dpow outputfile], 'freq')
   

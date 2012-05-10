@@ -1,4 +1,4 @@
-function [data badchan] = load_data(cfg, subj, p)
+function [data badchan] = load_data(cfg, subj, cond)
 %LOAD_DATA load data, and optionally get bad channels
 % TODO: a better way to pass data to read
 % 
@@ -8,7 +8,7 @@ function [data badchan] = load_data(cfg, subj, p)
 %-input and output for each condition
 ddir = sprintf('%s%04.f/%s/%s/', cfg.data, subj, cfg.mod, cfg.cond); % data
 
-allfile = dir([ddir cfg.test{p} cfg.endname '.mat']); % files matching a preprocessing
+allfile = dir([ddir cond cfg.endname '.mat']); % files matching a preprocessing
 %-----------------%
 
 %-----------------%

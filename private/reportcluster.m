@@ -18,6 +18,10 @@ function [clpeak output] = reportcluster(cfg, gdat)
 %
 % The sizes of the frequency band and time window are defined by FWHM
 % Peaks used for the analysis should be significant below cfg.cluster.thr
+%
+% DOC: cfg.gerp.stat.time
+% DOC: cfg.gpow.stat.time
+% DOC: cfg.gpow.stat.freq
 
 %-----------------%
 %-check data
@@ -78,16 +82,16 @@ cfg3.design = [ones(1,nsubj) ones(1,nsubj).*2; 1:nsubj 1:nsubj];
 cfg3.ivar   = 1;
 cfg3.uvar   = 2;
 
-if iserp && isfield(cfg.gerp, 'test') && isfield(cfg.gerp.test, 'time')&& ~isempty(cfg.gerp.test.time)
-  cfg3.latency = cfg.gerp.test.time;
-elseif ~iserp && isfield(cfg.gpow, 'test') && isfield(cfg.gpow.test, 'time')&& ~isempty(cfg.gpow.test.time)
-  cfg3.latency = cfg.gpow.test.time;
+if iserp && isfield(cfg.gerp, 'stat') && isfield(cfg.gerp.stat, 'time')&& ~isempty(cfg.gerp.stat.time)
+  cfg3.latency = cfg.gerp.stat.time;
+elseif ~iserp && isfield(cfg.gpow, 'stat') && isfield(cfg.gpow.stat, 'time')&& ~isempty(cfg.gpow.stat.time)
+  cfg3.latency = cfg.gpow.stat.time;
 else
   cfg3.latency = gdat.time([1 end]);
 end
 
-if ~iserp && isfield(cfg.gpow, 'test') && isfield(cfg.gpow.test, 'freq') && ~isempty(cfg.gpow.test.freq)
-  cfg3.frequency = cfg.gpow.test.freq;
+if ~iserp && isfield(cfg.gpow, 'stat') && isfield(cfg.gpow.stat, 'freq') && ~isempty(cfg.gpow.stat.freq)
+  cfg3.frequency = cfg.gpow.stat.freq;
 end
 
 cfg3.neighbours = neigh;

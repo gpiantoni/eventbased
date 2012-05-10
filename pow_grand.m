@@ -19,7 +19,7 @@ function pow_grand(cfg)
 %
 %  .gpow.test.time: time limit for statistics (two scalars)
 %  .gpow.test.freq: freq limit for statistics (two scalars)
-% 
+%
 %  .gpow.outliers: logical (print tables with number of points above a
 %  certain number of standard deviation, experimental code)
 %
@@ -41,8 +41,8 @@ function pow_grand(cfg)
 %  gpow_topo_COND_FREQ: topoplot POW for each condition and frequency, over time
 %
 % Part of EVENTBASED group-analysis
-% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND, 
-% POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND, 
+% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND,
+% POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND,
 % POWCORR_SUBJ, POWCORR_GRAND,
 % CONN_SUBJ, CONN_GRAND, CONN_STAT
 
@@ -58,11 +58,12 @@ tic_t = tic;
 %---------------------------%
 %-loop over conditions
 gpow = [];
-for k = 1:numel(cfg.test)
+for k = 1:numel(cfg.pow.cond) % DOC: CFG.POW.COND
+  cond     = cfg.pow.cond{k};
+  condname = regexprep(cond, '*', '');
   
   %-----------------%
   %-file for each cond
-  condname = regexprep(cfg.test{k}, '*', '');
   subjfile = @(s) sprintf('%spow_%02.f_%s.mat', cfg.dpow, s, condname);
   allname = cellfun(subjfile, num2cell(cfg.subjall), 'uni', 0);
   
@@ -118,7 +119,7 @@ for k = 1:numel(cfg.test)
     
     thr = [1 2 3 5 10 20]; % threshold above sem
     
-    %-------%   
+    %-------%
     %-calculate mean and standard deviation (not sem, but keep same name)
     % jackknife is more robust towards outliers
     cfg2 = [];
@@ -126,15 +127,15 @@ for k = 1:numel(cfg.test)
     gjack = ft_freqdescriptives(cfg2, gfreq{k});
     gjack.powspctrm = shiftdim(median(gfreq{k}.powspctrm), 1);
     gjack.powspctrmsem = gjack.powspctrmsem * sqrt(numel(allname)); % sem = sd / sqrt(n)
-    %-------%  
+    %-------%
     
-    %-------%  
+    %-------%
     %-header
     output = [output sprintf('Subject-outliers\n')];
     output = [output 'Filename                ' sprintf('>%2.f    ', thr) sprintf('\n')];
-    %-------%  
+    %-------%
     
-    %-------%  
+    %-------%
     %-loop over subjects
     for s = 1:numel(allname)
       
@@ -154,7 +155,7 @@ for k = 1:numel(cfg.test)
       output = [output outtmp];
       
     end
-    %-------% 
+    %-------%
     
   end
   %-----------------%
@@ -178,98 +179,84 @@ if ~isempty(gpow)
   
   %---------------------------%
   %-statistics for main effects
-  for p = cfg.poweffect
-    [powpeak outtmp] = reportcluster(cfg, gfreq{p});
+  for t = 1:numel(cfg.gpow.stat.cond) % DOC: cfg.gpow.stat.cond as cell
     
-    condname = regexprep(cfg.test{p}, '*', '');
+    if numel(cfg.gpow.stat.cond{t}) == 1
+      
+      %-----------------%
+      %-compare against baseline
+      cond = cfg.gpow.stat.cond{t}{1};
+      i_cond = strfind(cfg.pow.cond, cond);
+      condname = regexprep(cond, '*', '');
+      
+      [powpeak outtmp] = reportcluster(cfg, gfreq{i_cond});
+      %-----------------%
+      
+      %-----------------%
+      %-data for plot
+      gplot = gpow{i_cond};
+      gerp{1} = gplot; % to plot freq fluctuations over time  
+      %-----------------%
+      
+    else
+      
+      %-----------------%
+      %-compare two conditions
+      cond1 = cfg.gpow.stat.cond{t}{1};
+      cond2 = cfg.gpow.stat.cond{t}{2};
+      i_cond1 = strfind(cfg.pow.cond, cond1);
+      i_cond2 = strfind(cfg.pow.cond, cond2);
+      condname = [regexprep(cond1, '*', '') '_' regexprep(cond2, '*', '')];
+      
+      [powpeak outtmp] = reportcluster(cfg, gfreq{i_cond1}, gfreq{i_cond2}); % TODO: it should accept two conditions
+      %-----------------%
+      
+      %-----------------%
+      %-data for plot
+      gplot = gpow{i_cond1};
+      gplot.powspctrm = log(gpow{i_cond1}.powspctrm ./ gpow{i_cond2}.powspctrm);
+      
+      gerp{1} = gpow{i_cond1}; % to plot freq fluctuations over time
+      gerp{2} = gpow{i_cond2}; % to plot freq fluctuations over time
+      %-----------------%
+      
+    end
+    
     save([cfg.dpow cfg.cond condname '_powpeak'], 'powpeak')
     output = [output outtmp];
   end
   %---------------------------%
   
   %---------------------------%
-  %-singleplotTFR
-  for t = 1:numel(cfg.test)
-    
-    %-----------------%
-    %-loop over channels
-    for c = 1:numel(cfg.gpow.chan)
-      
-      %--------%
-      %-figure
-      h = figure;
-      set(h, 'Renderer', 'painters')
-      %--------%
-      
-      %--------%
-      %-options
-      cfg3 = [];
-      cfg3.channel = cfg.gpow.chan(c).chan;
-      cfg3.zlim = 'maxabs';
-      cfg3.parameter = 'powspctrm';
-      ft_singleplotTFR(cfg3, gpow{t});
-      colorbar
-      
-      title([cfg.test{t} ' ' cfg.gpow.chan(c).name])
-      %--------%
-      
-      %--------%
-      %-save and link
-      condname = regexprep(cfg.test{t}, '*', '');
-      pngname = sprintf('gpow_tfr_c%02.f_%s', c, condname);
-      saveas(gcf, [cfg.log filesep pngname '.png'])
-      close(gcf); drawnow
-      
-      [~, logfile] = fileparts(cfg.log);
-      system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
-      %--------%
-      
-    end
-    %-----------------%
-    
-  end
-  %---------------------------%
-  
-  %---------------------------%
-  %-singleplotER (multiple conditions at once)
+  %-loop over channels
   for c = 1:numel(cfg.gpow.chan)
     
     %-----------------%
-    %-loop over freq
-    for f = 1:numel(cfg.gpow.freq)
-      
-      %--------%
-      %-figure
-      h = figure;
-      set(h, 'Renderer', 'painters')
-      %--------%
-      
-      %--------%
-      %-plot
-      cfg4 = [];
-      cfg4.channel = cfg.gpow.chan(c).chan;
-      cfg4.parameter = 'powspctrm';
-      cfg4.zlim = cfg.gpow.freq{f};
-      ft_singleplotER(cfg4, gpow{:});
-      
-      legend(cfg.test)
-      ylabel(cfg4.parameter)
-      
-      freqname = sprintf('f%02.f-%02.f', cfg.gpow.freq{f}(1), cfg.gpow.freq{f}(2));
-      title([cfg.gpow.chan(c).name, ' ' freqname])
-      %--------%
-      
-      %--------%
-      %-save and link
-      pngname = sprintf('gpow_val_c%02.f_%s', c, freqname);
-      saveas(gcf, [cfg.log filesep pngname '.png'])
-      close(gcf); drawnow
-      
-      [~, logfile] = fileparts(cfg.log);
-      system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
-      %--------%
-      
-    end
+    %-figure
+    h = figure;
+    set(h, 'Renderer', 'painters')
+    
+    %--------%
+    %-options
+    cfg3 = [];
+    cfg3.channel = cfg.gpow.chan(c).chan;
+    cfg3.zlim = 'maxabs';
+    cfg3.parameter = 'powspctrm';
+    ft_singleplotTFR(cfg3, gplot);
+    colorbar
+    
+    title([condname ' ' cfg.gpow.chan(c).name])
+    %--------%
+    %-----------------%
+    
+    %-----------------%
+    %-save and link
+    pngname = sprintf('gpow_tfr_c%02.f_%s', c, condname);
+    saveas(gcf, [cfg.log filesep pngname '.png'])
+    close(gcf); drawnow
+    
+    [~, logfile] = fileparts(cfg.log);
+    system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
     %-----------------%
     
   end
@@ -278,58 +265,98 @@ if ~isempty(gpow)
   %---------------------------%
   %-topoplotTFR (loop over tests)
   if ~isempty(cfg.sens.layout)
-    for t = 1:numel(cfg.test)
+    
+    %-loop over freq
+    for f = 1:numel(cfg.gpow.freq)
       
       %-----------------%
-      %-loop over freq
-      for f = 1:numel(cfg.gpow.freq)
-        
-        %--------%
-        %-figure
-        h = figure;
-        set(h, 'Renderer', 'painters')
-        %--------%
-        
-        %--------%
-        %-plot
-        cfg5 = [];
-        cfg5.parameter = 'powspctrm';
-        cfg5.layout = layout;
-        
-        cfg5.ylim = cfg.gpow.freq{f};
-        cfg5.zlim = 'maxabs';
-        cfg5.style = 'straight';
-        cfg5.marker = 'off';
-        cfg5.comment = 'xlim';
-        cfg5.commentpos = 'title';
-        
-        %-no topoplot if the data contains NaN
-        onedat = squeeze(gpow{t}.powspctrm(1, cfg.gpow.freq{f}(1), :)); % take one example, lowest frequency)
-        cfg5.xlim = gpow{t}.time(~isnan(onedat));
-        
-        ft_topoplotER(cfg5, gpow{t});
-        %--------%
-        
-        %--------%
-        %-save and link
-        condname = regexprep(cfg.test{t}, '*', '');
-        freqname = sprintf('f%02.f-%02.f', cfg.gpow.freq{f}(1), cfg.gpow.freq{f}(2));
-        
-        pngname = sprintf('gpow_topo_%s_%s', condname, freqname);
-        saveas(gcf, [cfg.log filesep pngname '.png'])
-        close(gcf); drawnow
-        
-        [~, logfile] = fileparts(cfg.log);
-        system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
-        %--------%
-        
-        %--------%
-      end
+      %-figure
+      h = figure;
+      set(h, 'Renderer', 'painters')
+      
+      %--------%
+      %-options
+      cfg5 = [];
+      cfg5.parameter = 'powspctrm';
+      cfg5.layout = layout;
+      
+      cfg5.ylim = cfg.gpow.freq{f};
+      cfg5.zlim = 'maxabs';
+      cfg5.style = 'straight';
+      cfg5.marker = 'off';
+      cfg5.comment = 'xlim';
+      cfg5.commentpos = 'title';
+      
+      %-no topoplot if the data contains NaN
+      onedat = squeeze(gpow{t}.powspctrm(1, cfg.gpow.freq{f}(1), :)); % take one example, lowest frequency)
+      cfg5.xlim = gpow{t}.time(~isnan(onedat));
+      
+      ft_topoplotER(cfg5, gplot);
+      %--------%
+      %-----------------%
+      
+      %-----------------%
+      %-save and link
+      freqname = sprintf('f%02.f-%02.f', cfg.gpow.freq{f}(1), cfg.gpow.freq{f}(2));
+      
+      pngname = sprintf('gpow_topo_%s_%s', condname, freqname);
+      saveas(gcf, [cfg.log filesep pngname '.png'])
+      close(gcf); drawnow
+      
+      [~, logfile] = fileparts(cfg.log);
+      system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
       %-----------------%
       
     end
+    
   end
   %---------------------------%
+    
+  %---------------------------%
+  %-singleplotER (multiple conditions at once)
+  for c = 1:numel(cfg.gpow.chan)
+    
+    %-loop over freq
+    for f = 1:numel(cfg.gpow.freq)
+      
+      %-----------------%
+      %-figure
+      h = figure;
+      set(h, 'Renderer', 'painters')
+      
+      %--------%
+      %-plot
+      cfg4 = [];
+      cfg4.channel = cfg.gpow.chan(c).chan;
+      cfg4.parameter = 'powspctrm';
+      cfg4.zlim = cfg.gpow.freq{f};
+      ft_singleplotER(cfg4, gerp{:});
+      
+      legend(cfg.test)
+      ylabel(cfg4.parameter)
+      
+      freqname = sprintf('f%02.f-%02.f', cfg.gpow.freq{f}(1), cfg.gpow.freq{f}(2));
+      title([condname ' ' cfg.gpow.chan(c).name ' ' freqname])
+      %--------%
+      %-----------------%
+      
+      %-----------------%
+      %-save and link
+      pngname = sprintf('gpow_val_%s_c%02.f_%s', condname, c, freqname);
+      saveas(gcf, [cfg.log filesep pngname '.png'])
+      close(gcf); drawnow
+      
+      [~, logfile] = fileparts(cfg.log);
+      system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
+      %-----------------%
+      
+    end
+    %-----------------%
+    
+  end
+  %---------------------------%
+    
+
   
 end
 %-----------------------------------------------%

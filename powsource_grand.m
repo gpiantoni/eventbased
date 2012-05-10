@@ -43,11 +43,12 @@ tic_t = tic;
 
 %---------------------------%
 %-loop over conditions
-for p = cfg.poweffect
+for k = 1:numel(cfg.powsource.cond) % DOC: CFG.POWSOURCE.COND
+  cond     = cfg.powsource.cond{k};
+  condname = regexprep(cond, '*', '');
   
   %-----------------%
   %-file for each cond
-  condname = regexprep(cfg.test{p}, '*', '');
   subjfile = @(s) sprintf('%spowsource_%02.f_%s.mat', cfg.dpow, s, condname);
   allname = cellfun(subjfile, num2cell(cfg.subjall), 'uni', 0);
   
@@ -91,9 +92,16 @@ end
 %-use predefined or power-peaks for areas of interest
 if strcmp(cfg.powsource.areas, 'manual')
   powpeak = cfg.powsource.powpeak;
+  
 elseif strcmp(cfg.powsource.areas, 'powpeak')
-  condname = regexprep(cfg.test{p}, '*', '');
-  load([cfg.dpow cfg.cond condname '_powpeak'], 'powpeak')
+  peakname = regexprep(cfg.pow.refcond, '*', ''); % DOC: CFG.POW.REFCOND
+  load([cfg.dpow cfg.cond peakname '_powpeak'], 'powpeak')
+  
+elseif strcmp(cfg.powsource.areas, 'powcorrpeak')
+  peakname = regexprep(cfg.powcorr.refcond, '*', ''); % DOC: CFG.POWCORR.REFCOND
+  load([cfg.dpow cfg.cond peakname '_powcorrpeak'], 'powcorrpeak')
+  powpeak = powcorrpeak;
+  
 end
 %-----------------%
 
