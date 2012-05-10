@@ -42,14 +42,14 @@ function seldata(cfg, subj)
 %---------------------------%
 %-start log
 output = sprintf('%s (%04d) began at %s on %s\n', ...
-  subj, mfilename,  datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
+  mfilename, subj, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
 tic_t = tic;
 %---------------------------%
 
 %---------------------------%
 %-dir and files
 rdir = sprintf('%s%04d/%s/%s/', cfg.recs, subj, cfg.mod, 'raw'); % recording raw
-ddir = sprintf('%s%04d/%s/%s/', cfg.data, subj, cfg.mod, cfg.nick); % data
+ddir = sprintf('%s%04d/%s/%s/', cfg.data, subj, cfg.mod, cfg.nick); % data dir
 if isdir(ddir); rmdir(ddir, 's'); end
 mkdir(ddir)
 
@@ -125,7 +125,7 @@ end
 %-end log
 toc_t = toc(tic_t);
 outtmp = sprintf('%s (%04d) ended at %s on %s after %s\n\n', ...
-  subj, mfilename, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'), ...
+  mfilename, subj, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'), ...
   datestr( datenum(0, 0, 0, 0, 0, toc_t), 'HH:MM:SS'));
 output = [output outtmp];
 

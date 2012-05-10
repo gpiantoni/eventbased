@@ -6,17 +6,18 @@ function gclean(cfg, subj)
 % containing good data. Bad channels are interpolated.
 %
 % CFG
-%  .data: name of projects/PROJNAME/subjects/
-%  .mod: name of the modality used in recordings and projects
-%  .cond: name to be used in projects/PROJNAME/subjects/0001/MOD/CONDNAME/
-%  .endname: includes previous steps '_seldata'
-%  .log: name of the file and directory with analysis log
+%  .data: path of /data1/projects/PROJ/subjects/
+%  .nick: NICK in /data1/projects/PROJ/subjects/0001/MOD/NICK/
+%  .mod: modality, MOD in /data1/projects/PROJ/subjects/0001/MOD/NICK/
+%  .endname: includes preprocessing steps (e.g. '_seldata')
+%
+%  .log: name of the file and directory to save log
 %
 %  .sens.file: file with EEG sensors. It can be sfp or mat
 %  .sens.dist: distance between sensors to consider them neighbors (in the units of cfg.sens.file)
 %
 %  .step: all the analysis step (for cfg.clear)
-%  .clear: index of cfg.step to remove from subject directory
+%  .clear: cell with the name of preprocessing steps to delete
 %
 %  .gtool.fsample: manually specify the frequency (very easily bug-prone, but in this way it does not read "data" all the time)
 %  .gtool.saveall: false
@@ -27,23 +28,27 @@ function gclean(cfg, subj)
 %  .gtool.eog.correction = 50;
 %  .gtool.emg.correction = 30;
 %
+% IN
+%  data in /data1/projects/PROJ/subjects/SUBJ/MOD/NICK/
+% 
+% OUT
+%  data, after ICA rejection for eyes-blinks and movement, rejection and
+%  interpolation of bad electrodes, rejection of bad epochs
+%  It appends '_gclean' at the end of the filename
+%
 % Part of EVENTBASED preprocessing
 % see also SELDATA, GCLEAN, PREPROC, REDEF
 
-%TODO: make it parallel over files (I think the gtool can already do it,
-%only fixing the fields in data should not be parallel, but it should be
-%very fast)
-
 %---------------------------%
 %-start log
-output = sprintf('(p%02.f) %s started at %s on %s\n', ...
-  subj, mfilename,  datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
+output = sprintf('%s (%04d) began at %s on %s\n', ...
+  mfilename, subj, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
 tic_t = tic;
 %---------------------------%
 
 %---------------------------%
 %-dir and files
-ddir = sprintf('%s%04.f/%s/%s/', cfg.data, subj, cfg.mod, cfg.cond); % data
+ddir = sprintf('%s%04d/%s/%s/', cfg.data, subj, cfg.mod, cfg.nick); % data dir
 allfile = dir([ddir '*' cfg.endname '.mat']); % files matching a preprocessing
 
 import aar.node.pipeline
@@ -60,7 +65,7 @@ neigh = ft_prepare_neighbours(cfg1);
 
 %------------------------------------%
 %-loop over files
-for i = 1:numel(allfile) % this can run in parallel
+for i = 1:numel(allfile)
   
   %-----------------%
   %-load the data
@@ -207,7 +212,8 @@ for i = 1:numel(allfile) % this can run in parallel
   
   %-----------------%
   %-clear
-  if any(strcmp(mfilename, cfg.step(cfg.clear+1)))
+  previousstep = cfg.step{find(strcmp(cfg.step, mfilename))-1};
+  if any(strcmp(cfg.clear, previousstep))
     delete([ddir allfile(i).name])
   end
   %-----------------%
@@ -218,8 +224,8 @@ end
 %---------------------------%
 %-end log
 toc_t = toc(tic_t);
-outtmp = sprintf('(p%02.f) %s ended at %s on %s after %s\n\n', ...
-  subj, mfilename, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'), ...
+outtmp = sprintf('%s (%04d) ended at %s on %s after %s\n\n', ...
+  mfilename, subj, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'), ...
   datestr( datenum(0, 0, 0, 0, 0, toc_t), 'HH:MM:SS'));
 output = [output outtmp];
 

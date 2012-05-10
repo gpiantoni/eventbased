@@ -6,23 +6,37 @@ function redef(cfg, subj)
 % each condition. It only keeps trials which are in the good part of the data.
 %
 % CFG
-%  .data: name of projects/PROJNAME/subjects/
-%  .mod: name of the modality used in recordings and projects
-%  .cond: name to be used in projects/PROJNAME/subjects/0001/MOD/CONDNAME/
-%  .endname: includes previous steps '_seldata_gclean_preproc'
-%  .log: name of the file and directory with analysis log
+%  .data: path of /data1/projects/PROJ/subjects/
+%  .nick: NICK in /data1/projects/PROJ/subjects/0001/MOD/NICK/
+%  .mod: modality, MOD in /data1/projects/PROJ/subjects/0001/MOD/NICK/
+%  .endname: includes preprocessing steps (e.g. '_seldata_gclean')
+%
+%  .log: name of the file and directory to save log
 %
 %  .step: all the analysis step (for cfg.clear)
-%  .clear: index of cfg.step to remove from subject directory
-%  .redef.event2trl: function name in PROJNAME_private which creates the correct trl based on events
-%  
+%  .clear: cell with the name of preprocessing steps to delete
+%
+%  .redef.event2trl: function name in NICK_private which creates the correct trl based on events
+%
+%  .preproc1: struct to pass to ft_preprocessing before cutting trials (if empty, no preprocessing)
+%  .preproc2: struct to pass to ft_preprocessing after cutting trials (if empty, no preprocessing)
+%  .csd.method: method to do scalp current density ('finite' or 'spline' or 'hjorth')
+%
+% IN
+%  data in /data1/projects/PROJ/subjects/SUBJ/MOD/NICK/
+%
+% OUT
+%  data, after preprocessing, rereferencing and cut in short trials
+%  It adds the condition name in the middle of the file, before cfg.endname
+%  and it appends '_redef' at the end of the filename
+%
 % You need to write your own function to create trials. Call the function
 % something like "event2trl_XXX" and use as
 %   [cond output] = event2trl_gosdtrl(cfg, event)
 % where
 %   cfg is cfg.redef (it also includes cfg.fsample with the sampling
 %   frequency of that specific dataset)
-%   
+%
 %   cond is a struct with
 %     .name = 'name of the condition'
 %     .trl = a nX3 matrix used by ft_definetrial
@@ -34,15 +48,21 @@ function redef(cfg, subj)
 
 %---------------------------%
 %-start log
-output = sprintf('(p%02.f) %s started at %s on %s\n', ...
-  subj, mfilename,  datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
+output = sprintf('%s (%04d) began at %s on %s\n', ...
+  mfilename, subj, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
 tic_t = tic;
 %---------------------------%
 
 %---------------------------%
 %-dir and files
-ddir = sprintf('%s%04.f/%s/%s/', cfg.data, subj, cfg.mod, cfg.cond); % data
+ddir = sprintf('%s%04d/%s/%s/', cfg.data, subj, cfg.mod, cfg.nick); % data dir
 allfile = dir([ddir '*' cfg.endname '.mat']); % files matching a preprocessing
+
+%-------%
+%-for CSD
+sens = ft_read_sens(cfg.sens.file);
+sens.label = upper(sens.label);
+%-------%
 %---------------------------%
 
 %-------------------------------------%
@@ -50,14 +70,26 @@ allfile = dir([ddir '*' cfg.endname '.mat']); % files matching a preprocessing
 for i = 1:numel(allfile)
   
   %-----------------%
-  %-define the new trl
+  %-
   load([ddir allfile(i).name]) % to get the events
   output = sprintf('%s\n%s\n', output, allfile(i).name);
   
   if isempty(event)
     continue
   end
+  %-----------------%
   
+  %-----------------%
+  %-preprocessing on the full file
+  if isfield(cfg, 'preproc1') && ~isempty(cfg.preproc1)
+    cfg1 = cfg.preproc1;
+    cfg1.feedback = 'none';
+    data = ft_preprocessing(cfg1, data);
+  end
+  %-----------------%
+  
+  %-----------------%
+  %-define the new trl
   cfg.redef.fsample = data.fsample; % pass the sampling frequency as well
   [cond outtmp] = feval(cfg.redef.event2trl, cfg.redef, event);
   output = [output outtmp];
@@ -89,12 +121,12 @@ for i = 1:numel(allfile)
       %---------%
       %-output
       if numel(find(goodtrl)) == 0
-        outtmp = sprintf('   cond ''%s'', no trials left SKIP (total trials:% 4.f, discarded: % 4.f)\n', ...
+        outtmp = sprintf('   cond ''%s'', no trials left SKIP (total trials:% 4d, discarded: % 4d)\n', ...
           cond(c).name, size(cond(c).trl,1), numel(find(~goodtrl)));
         output = [output outtmp];
         continue
       else
-        outtmp = sprintf('   cond ''%s'', final trials:% 4.f (total trials:% 4.f, discarded: % 4.f))\n', ...
+        outtmp = sprintf('   cond ''%s'', final trials:% 4d (total trials:% 4d, discarded: % 4d))\n', ...
           cond(c).name, numel(find(goodtrl)), size(cond(c).trl,1), numel(find(~goodtrl)));
         output = [output outtmp];
       end
@@ -107,7 +139,32 @@ for i = 1:numel(allfile)
       if isfield(cond(c), 'trialinfo') && ~isempty(cond(c).trialinfo)
         data.trialinfo = cond(c).trialinfo(goodtrl,:);
       end
+      
       save([ddir outputfile], 'data')
+      %-----------------%
+      
+      %-----------------%
+      %-preprocessing on the full file
+      if isfield(cfg, 'preproc2') && ~isempty(cfg.preproc2)
+        cfg1 = cfg.preproc2;
+        cfg1.feedback = 'none';
+        cfg1.inputfile = [ddir outputfile]; % it rewrites the same file
+        cfg1.outputfile = [ddir outputfile];
+        ft_preprocessing(cfg1);
+      end
+      %-----------------%
+      
+      %-----------------%
+      %-scalp current density
+      if isfield(cfg, 'csd') && isfield(cfg.csd, 'method') && ~isempty(cfg.csd.method)
+        cfg1 = [];
+        cfg1.method = cfg.csd.method;
+        cfg1.elec = sens;
+        cfg1.feedback = 'none';
+        cfg1.inputfile = [ddir outputfile]; % it rewrites the same file
+        cfg1.outputfile = [ddir outputfile];
+        ft_scalpcurrentdensity(cfg1);
+      end
       %-----------------%
       
     end
@@ -117,8 +174,8 @@ for i = 1:numel(allfile)
   
   %-----------------%
   %-clear
-  clear data
-  if any(strcmp(mfilename, cfg.step(cfg.clear+1)))
+  previousstep = cfg.step{find(strcmp(cfg.step, mfilename))-1};
+  if any(strcmp(cfg.clear, previousstep))
     delete([ddir allfile(i).name])
   end
   %-----------------%
@@ -129,8 +186,8 @@ end
 %---------------------------%
 %-end log
 toc_t = toc(tic_t);
-outtmp = sprintf('(p%02.f) %s ended at %s on %s after %s\n\n', ...
-  subj, mfilename, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'), ...
+outtmp = sprintf('%s (%04d) ended at %s on %s after %s\n\n', ...
+  mfilename, subj, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'), ...
   datestr( datenum(0, 0, 0, 0, 0, toc_t), 'HH:MM:SS'));
 output = [output outtmp];
 
