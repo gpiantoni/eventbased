@@ -13,11 +13,6 @@ function pow_subj(cfg, subj)
 %  .pow.cond: cell with conditions (e.g. {'*cond1' '*cond2'})'
 %
 %  .pow: a structure with cfg to pass to ft_freqanalysis
-%  .pow.outliers: logical (print tables with number of points above a
-%  certain number of standard deviation, experimental code)
-%  .pow.outliersthr: if outliers is true, this is the threshold to reject a
-%  trial (if empty, no rejection. It's very hard to give an indicative
-%  value for this number. First try checking the plots, then assign a threshold)
 %
 % Baseline correction is applied in POW_GRAND
 %
@@ -71,61 +66,6 @@ for k = 1:numel(cfg.pow.cond) % DOC: CFG.POW.COND
   
   if isfield(cfg.pow, 'toi')
     freq.time = cfg.pow.toi;
-  end
-  %---------------------------%
-  
-  %---------------------------%
-  %-deal with outliers
-  if cfg.pow.outliers
-    
-    %-----------------%
-    %-compute sd across trials
-    trlsd = zeros(size(freq.powspctrm,1), 1);
-    for i = 1:size(freq.powspctrm,1)
-      i_powspctrm = freq.powspctrm(i, :, :, :);
-      trlsd(i) = nanstd(i_powspctrm(:),1);
-    end
-    %-----------------%
-    
-    %-----------------%
-    %-compute average (and reject outliers if necessary)
-    cfg4 = [];
-    
-    if isfield(cfg.pow, 'outliersthr') && ~isempty(cfg.pow.outliersthr)
-      goodtrl = find(trlsd < cfg.pow.outliersthr);
-      badtrl = find(trlsd >= cfg.pow.outliersthr);
-      
-      output = [output sprintf('Cond %s Rejecting %5.f outliers out of %5.f trials, remaining %5.f trials\n', ...
-        condname, numel(badtrl), numel(trlsd), numel(goodtrl))];
-      
-      
-      cfg4.trials = goodtrl;
-      
-    end
-    
-    freq = ft_freqdescriptives(cfg4, freq);
-    %-----------------%
-    
-    %-----------------%
-    %-plot feedback on montage
-    figure
-    plot(trlsd, '.')
-    
-    if isfield(cfg.pow, 'outliersthr') && ~isempty(cfg.pow.outliersthr)
-      hold on
-      plot(badtrl, trlsd(badtrl), '+r')
-    end
-    
-    legend('trials', 'bad trials')
-    title('outliers')
-    xlabel('n trials')
-    ylabel('s.d.')
-    
-    pngfile = [cfg.log filesep 'powoutliers_' sprintf('%03.f', subj) '_' condname '.png'];
-    saveas(gcf, pngfile);
-    close(gcf); drawnow
-    %-----------------%
-
   end
   %---------------------------%
   
