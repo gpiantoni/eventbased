@@ -208,7 +208,7 @@ if ~isempty(gpow)
       i_cond2 = strfind(cfg.pow.cond, cond2);
       condname = [regexprep(cond1, '*', '') '_' regexprep(cond2, '*', '')];
       
-      [powpeak outtmp] = reportcluster(cfg, gfreq{i_cond1}, gfreq{i_cond2}); % TODO: it should accept two conditions
+      [powpeak outtmp] = reportcluster(cfg, gfreq{i_cond1}, gfreq{i_cond2});
       %-----------------%
       
       %-----------------%
@@ -288,7 +288,7 @@ if ~isempty(gpow)
       cfg5.commentpos = 'title';
       
       %-no topoplot if the data contains NaN
-      onedat = squeeze(gpow{t}.powspctrm(1, cfg.gpow.freq{f}(1), :)); % take one example, lowest frequency)
+      onedat = squeeze(gpow{t}.powspctrm(1, cfg.gpow.freq{f}(1), :)); % take one example, lowest frequency
       cfg5.xlim = gpow{t}.time(~isnan(onedat));
       
       ft_topoplotER(cfg5, gplot);

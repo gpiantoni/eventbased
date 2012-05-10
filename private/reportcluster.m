@@ -1,4 +1,4 @@
-function [clpeak output] = reportcluster(cfg, gdat)
+function [clpeak output] = reportcluster(cfg, gdat, gdat2)
 %REPORTCLUSTER get cluster which are different from zero, even if not significant
 % The clusters to determine the main results of the analysis, for example
 % to concentrate the source reconstruction
@@ -22,6 +22,7 @@ function [clpeak output] = reportcluster(cfg, gdat)
 % DOC: cfg.gerp.stat.time
 % DOC: cfg.gpow.stat.time
 % DOC: cfg.gpow.stat.freq
+% DOC: two inputs
 
 %-----------------%
 %-check data
@@ -36,8 +37,10 @@ end
 output = '';
 nsubj = size(gdat.(param),1);
 
-gzero = gdat;
-gzero.(param) = zeros(size(gdat.(param)));
+if nargin == 2
+  gdat2 = gdat;
+  gdat2.(param) = zeros(size(gdat.(param)));
+end
 %-----------------%
 
 %-----------------%
@@ -99,9 +102,9 @@ cfg3.feedback = 'etf';
 
 if iserp
   % cfg3.minnbchan = 5; % to avoid huge clusters
-  stat = ft_timelockstatistics(cfg3, gdat, gzero); 
+  stat = ft_timelockstatistics(cfg3, gdat, gdat2); 
 else
-  stat = ft_freqstatistics(cfg3, gdat, gzero);
+  stat = ft_freqstatistics(cfg3, gdat, gdat2);
 end
 %-----------------%
 
