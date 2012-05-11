@@ -1,12 +1,12 @@
 function erp_grand(cfg)
 %ERP_GRAND grand time lock analysis.
 % 1) read single subject-data and create gerp in cfg.derp
-% 2) do statistics for condition indicated by cfg.gerp.stat.cond
+% 2) do statistics for condition indicated by cfg.gerp.cond
 % 3) plot the topoplot over time and singleplot for some electrodes
 %
 % CFG
 %-Average
-%  .nick: NICKNAME to save files specific to each NICKNAME
+%  .nick: NICK to save files specific to each NICK
 %  .log: name of the file and directory with analysis log
 %  .subjall: index of the number of subjects
 %
@@ -14,9 +14,9 @@ function erp_grand(cfg)
 %  .erp.cond: conditions to make averages
 %
 %-Statistics
-%  .gerp.stat.cond: cells within cell (e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}})
+%  .gerp.cond: cells within cell (e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}})
 %        but you cannot have more than 2 conditions (it's always a t-test).
-%   If empty, not statistics.
+%   If empty, not statistics and no plots
 %   If stats,
 %     .gerp.test.time: time limit for statistics (two scalars)
 %     .cluster.thr: threshold to consider clusters are erppeaks
@@ -32,14 +32,14 @@ function erp_grand(cfg)
 %  .rslt: directory images are saved into
 %
 % IN
-%  [cfg.derp 'erp_SUBJCODE_CONDNAME']: timelock analysis for single-subject
+%  [cfg.derp 'erp_SUBJ_COND']: timelock analysis for single-subject
 %
 % OUT
-%  [cfg.derp 'COND_granderp']: timelock analysis for all subjects
-%  [cfg.derp 'COND_erppeak']: significant peaks in the ERP
+%  [cfg.derp 'NICK_granderp']: timelock analysis for all subjects
+%  [cfg.derp 'NICK_erppeak']: significant peaks in the ERP
 %
 % FIGURES (saved in cfg.log and, if not empty, cfg.rslt)
-%  gerp_erp_c01: singleplot ERP, all conditions, for one channel group
+%  gerp_erp_COND_CHAN: singleplot ERP, all conditions, for one channel group
 %  gerp_topo_COND: topoplot ERP for each condition, over time
 %
 % Part of EVENTBASED group-analysis
@@ -64,7 +64,7 @@ for k = 1:numel(cfg.erp.cond)
   
   %-----------------%
   %-file for each cond
-  subjfile = @(s) sprintf('%serp_%02.f_%s.mat', cfg.derp, s, condname);
+  subjfile = @(s) sprintf('%serp_%04d_%s.mat', cfg.derp, s, condname);
   allname = cellfun(subjfile, num2cell(cfg.subjall), 'uni', 0);
   
   allfiles = true(1, numel(allname));
@@ -82,6 +82,7 @@ for k = 1:numel(cfg.erp.cond)
   cfg1 = [];
   cfg1.inputfile = allname;
   gerp{k} = ft_timelockgrandaverage(cfg1);
+  gerp{k}.cfg = []; % save space, will see if it breaks something
   cfg1.keepindividual = 'yes';
   gerpall{k} = ft_timelockgrandaverage(cfg1);
   %-----------------%
@@ -100,20 +101,20 @@ if ~isempty(cfg.sens.layout)
   load(cfg.sens.layout, 'layout');
 end
 
-if ~isempty(gerp)
+if ~isempty(gerp) && isfield(cfg.gerp, 'cond')
   
   %-------------------------------------%
   %-loop over statistics conditions
-  for t = 1:numel(cfg.gerp.stat.cond)
+  for t = 1:numel(cfg.gerp.cond)
     
     %---------------------------%
     %-statistics for effects of interest
-    if numel(cfg.gerp.stat.cond{t}) == 1
+    if numel(cfg.gerp.cond{t}) == 1
       
       %-----------------%
       %-compare against baseline
-      cond = cfg.gerp.stat.cond{t}{1};
-      i_cond = strfind(cfg.erp.cond, cond);
+      cond = cfg.gerp.cond{t}{1};
+      i_cond = strcmp(cfg.erp.cond, cond);
       condname = regexprep(cond, '*', '');
       
       [erppeak outtmp] = reportcluster(cfg, gerpall{i_cond});
@@ -129,8 +130,8 @@ if ~isempty(gerp)
       
       %-----------------%
       %-compare two conditions
-      cond1 = cfg.gerp.stat.cond{t}{1};
-      cond2 = cfg.gerp.stat.cond{t}{2};
+      cond1 = cfg.gerp.cond{t}{1};
+      cond2 = cfg.gerp.cond{t}{2};
       i_cond1 = strfind(cfg.erp.cond, cond1);
       i_cond2 = strfind(cfg.erp.cond, cond2);
       condname = [regexprep(cond1, '*', '') '_' regexprep(cond2, '*', '')];
@@ -179,7 +180,7 @@ if ~isempty(gerp)
     
     %-----------------%
     %-save and link
-    pngname = sprintf('gerp_erp_%s_c%02.f', condname, c);
+    pngname = sprintf('gerp_erp_%s_%s', condname, cfg.gerp.chan(c).name);
     saveas(gcf, [cfg.log filesep pngname '.png'])
     close(gcf); drawnow
     
@@ -206,7 +207,7 @@ if ~isempty(gerp)
     timelim = gplot.time([1 end]);
     cfg4.xlim = timelim(1):.1:timelim(2); % one plot every 100 ms
     
-    cfg4.zlim = 'maxabs';
+    cfg4.zlim = [-1 1] * max(gplot.avg(:));
     
     cfg4.layout = layout;
     cfg4.style = 'straight';
