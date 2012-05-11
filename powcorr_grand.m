@@ -6,7 +6,7 @@ function powcorr_grand(cfg)
 %
 % CFG
 %-Average
-%  .nick: NICKNAME to save files specific to each NICKNAME
+%  .nick: NICK to save files specific to each NICK
 %  .log: name of the file and directory with analysis log
 %  .subjall: index of the number of subjects
 %
@@ -53,7 +53,7 @@ function powcorr_grand(cfg)
 
 %---------------------------%
 %-start log
-output = sprintf('%s started at %s on %s\n', ...
+output = sprintf('%s began at %s on %s\n', ...
   mfilename,  datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
 tic_t = tic;
 %---------------------------%

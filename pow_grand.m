@@ -6,7 +6,7 @@ function pow_grand(cfg)
 %
 % CFG
 %-Average
-%  .nick: NICKNAME to save files specific to each NICKNAME
+%  .nick: NICK to save files specific to each NICK
 %  .log: name of the file and directory with analysis log
 %  .subjall: index of the number of subjects
 %
@@ -43,7 +43,7 @@ function pow_grand(cfg)
 %  .rslt: directory images are saved into
 %
 % IN
-%  [cfg.derp 'erp_SUBJCODE_CONDNAME']: timelock analysis for single-subject
+%  [cfg.derp 'erp_SUBJ_COND']: timelock analysis for single-subject
 %
 % OUT
 %  [cfg.dpow 'COND_grandpow']: power analysis for all subjects
@@ -62,7 +62,7 @@ function pow_grand(cfg)
 
 %---------------------------%
 %-start log
-output = sprintf('%s started at %s on %s\n', ...
+output = sprintf('%s began at %s on %s\n', ...
   mfilename,  datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
 tic_t = tic;
 %---------------------------%

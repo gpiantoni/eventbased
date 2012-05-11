@@ -2,7 +2,7 @@ function powsource_grand(cfg)
 %POWSOURCE_GRAND group-analysis of POW source data
 %
 % CFG
-%  .cond: name to be used to save powsource_PROJNAME and figures
+%  .cond: name to be used to save powsource_PROJ and figures
 %  .test: a cell with the condition defined by redef. 
 %  .log: name of the file and directory with analysis log
 %  .rslt: directory images are saved into
@@ -26,7 +26,7 @@ function powsource_grand(cfg)
 %  [cfg.dpow 'COND_soupeak']: significant source peaks in the POW
 %
 % FIGURES
-%  gpowpeak_POWEFFECT_POWPEAKNAME: 3d plot of the source for one peak
+%  gpowpeak_POWEFFECT_POWPEAK: 3d plot of the source for one peak
 %
 % Part of EVENTBASED group-analysis
 % see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND, 
@@ -36,7 +36,7 @@ function powsource_grand(cfg)
 
 %---------------------------%
 %-start log
-output = sprintf('%s started at %s on %s\n', ...
+output = sprintf('%s began at %s on %s\n', ...
   mfilename,  datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
 tic_t = tic;
 %---------------------------%

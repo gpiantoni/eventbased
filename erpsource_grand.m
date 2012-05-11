@@ -3,7 +3,7 @@ function erpsource_grand(cfg)
 %
 % CFG
 %-Average
-%  .nick: NICKNAME to save files specific to each NICKNAME
+%  .nick: NICK to save files specific to each NICK
 %  .log: name of the file and directory with analysis log
 %  .subjall: index of the number of subjects
 %
@@ -35,7 +35,7 @@ function erpsource_grand(cfg)
 %  .dti.ref: template for mask ('/usr/share/data/fsl-mni152-templates/MNI152_T1_1mm_brain.nii.gz')
 %
 % IN 
-%  [cfg.derp 'erpsource_SUBJCODE_COND']: source data for period of interest and baseline for each subject
+%  [cfg.derp 'erpsource_SUBJ_COND']: source data for period of interest and baseline for each subject
 %
 % OUT
 %  [cfg.derp 'COND_granderpsource']: source analysis for all subject
@@ -52,7 +52,7 @@ function erpsource_grand(cfg)
 
 %---------------------------%
 %-start log
-output = sprintf('%s started at %s on %s\n', ...
+output = sprintf('%s began at %s on %s\n', ...
   mfilename,  datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
 tic_t = tic;
 %---------------------------%
