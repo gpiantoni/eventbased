@@ -132,8 +132,8 @@ if ~isempty(gerp) && isfield(cfg.gerp, 'cond')
       %-compare two conditions
       cond1 = cfg.gerp.cond{t}{1};
       cond2 = cfg.gerp.cond{t}{2};
-      i_cond1 = strfind(cfg.erp.cond, cond1);
-      i_cond2 = strfind(cfg.erp.cond, cond2);
+      i_cond1 = strcmp(cfg.erp.cond, cond1);
+      i_cond2 = strcmp(cfg.erp.cond, cond2);
       condname = [regexprep(cond1, '*', '') '_' regexprep(cond2, '*', '')];
       
       [erppeak outtmp] = reportcluster(cfg, gerpall{i_cond1}, gerpall{i_cond2});
@@ -142,7 +142,7 @@ if ~isempty(gerp) && isfield(cfg.gerp, 'cond')
       %-----------------%
       %-data for plot
       gplot = gerp{i_cond1};
-      gplot.avg = log(gerp{i_cond1}.avg ./ gerp{i_cond2}.avg);
+      gplot.avg = gerp{i_cond1}.avg - gerp{i_cond2}.avg;
       
       gtime{1} = gerp{i_cond1}; % to plot freq fluctuations over time
       gtime{2} = gerp{i_cond2}; % to plot freq fluctuations over time
@@ -174,7 +174,7 @@ if ~isempty(gerp) && isfield(cfg.gerp, 'cond')
     
     legend('cond1', 'cond2')
     
-    title([condname ' ' cfg.gerp.chan(c).name])
+    title([condname ' ' cfg.gerp.chan(c).name], 'Interpreter', 'none')
     %--------%
     %-----------------%
     
@@ -216,6 +216,11 @@ if ~isempty(gerp) && isfield(cfg.gerp, 'cond')
     cfg4.commentpos = 'title';
     
     ft_topoplotER(cfg4, gplot);
+    %--------%
+    
+    %--------%
+    %-colorbar only for last subplot, to give indication on scaling
+    colorbar
     %--------%
     %-----------------%
     
