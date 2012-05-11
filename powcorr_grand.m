@@ -126,6 +126,20 @@ if ~isempty(gpowcorr) && isfield(cfg.gpow, 'cond')
       i_cond = strcmp(cfg.powcorr.cond, cond);
       condname = regexprep(cond, '*', '');
       
+      %-------%
+      %-use gpowcorr.test info, not gpow.test info; then pass them to
+      %reportcluster
+      cfg.gpow.test.time = [];
+      cfg.gpow.test.freq = [];
+      if isfield(cfg.gpowcorr, 'test') && isfield(cfg.gpowcorr.test, 'time')
+        cfg.gpow.test.time = cfg.gpowcorr.test.time;
+      end
+      
+      if isfield(cfg.gpowcorr, 'test') && isfield(cfg.gpowcorr.test, 'freq')
+        cfg.gpow.test.freq = cfg.gpowcorr.test.freq;
+      end
+      %-------%
+      
       [powcorrpeak outtmp] = reportcluster(cfg, gfreq{i_cond});
       %-----------------%
       
