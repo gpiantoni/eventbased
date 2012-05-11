@@ -1,37 +1,29 @@
 function conn_subj(cfg, subj)
 %CONN_SUBJ connectivity on single-subject data
-% At the moment, it only computes the two conditions which are used in the t-test
 %
 % CFG
-%  .data: name of projects/PROJNAME/subjects/
-%  .mod: name of the modality used in recordings and projects
-%  .cond: name to be used in projects/PROJNAME/subjects/0001/MOD/CONDNAME/
-%  .endname: includes previous steps '_seldata_gclean_preproc_redef'
-%  .log: name of the file and directory with analysis log
-%  .conn.test: a cell with the condition defined by redef. 
-%              It can, but need not, be identical to cfg.test
-%  .dcon: directory to save connectivity data
-% 
+%  .data: path of /data1/projects/PROJ/subjects/
+%  .rec: REC in /data1/projects/PROJ/recordings/REC/
+%  .nick: NICK in /data1/projects/PROJ/subjects/0001/MOD/NICK/
+%  .mod: modality, MOD in /data1/projects/PROJ/subjects/0001/MOD/NICK/
+%  .endname: includes preprocessing steps (e.g. '_seldata_gclean_redef')
+%
+%  .log: name of the file and directory to save log
+%  .dconn: directory for connectivity data
+%  .conn.cond: cell with conditions (e.g. {'*cond1' '*cond2'})'
+%
+%-ROI parameters
 %  .conn.areas: 'channel' or 'dipole' or 'erppeak' or 'powpeak'
-%    if 'channel' (take average over groups of channels)
-%      .conn.chan: a struct with: 
-%                               .name: 'name of group elec'
-%                               .chan: {'elec1' 'elec2' 'elec3'};
-%      .seldata.label: names of the channels to match with cfg.conn.chan
-%      (not very robust, might require more testing)
-%   
-%    if 'dipole' (use weights from erp at specific time window):
+%    if 'erppeak' (use beamformer to construct virtual electrode):
 %      .derp: directory with ERP data
-%      .erpeffect: vector of condition whose ERP is used here
-%      .conn.dip: a struct with:
-%                              .name: 'name of dipole'
-%                              .time: one or two scalars, time of the ERP of interest
-%   
-%    if 'erppeak' or 'powpeak' (use beamformer to construct virtual electrode):
-%      .erpeffect or .poweffect: index of condition used for source reconstruction (if vector, only takes the first)
-%      .derp or .dpow: directory with ERP or POW data
+%      .erpsource.refcond: string of the condition used for source location
 %      .conn.fixedmom: logical (use the same moment for source or change it every time)
-%    
+%    if 'powpeak' (use beamformer to construct virtual electrode):
+%      .dpow: directory with POW data
+%      .powsource.refcond: string of the condition used for source location
+%      .conn.fixedmom: logical (use the same moment for source or change it every time)
+%
+%-Connectivity parameters
 %  .conn.toi: vector with time points to run connectivity on
 %  .conn.t_ftimwin: scalar with duration of time window
 %  .conn.type: 'cca' or 'ft'
@@ -53,8 +45,17 @@ function conn_subj(cfg, subj)
 %        if FALSE:
 %          .conn.foi: frequency of interest (best if identical to .pow.foi)
 %
+% IN:
+%  data in /PROJ/subjects/SUBJ/MOD/NICK/
+%  if .conn.areas == 'erppeak'
+%     [cfg.derp 'erpsource_SUBJ_COND']: source data for period of interest for each subject
+%     [cfg.derp 'NICK_COND_soupeak']: significant source peaks in the ERP
+%  if .conn.areas == 'powpeak'
+%     [cfg.dpow 'powsource_SUBJ_COND']: source data for period of interest for each subject
+%     [cfg.dpow 'NICK_COND_soupeak']: significant source peaks in the POW
+%
 % OUT
-%  [cfg.dcon 'COND_CONNMETHOD_001_TEST']
+%  [cfg.dcon 'conn_CONNMETHOD_SUBJ_COND']: connectivty analysis for each subject
 %  If .conn.type is 'cca', it also returns the model check. The file has
 %    subj, condition, toi, ADF, KPSS, residuals, consistency
 %  where 
@@ -62,14 +63,31 @@ function conn_subj(cfg, subj)
 %    residuals tells you if the residuals, after fitting GC, are not white
 %    consistency gives you how much variance the model explains (better if > 80)
 %
-% FIGURES
-%  montconn_001: imagesc of montage for subject used to construct virtual electrode
-%
 % Part of EVENTBASED single-subject
 % see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND, 
 % POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND, 
-% POWCORR_SUBJ, POWCORR_GRAND,
+% POWCORR_SUBJ, POWCORR_GRAND, POWSTAT_SUBJ, POWSTAT_GRAND, 
 % CONN_SUBJ, CONN_GRAND, CONN_STAT
+
+
+% 
+%  .conn.areas: 'channel' or 'dipole' or 'erppeak' or 'powpeak'
+%    if 'channel' (take average over groups of channels)
+%      .conn.chan: a struct with: 
+%                               .name: 'name of group elec'
+%                               .chan: {'elec1' 'elec2' 'elec3'};
+%      .seldata.label: names of the channels to match with cfg.conn.chan
+%      (not very robust, might require more testing)
+%   
+%    if 'dipole' (use weights from erp at specific time window):
+%      .derp: directory with ERP data
+%      .erpeffect: vector of condition whose ERP is used here
+%      .conn.dip: a struct with:
+%                              .name: 'name of dipole'
+%                              .time: one or two scalars, time of the ERP of interest
+%   
+    
+
 
 %---------------------------%
 %-start log
@@ -80,54 +98,52 @@ tic_t = tic;
 
 %---------------------------%
 %-dir and files
-ddir = sprintf('%s%04.f/%s/%s/', cfg.data, subj, cfg.mod, cfg.cond); % data
 
 %-----------------%
 %-prepare montage
 if strcmp(cfg.conn.areas, 'channel')
-  
-  if ischar(cfg.seldata.label)
-    error('You need to specify all the channels in cfg.seldata.label');
-  else
-    mont = prepare_montage(cfg.conn.chan, cfg.seldata.label');
-  end
+  % TODO
+  %   if ischar(cfg.seldata.label)
+  %     error('You need to specify all the channels in cfg.seldata.label');
+  %   else
+  %     mont = prepare_montage(cfg.conn.chan, cfg.seldata.label');
+  %   end
   
 elseif strcmp(cfg.conn.areas, 'dipole')
-  
-  %-------%
-  %-read data
-  if ~exist([cfg.derp cfg.cond '_granderp.mat'], 'file')
-    error([cfg.derp cfg.cond '_granderp.mat does not exist'])
-  end
-  
-  load([cfg.derp cfg.cond '_granderp'], 'gerp')
-  %-------%
-  
-  mont = topodipole(cfg.conn.dip, gerp{cfg.erpeffect(1)});
+  % TODO
+  %   %-------%
+  %   %-read data
+  %   if ~exist([cfg.derp cfg.cond '_granderp.mat'], 'file')
+  %     error([cfg.derp cfg.cond '_granderp.mat does not exist'])
+  %   end
+  %
+  %   load([cfg.derp cfg.cond '_granderp'], 'gerp')
+  %   %-------%
+  %
+  %   mont = topodipole(cfg.conn.dip, gerp{cfg.erpeffect(1)});
   
 elseif strcmp(cfg.conn.areas, 'erppeak') || strcmp(cfg.conn.areas, 'powpeak')
   
   if strcmp(cfg.conn.areas, 'erppeak')
     
     %-------%
-    %-load sources of erp
-    condname = regexprep(cfg.test{cfg.erpeffect(1)}, '*', '');
-    inputfile = sprintf('erpsource_%02.f_%s', subj, condname);
+    %-load source of pow
+    condname = regexprep(cfg.erpsource.refcond, '*', ''); % DOC: cfg.erpsource.refcond
+    inputfile = sprintf('erpsource_%04d_%s', subj, condname);
+
     load([cfg.derp inputfile], 'source')
-    
-    load([cfg.derp cfg.cond condname '_erppeak'], 'erppeak')
+    load([cfg.derp cfg.nick '_' condname '_soupeak'], 'soupeak')
     %-------%
     
   elseif strcmp(cfg.conn.areas, 'powpeak')
     
     %-------%
     %-load source of pow
-    condname = regexprep(cfg.test{cfg.poweffect(1)}, '*', '');
-    inputfile = sprintf('powsource_%02.f_%s', subj, condname);
-    load([cfg.dpow inputfile], 'source')
-    
-    load([cfg.dpow cfg.cond condname '_powpeak'], 'powpeak')
-    load([cfg.dpow cfg.cond '_soupeak'], 'soupeak')
+    condname = regexprep(cfg.powsource.refcond, '*', ''); % DOC: cfg.powsource.refcond
+    inputfile = sprintf('powsource_%04d_%s', subj, condname);
+
+    load([cfg.dpow inputfile], 'source') 
+    load([cfg.dpow cfg.nick '_' condname '_soupeak'], 'soupeak') % DOC: in
     %-------%
     
   end
@@ -140,51 +156,25 @@ elseif strcmp(cfg.conn.areas, 'erppeak') || strcmp(cfg.conn.areas, 'powpeak')
   
 end
 %-----------------%
-
-%-----------------%
-%-plot feedback on montage
-figure
-imagesc(mont.tra, [-1 1] * max(abs(mont.tra(:))))
-colorbar
-
-pngfile = [cfg.log filesep 'montconn_' sprintf('%03.f', subj) '.png'];
-saveas(gcf, pngfile);
-close(gcf); drawnow
-%-----------------%
 %---------------------------%
 
 %-------------------------------------%
 %-loop over conditions
-for k = 1:numel(cfg.conn.test)
+for k = 1:numel(cfg.conn.cond)
+  cond     = cfg.conn.cond{k};
+  condname = regexprep(cond, '*', '');
   
-  %-----------------%
-  %-input and output for each condition
-  allfile = dir([ddir cfg.conn.test{k} cfg.endname '.mat']); % files matching a preprocessing
-
-  condname = regexprep(cfg.conn.test{k}, '*', '');
-  outputfile = sprintf('%s_%s_%02.f_%s', cfg.cond, cfg.conn.method, subj, condname);
-  %-----------------%
-  
-  %-----------------%
-  %-concatenate only if you have more datasets
-  if numel(allfile) > 1
-    spcell = @(name) sprintf('%s%s', ddir, name);
-    allname = cellfun(spcell, {allfile.name}, 'uni', 0);
-    
-    cfg1 = [];
-    cfg1.inputfile = allname;
-    data = ft_appenddata(cfg1);
-    
-  elseif numel(allfile) == 1
-    load([ddir allfile(1).name], 'data')
-    
-  else
-    output = sprintf('%sCould not find any file in %s for test %s\n', ...
-      output, ddir, cfg.conn.test{k});
+  %---------------------------%
+  %-read data
+  [data] = load_data(cfg, subj, cond);
+  if isempty(data)
+    output = sprintf('%sCould not find any file for condition %s\n', ...
+      output, cond);
     continue
-    
   end
-  %-----------------%
+  
+  outputfile = sprintf('conn_%s_%04d_%s', cfg.conn.method, subj, condname);
+  %---------------------------%
   
   %-----------------%
   %-apply montage

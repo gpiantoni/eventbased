@@ -40,11 +40,11 @@ function pow_grand(cfg)
 %  .rslt: directory images are saved into
 %
 % IN
-%  [cfg.derp 'erp_SUBJ_COND']: timelock analysis for single-subject
+%  [cfg.dpow 'pow_SUBJ_COND']: timelock analysis for single-subject
 %
 % OUT
 %  [cfg.dpow 'NICK_grandpow']: power analysis for all subjects
-%  [cfg.dpow 'NICK_powpeak']: significant peaks in the POW
+%  [cfg.dpow 'NICK_COND_powpeak']: significant peaks in the POW
 %
 % FIGURES (saved in cfg.log and, if not empty, cfg.rslt)
 %  gpow_tfr_c01_COND: time-frequency plot POW, for each condition, for one channel group

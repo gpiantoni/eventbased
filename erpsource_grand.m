@@ -39,7 +39,7 @@ function erpsource_grand(cfg)
 %
 % OUT
 %  [cfg.derp 'NICK_granderpsource']: source analysis for all subject
-%  [cfg.derp 'NICK_soupeak']: significant source peaks in the ERP
+%  [cfg.derp 'NICK_COND_soupeak']: significant source peaks in the ERP
 %
 % FIGURES
 %  gerppeak_COND_ERPPEAK: 3d plot of the source for one peak
@@ -156,12 +156,13 @@ for i_cond = 1:numel(cfg.erpsource.cond)
       cfg1.parameter = 'image';
       souinterp = ft_sourceinterpolate(cfg1, erpstat{p}, dtimri);
       
+      mriname = [cfg.erpsource.nifti '_' condname '_' soupeak(p).name];
       cfg1 = [];
       cfg1.parameter = 'image';
-      cfg1.filename = [cfg.powsource.nifti soupeak(p).name];
+      cfg1.filename = mriname;
       ft_sourcewrite(cfg1, souinterp);
-      gzip([cfg.powsource.nifti soupeak(p).name '.nii'])
-      delete([cfg.powsource.nifti soupeak(p).name '.nii'])
+      gzip([mriname '.nii'])
+      delete([mriname '.nii'])
     end
     %--------%
     

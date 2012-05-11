@@ -44,7 +44,7 @@ function powsource_grand(cfg)
 %
 % OUT
 %  [cfg.dpow 'NICK_grandpowsource']: source analysis for all subject
-%  [cfg.dpow 'NICK_soupeak']: significant source peaks in POW
+%  [cfg.dpow 'NICK_COND_soupeak']: significant source peaks in POW
 %
 % Part of EVENTBASED group-analysis
 % see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND,
@@ -163,13 +163,14 @@ for i_cond = 1:numel(cfg.powsource.cond)
       cfg1 = [];
       cfg1.parameter = 'image';
       souinterp = ft_sourceinterpolate(cfg1, powstat{p}, dtimri);
-      
+  
+      mriname = [cfg.powsource.nifti '_' condname '_' soupeak(p).name];
       cfg1 = [];
       cfg1.parameter = 'image';
-      cfg1.filename = [cfg.powsource.nifti '_' condname soupeak(p).name];
+      cfg1.filename = mriname;
       ft_sourcewrite(cfg1, souinterp);
-      gzip([cfg.powsource.nifti soupeak(p).name '.nii'])
-      delete([cfg.powsource.nifti soupeak(p).name '.nii'])
+      gzip([mriname '.nii'])
+      delete([mriname '.nii'])
     end
     %--------%
     
