@@ -32,7 +32,7 @@ function powcorr_subj(cfg, subj)
 
 %---------------------------%
 %-start log
-output = sprintf('%s (p%04d) began at %s on %s\n', ...
+output = sprintf('%s (%04d) began at %s on %s\n', ...
   mfilename, subj, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
 tic_t = tic;
 %---------------------------%
@@ -69,7 +69,7 @@ for k = 1:numel(cfg.powcorr.cond)
   
   %---------------------------%
   %-fix baseline
-  if ~isempty(cfg.powcorr.bl.baseline)
+  if isfield(cfg.powcorr, 'bl') && ~isempty(cfg.powcorr.bl.baseline)
     cfg3 = cfg.powcorr.bl;
     freq = ft_freqbaseline(cfg3, data);
     

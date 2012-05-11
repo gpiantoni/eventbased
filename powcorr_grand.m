@@ -93,6 +93,7 @@ for k = 1:numel(cfg.powcorr.cond)
   cfg2.variance = 'yes';
   gpowcorr{k} = ft_freqdescriptives(cfg2, gfreq{k});
   gpowcorr{k}.tscore =  gpowcorr{k}.powspctrm ./ gpowcorr{k}.powspctrmsem;
+  gpowcorr{k}.cfg = [];
   %-----------------%
   
 end
@@ -109,7 +110,7 @@ if ~isempty(cfg.sens.layout)
   load(cfg.sens.layout, 'layout');
 end
 
-if ~isempty(gpowcorr)
+if ~isempty(gpowcorr) && isfield(cfg.gpow, 'cond')
   
   %-------------------------------------%
   %-loop over statistics conditions
