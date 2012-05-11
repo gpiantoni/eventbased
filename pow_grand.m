@@ -1,7 +1,7 @@
 function pow_grand(cfg)
 %POW_GRAND grand power average
 % 1) read single subject-data and create gpow in cfg.dpow
-% 2) do statistics for condition indicated by cfg.gpow.stat.cond
+% 2) do statistics for condition indicated by cfg.gpow.cond
 % 3) plot the topoplot over time, frequency and singleplot for some electrodes
 %
 % CFG
@@ -22,7 +22,7 @@ function pow_grand(cfg)
 %  certain number of standard deviation, experimental code)
 %
 %-Statistics
-%  .gpow.stat.cond: cells within cell (e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}})
+%  .gpow.cond: cells within cell (e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}})
 %        but you cannot have more than 2 conditions (it's always a t-test).
 %   If empty, not statistics.
 %   If stats,
@@ -46,8 +46,8 @@ function pow_grand(cfg)
 %  [cfg.derp 'erp_SUBJ_COND']: timelock analysis for single-subject
 %
 % OUT
-%  [cfg.dpow 'COND_grandpow']: power analysis for all subjects
-%  [cfg.dpow 'COND_powpeak']: significant peaks in the POW
+%  [cfg.dpow 'NICK_grandpow']: power analysis for all subjects
+%  [cfg.dpow 'NICK_powpeak']: significant peaks in the POW
 %
 % FIGURES (saved in cfg.log and, if not empty, cfg.rslt)
 %  gpow_tfr_c01_COND: time-frequency plot POW, for each condition, for one channel group
@@ -78,7 +78,7 @@ for k = 1:numel(cfg.pow.cond)
   
   %-----------------%
   %-file for each cond
-  subjfile = @(s) sprintf('%spow_%02.f_%s.mat', cfg.dpow, s, condname);
+  subjfile = @(s) sprintf('%spow_%04d_%s.mat', cfg.dpow, s, condname);
   allname = cellfun(subjfile, num2cell(cfg.subjall), 'uni', 0);
   
   allfiles = true(1, numel(allname));
@@ -146,7 +146,7 @@ for k = 1:numel(cfg.pow.cond)
     %-------%
     %-header
     output = [output sprintf('Subject-outliers\n')];
-    output = [output 'Filename                ' sprintf('>%2.f    ', thr) sprintf('\n')];
+    output = [output 'Filename                ' sprintf('>%2d    ', thr) sprintf('\n')];
     %-------%
     
     %-------%
@@ -165,7 +165,7 @@ for k = 1:numel(cfg.pow.cond)
       abovethr = cellfun(morethan, num2cell(thr));
       
       %-print one row
-      outtmp = sprintf('%s%s\n', subjfile, sprintf('%7.f', abovethr));
+      outtmp = sprintf('%s%s\n', subjfile, sprintf('%7d', abovethr));
       output = [output outtmp];
       
     end
@@ -193,15 +193,15 @@ if ~isempty(gpow)
   
   %-------------------------------------%
   %-loop over statistics conditions
-  for t = 1:numel(cfg.gpow.stat.cond)
+  for t = 1:numel(cfg.gpow.cond)
     
     %---------------------------%
     %-statistics for effects of interest
-    if numel(cfg.gpow.stat.cond{t}) == 1
+    if numel(cfg.gpow.cond{t}) == 1
       
       %-----------------%
       %-compare against baseline
-      cond = cfg.gpow.stat.cond{t}{1};
+      cond = cfg.gpow.cond{t}{1};
       i_cond = strfind(cfg.pow.cond, cond);
       condname = regexprep(cond, '*', '');
       
@@ -218,8 +218,8 @@ if ~isempty(gpow)
       
       %-----------------%
       %-compare two conditions
-      cond1 = cfg.gpow.stat.cond{t}{1};
-      cond2 = cfg.gpow.stat.cond{t}{2};
+      cond1 = cfg.gpow.cond{t}{1};
+      cond2 = cfg.gpow.cond{t}{2};
       i_cond1 = strfind(cfg.pow.cond, cond1);
       i_cond2 = strfind(cfg.pow.cond, cond2);
       condname = [regexprep(cond1, '*', '') '_' regexprep(cond2, '*', '')];
@@ -266,7 +266,7 @@ if ~isempty(gpow)
       
       %-----------------%
       %-save and link
-      pngname = sprintf('gpow_tfr_c%02.f_%s', c, condname);
+      pngname = sprintf('gpow_tfr_%s_%s', cfg.gpow.chan(c).name, condname);
       saveas(gcf, [cfg.log filesep pngname '.png'])
       close(gcf); drawnow
       
@@ -296,7 +296,7 @@ if ~isempty(gpow)
         cfg5.layout = layout;
         
         cfg5.ylim = cfg.gpow.freq(f).freq;
-        cfg5.zlim = 'maxabs';
+        cfg5.zlim = [-1 1] * max(gplot.powspctrm(:));
         cfg5.style = 'straight';
         cfg5.marker = 'off';
         cfg5.comment = 'xlim';
