@@ -28,7 +28,7 @@ function pow_grand(cfg)
 %     .cluster.thr: threshold to consider clusters are erppeaks
 %
 %-Plot
-%  .gpow.bline: two scalars indicating the time window for baseline in s (only for plotting, TODO: check if necessary for normal analysis as well)
+%  .gpow.bline: two scalars indicating the time window for baseline in s
 %  .gpow.chan(1).name: 'name_of_channels'
 %  .gpow.chan(1).chan: cell with labels of channels of interest
 %  .gpow.freq(1).name: 'name_of_frequency'
@@ -122,6 +122,7 @@ for k = 1:numel(cfg.pow.cond)
   cfg2.variance = 'yes';
   gpow{k} = ft_freqdescriptives(cfg2, gfreq{k});
   gpow{k}.tscore =  gpow{k}.powspctrm ./ gpow{k}.powspctrmsem;
+  gpow{k}.cfg = []; % remove cfg
   %-----------------%
   
 end
@@ -139,7 +140,7 @@ if ~isempty(cfg.sens.layout)
   load(cfg.sens.layout, 'layout');
 end
 
-if ~isempty(gpow)
+if ~isempty(gpow) && isfield(cfg.gpow, 'cond')
   
   %-------------------------------------%
   %-loop over statistics conditions
@@ -152,7 +153,7 @@ if ~isempty(gpow)
       %-----------------%
       %-compare against baseline
       cond = cfg.gpow.cond{t}{1};
-      i_cond = strfind(cfg.pow.cond, cond);
+      i_cond = strcmp(cfg.pow.cond, cond);
       condname = regexprep(cond, '*', '');
       
       [powpeak outtmp] = reportcluster(cfg, gfreq{i_cond});
@@ -170,8 +171,8 @@ if ~isempty(gpow)
       %-compare two conditions
       cond1 = cfg.gpow.cond{t}{1};
       cond2 = cfg.gpow.cond{t}{2};
-      i_cond1 = strfind(cfg.pow.cond, cond1);
-      i_cond2 = strfind(cfg.pow.cond, cond2);
+      i_cond1 = strcmp(cfg.pow.cond, cond1);
+      i_cond2 = strcmp(cfg.pow.cond, cond2);
       condname = [regexprep(cond1, '*', '') '_' regexprep(cond2, '*', '')];
       
       [powpeak outtmp] = reportcluster(cfg, gfreq{i_cond1}, gfreq{i_cond2});
@@ -180,7 +181,12 @@ if ~isempty(gpow)
       %-----------------%
       %-data for plot
       gplot = gpow{i_cond1};
-      gplot.powspctrm = log(gpow{i_cond1}.powspctrm ./ gpow{i_cond2}.powspctrm);
+      
+      if isempty(cfg.pow.bl)
+        gplot.powspctrm = log(gpow{i_cond1}.powspctrm ./ gpow{i_cond2}.powspctrm);
+      else % with baseline correction, take the difference
+        gplot.powspctrm = gpow{i_cond1}.powspctrm - gpow{i_cond2}.powspctrm;
+      end
       
       gtime{1} = gpow{i_cond1}; % to plot freq fluctuations over time
       gtime{2} = gpow{i_cond2}; % to plot freq fluctuations over time
@@ -188,7 +194,7 @@ if ~isempty(gpow)
       
     end
     
-    save([cfg.dpow cfg.nick condname '_powpeak'], 'powpeak')
+    save([cfg.dpow cfg.nick '_' condname '_powpeak'], 'powpeak')
     output = [output outtmp];
     %---------------------------%
     
@@ -210,13 +216,13 @@ if ~isempty(gpow)
       ft_singleplotTFR(cfg3, gplot);
       colorbar
       
-      title([condname ' ' cfg.gpow.chan(c).name])
+      title([condname ' ' cfg.gpow.chan(c).name], 'Interpreter', 'none')
       %--------%
       %-----------------%
       
       %-----------------%
       %-save and link
-      pngname = sprintf('gpow_tfr_%s_%s', cfg.gpow.chan(c).name, condname);
+      pngname = sprintf('gpow_tfr_%s_%s', condname, cfg.gpow.chan(c).name);
       saveas(gcf, [cfg.log filesep pngname '.png'])
       close(gcf); drawnow
       
@@ -246,17 +252,27 @@ if ~isempty(gpow)
         cfg5.layout = layout;
         
         cfg5.ylim = cfg.gpow.freq(f).freq;
-        cfg5.zlim = [-1 1] * max(gplot.powspctrm(:));
+        
+        %-color scaling specific to each frequency band
+        i_freq1 = nearest(gpow{f}.freq, cfg.gpow.freq(f).freq(1));
+        i_freq2 = nearest(gpow{f}.freq, cfg.gpow.freq(f).freq(2));
+        powspctrm = gplot.powspctrm(:, i_freq1:i_freq2, :);
+        cfg5.zlim = [-1 1] * max(powspctrm(:));
+                
         cfg5.style = 'straight';
         cfg5.marker = 'off';
         cfg5.comment = 'xlim';
         cfg5.commentpos = 'title';
         
         %-no topoplot if the data contains NaN
-        onedat = squeeze(gpow{t}.powspctrm(1, cfg.gpow.freq(f).freq(1), :)); % take one example, lowest frequency
+        onedat = squeeze(gpow{t}.powspctrm(1, i_freq1, :)); % take one example, lowest frequency
         cfg5.xlim = gpow{t}.time(~isnan(onedat));
         
         ft_topoplotER(cfg5, gplot);
+        %--------%
+        
+        %--------%
+        colorbar
         %--------%
         %-----------------%
         
@@ -298,13 +314,13 @@ if ~isempty(gpow)
         legend('cond1', 'cond2')
         ylabel(cfg4.parameter)
         
-        title([condname ' ' cfg.gpow.chan(c).name ' ' cfg.gpow.freq(f).name])
+        title([condname ' ' cfg.gpow.chan(c).name ' ' cfg.gpow.freq(f).name], 'Interpreter', 'none')
         %--------%
         %-----------------%
         
         %-----------------%
         %-save and link
-        pngname = sprintf('gpow_val_%s_%s_%s', condname, cfg.gpow.chan(c).name, cfg.gpow.freq(f).freq);
+        pngname = sprintf('gpow_val_%s_%s_%s', condname, cfg.gpow.chan(c).name, cfg.gpow.freq(f).name);
         saveas(gcf, [cfg.log filesep pngname '.png'])
         close(gcf); drawnow
         
