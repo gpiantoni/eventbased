@@ -18,9 +18,6 @@ function pow_grand(cfg)
 %  .pow.bl.baseline: two scalars with baseline windows
 %  .pow.bl.baselinetype: type of baseline ('relchange')
 %
-%  .gpow.outliers: logical (print tables with number of points above a
-%  certain number of standard deviation, experimental code)
-%
 %-Statistics
 %  .gpow.cond: cells within cell (e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}})
 %        but you cannot have more than 2 conditions (it's always a t-test).
@@ -125,53 +122,6 @@ for k = 1:numel(cfg.pow.cond)
   cfg2.variance = 'yes';
   gpow{k} = ft_freqdescriptives(cfg2, gfreq{k});
   gpow{k}.tscore =  gpow{k}.powspctrm ./ gpow{k}.powspctrmsem;
-  %-----------------%
-  
-  %-----------------%
-  %-find if there are outliers
-  if isfield(cfg.gpow, 'outliers') && cfg.gpow.outliers
-    
-    thr = [1 2 3 5 10 20]; % threshold above sem
-    
-    %-------%
-    %-calculate mean and standard deviation (not sem, but keep same name)
-    % jackknife is more robust towards outliers
-    cfg2 = [];
-    cfg2.jackknife = 'yes';
-    gjack = ft_freqdescriptives(cfg2, gfreq{k});
-    gjack.powspctrm = shiftdim(median(gfreq{k}.powspctrm), 1);
-    gjack.powspctrmsem = gjack.powspctrmsem * sqrt(numel(allname)); % sem = sd / sqrt(n)
-    %-------%
-    
-    %-------%
-    %-header
-    output = [output sprintf('Subject-outliers\n')];
-    output = [output 'Filename                ' sprintf('>%2d    ', thr) sprintf('\n')];
-    %-------%
-    
-    %-------%
-    %-loop over subjects
-    for s = 1:numel(allname)
-      
-      %-filename
-      [~, subjfile] = fileparts(allname{s});
-      subjfile = [subjfile repmat(' ', 1, 20-numel(subjfile))];
-      
-      %-matrix giving the difference in sem from the mean
-      jsubj = (shiftdim(gfreq{k}.powspctrm(s,:,:,:), 1) - gjack.powspctrm) ./ gjack.powspctrmsem; % subject-specific distance from mean
-      
-      %-count how many points are above the threshold
-      morethan = @(n)numel(find(jsubj(:) > n));
-      abovethr = cellfun(morethan, num2cell(thr));
-      
-      %-print one row
-      outtmp = sprintf('%s%s\n', subjfile, sprintf('%7d', abovethr));
-      output = [output outtmp];
-      
-    end
-    %-------%
-    
-  end
   %-----------------%
   
 end
