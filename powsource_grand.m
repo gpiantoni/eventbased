@@ -2,36 +2,54 @@ function powsource_grand(cfg)
 %POWSOURCE_GRAND group-analysis of POW source data
 %
 % CFG
-%  .cond: name to be used to save powsource_PROJ and figures
-%  .test: a cell with the condition defined by redef. 
+%-Average
+%  .nick: NICK to save files specific to each NICK
 %  .log: name of the file and directory with analysis log
-%  .rslt: directory images are saved into
+%  .subjall: index of the number of subjects
 %
-%  .dpow: directory to save POW data
-%  .poweffect: index of interest to create powpeak, can be a row vector,
-%              but it only uses the first one
+%  .dpow: directory with ERP data
+%  .powsource.cond: cell to make averages
 %
-% Options from reportsource:
+%-Statistics
+%  The comparison is always against baseline. If you want to compare
+%  conditions, use powstats_subj.
+% 
+%  .powsource.areas: how to speficy peaks to analyze, 'manual' or 'powpeak'
+%          (peaks from grandpow) or 'powcorrpeak' (peaks from grandpowcorr)
+%    if 'manual'
+%      .powsource.erppeak(1).name: string ('name_of_the_time_window')
+%      .powsource.erppeak(1).time: scalar (center of the time window in s)
+%      .powsource.erppeak(1).wndw: scalar (length of the time window in s)
+%      .powsource.powpeak(1).freq = 10; % center of the frequency
+%      .powsource.powpeak(1).band = 4; % width of the frequency band
+%    if 'powpeak'
+%      .pow.refcond: string of the condition whose peaks will be localized
+%    if 'powcorrpeak'
+%      .powcorr.refcond: string of the condition whose peaks will be localized
+%
+% Options for reportsource:
 %  .powsource.clusterstatistics: 'maxsize' or 'max'
 %  .powsource.clusteralpha: level to select sensors (default 0.05)
 %                           it can be a string in format '5%' to take top 5 voxels and put them in a cluster.
 %  .powsource.maxvox: max number of significant voxels to be used in soupeak
 %
+%  .rslt: directory images are saved into
+%
 % Options if you want to create significance mask
 %  .powsource.nifti: directory and initial part of the name where you want to save the masks
 %  .dti.ref: template for mask ('/usr/share/data/fsl-mni152-templates/MNI152_T1_1mm_brain.nii.gz')
 %
-% OUT
-%  [cfg.dpow 'COND_grandpowsource']: source analysis for all subject
-%  [cfg.dpow 'COND_soupeak']: significant source peaks in the POW
+% IN 
+%  [cfg.dpow 'powsource_SUBJ_COND']: source data for period of interest and baseline for each subject
 %
-% FIGURES
-%  gpowpeak_POWEFFECT_POWPEAK: 3d plot of the source for one peak
+% OUT
+%  [cfg.dpow 'NICK_grandpowsource']: source analysis for all subject
+%  [cfg.dpow 'NICK_soupeak']: significant source peaks in POW
 %
 % Part of EVENTBASED group-analysis
-% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND, 
-% POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND, 
-% POWCORR_SUBJ, POWCORR_GRAND,
+% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND,
+% POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND,
+% POWCORR_SUBJ, POWCORR_GRAND, POWSTAT_SUBJ, POWSTAT_GRAND,
 % CONN_SUBJ, CONN_GRAND, CONN_STAT
 
 %---------------------------%
@@ -43,13 +61,13 @@ tic_t = tic;
 
 %---------------------------%
 %-loop over conditions
-for k = 1:numel(cfg.powsource.cond) % DOC: CFG.POWSOURCE.COND
+for k = 1:numel(cfg.powsource.cond)
   cond     = cfg.powsource.cond{k};
   condname = regexprep(cond, '*', '');
   
   %-----------------%
   %-file for each cond
-  subjfile = @(s) sprintf('%spowsource_%02.f_%s.mat', cfg.dpow, s, condname);
+  subjfile = @(s) sprintf('%spowsource_%04d_%s.mat', cfg.dpow, s, condname);
   allname = cellfun(subjfile, num2cell(cfg.subjall), 'uni', 0);
   
   allfiles = true(1, numel(allname));
@@ -77,8 +95,8 @@ for k = 1:numel(cfg.powsource.cond) % DOC: CFG.POWSOURCE.COND
   for a = 1:size(sall,2) % this is powpeak, but implicit
     cfg1 = [];
     cfg1.keepindividual = 'yes';
-    gpowsouPre{p,a} = ft_sourcegrandaverage(cfg1, spre{:,a});
-    gpowsource{p,a} = ft_sourcegrandaverage(cfg1, sall{:,a});
+    gpowsouPre{k,a} = ft_sourcegrandaverage(cfg1, spre{:,a});
+    gpowsource{k,a} = ft_sourcegrandaverage(cfg1, sall{:,a});
   end
   %-----------------%
   
@@ -86,7 +104,7 @@ for k = 1:numel(cfg.powsource.cond) % DOC: CFG.POWSOURCE.COND
 end
 %---------------------------%
 
-%---------------------------%
+%---------------------------------------------------------%
 %-statistics for main effects
 %-----------------%
 %-use predefined or power-peaks for areas of interest
@@ -105,56 +123,72 @@ elseif strcmp(cfg.powsource.areas, 'powcorrpeak')
 end
 %-----------------%
 
-soupeak = [];
-for p = 1:numel(powpeak)
-  output = sprintf('%s\n%s:\n', output, powpeak(p).name);
+%-------------------------------------%
+%-loop over statistics conditions
+for i_cond = 1:numel(cfg.powsource.cond)
+  cond     = cfg.powsource.cond{i_cond};
+  condname = regexprep(cond, '*', '');
   
-  h = figure;
-  [soupos powstat{p} outtmp] = reportsource(cfg.powsource, gpowsource{cfg.poweffect, p}, gpowsouPre{cfg.poweffect, p});
-  soupeak(p).pos = soupos;
-  soupeak(p).center = mean(soupos,1);
-  soupeak(p).name = powpeak(p).name;
-  output = [output outtmp];
-  
-  %--------%
-  pngname = sprintf('gpowpeak_%1.f_%s', cfg.poweffect, powpeak(p).name);
-  saveas(gcf, [cfg.log filesep pngname '.png'])
-  close(gcf); drawnow
-  
-  [~, logfile] = fileparts(cfg.log);
-  system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
-  %--------%
-  
-  %--------%
-  if isfield(cfg.powsource, 'nifti') && ~isempty(cfg.powsource.nifti)
+  %-----------------%
+  %-loop over peaks
+  soupeak = [];
+  for p = 1:numel(powpeak)
+    output = sprintf('%s\n%s:\n', output, powpeak(p).name);
     
-    dtimri = ft_read_mri(cfg.dti.ref);
+    %--------%
+    %-do stats and figure
+    h = figure;
+    [soupos powstat{p} outtmp] = reportsource(cfg.powsource, gpowsource{i_cond, p}, gpowsouPre{i_cond, p});
+    soupeak(p).pos = soupos;
+    soupeak(p).center = mean(soupos,1);
+    soupeak(p).name = powpeak(p).name;
+    output = [output outtmp];
+    %--------%
     
-    cfg1 = [];
-    cfg1.parameter = 'image';
-    souinterp = ft_sourceinterpolate(cfg1, powstat{p}, dtimri);
+    %--------%
+    pngname = sprintf('gpowpeak_%s_%s', condname, powpeak(p).name);
+    saveas(gcf, [cfg.log filesep pngname '.png'])
+    close(gcf); drawnow
     
-    cfg1 = [];
-    cfg1.parameter = 'image';
-    cfg1.filename = [cfg.powsource.nifti soupeak(p).name];
-    ft_sourcewrite(cfg1, souinterp);
-    gzip([cfg.powsource.nifti soupeak(p).name '.nii'])
-    delete([cfg.powsource.nifti soupeak(p).name '.nii'])
+    [~, logfile] = fileparts(cfg.log);
+    system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
+    %--------%
+    
+    %--------%
+    %-prepare nifti image
+    if isfield(cfg.powsource, 'nifti') && ~isempty(cfg.powsource.nifti)
+      
+      dtimri = ft_read_mri(cfg.dti.ref);
+      
+      cfg1 = [];
+      cfg1.parameter = 'image';
+      souinterp = ft_sourceinterpolate(cfg1, powstat{p}, dtimri);
+      
+      cfg1 = [];
+      cfg1.parameter = 'image';
+      cfg1.filename = [cfg.powsource.nifti '_' condname soupeak(p).name];
+      ft_sourcewrite(cfg1, souinterp);
+      gzip([cfg.powsource.nifti soupeak(p).name '.nii'])
+      delete([cfg.powsource.nifti soupeak(p).name '.nii'])
+    end
+    %--------%
+    
   end
-  %--------%
-
+  %-----------------%
+  
+  %-----------------%
+  %-save
+  save([cfg.dpow cfg.nick '_' condname '_soupeak'], 'soupeak')
+  
+  for p = 1:numel(powstat)
+    powstat{p}.cfg = []; % this is huge
+  end
+  save([cfg.dpow cfg.nick '_grandpowsource'], 'powstat', '-v7.3')
+  %-----------------%
+  
 end
-
-save([cfg.dpow cfg.cond '_soupeak'], 'soupeak')
-
-%-----------------%
-%-save
-for p = 1:numel(powstat)
-  powstat{p}.cfg = []; % this is huge
-end
-save([cfg.dpow cfg.cond '_grandpowsource'], 'powstat', '-v7.3')
-%-----------------%
 %---------------------------%
+%---------------------------------------------------------%
 
 %---------------------------%
 %-end log

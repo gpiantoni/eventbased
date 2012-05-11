@@ -2,11 +2,11 @@ function erpsource_subj(cfg, subj)
 %ERPSOURCE_SUBJ: identify sources from erp peaks using LCMV
 %
 % CFG
-%  .data: path of /data1/projects/PROJNAME/subjects/
-%  .rec: RECNAME in /data1/projects/PROJNAME/recordings/RECNAME/
-%  .nick: NICKNAME in /data1/projects/PROJNAME/subjects/0001/MOD/NICKNAME/
-%  .mod: modality, MOD in /data1/projects/PROJNAME/subjects/0001/MOD/NICKNAME/
-%  .endname: includes preprocessing steps (e.g. '_seldata_gclean_preproc_redef')
+%  .data: path of /data1/projects/PROJ/subjects/
+%  .rec: REC in /data1/projects/PROJ/recordings/REC/
+%  .nick: NICK in /data1/projects/PROJ/subjects/0001/MOD/NICK/
+%  .mod: modality, MOD in /data1/projects/PROJ/subjects/0001/MOD/NICK/
+%  .endname: includes preprocessing steps (e.g. '_seldata_gclean_redef')
 %
 %  .log: name of the file and directory to save log
 %  .derp: directory for ERP data
@@ -34,10 +34,10 @@ function erpsource_subj(cfg, subj)
 %  .erpsource.powmethod: power method of beamformer ('trace' or 'lambda1')
 %
 % IN:
-%  data in /PROJNAME/subjects/SUBJCODE/MOD/NICKNAME/
+%  data in /PROJ/subjects/SUBJ/MOD/NICK/
 %
 % OUT
-%  [cfg.derp 'erpsource_SUBJCODE_COND']: source data for period of interest and baseline for each subject
+%  [cfg.derp 'erpsource_SUBJ_COND']: source data for period of interest and baseline for each subject
 %
 % Part of EVENTBASED single-subject
 % see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND,
@@ -91,7 +91,9 @@ for k = 1:numel(cfg.erpsource.cond)
   [leadchan] = prepare_leadchan(lead, datachan);
   %---------------------------%
   
-  for f = 1:numel(erppeak)
+  for p = 1:numel(erppeak)
+    
+    fprintf('\n   ->->-> Running % 2d erppeak (%s) <-<-<-\n', p, erppeak(p).name);
     
     %---------------------------%
     %-baseline
@@ -99,7 +101,7 @@ for k = 1:numel(cfg.erpsource.cond)
     %-covariance window
     cfg2 = cfg.erpsource.erp;
     cfg2.covariance = 'yes';
-    cfg2.covariancewindow = cfg.erpsource.bline  + erppeak(f).wndw * [-.5 .5];
+    cfg2.covariancewindow = cfg.erpsource.bline  + erppeak(p).wndw * [-.5 .5];
     cfg2.feedback = 'none';
     cfg2.channel = datachan;
     
@@ -115,13 +117,13 @@ for k = 1:numel(cfg.erpsource.cond)
     cfg3.lcmv.powmethod = cfg.erpsource.powmethod;
     cfg3.lcmv.feedback = 'none';
     
-    cfg3.vol      = vol;
-    cfg3.grid     = leadchan;
-    cfg3.elec     = sens;
+    cfg3.vol = vol;
+    cfg3.grid = leadchan;
+    cfg3.elec = sens;
     cfg3.feedback = 'none';
     
-    souPre{f} = ft_sourceanalysis(cfg3, avgPre);
-    souPre{f}.cfg = [];
+    souPre{p} = ft_sourceanalysis(cfg3, avgPre);
+    souPre{p}.cfg = [];
     %-----------------%
     
     %-----------------%
@@ -134,7 +136,7 @@ for k = 1:numel(cfg.erpsource.cond)
         fileparts(which('ft_defaults')), cfg.bnd2lead.mni.resolution), 'grid');
       grid = ft_convert_units(grid, 'mm');
       
-      souPre{f}.pos = grid.pos;
+      souPre{p}.pos = grid.pos;
     end
     %-----------------%
     %---------------------------%
@@ -143,7 +145,7 @@ for k = 1:numel(cfg.erpsource.cond)
     %-main effect
     %-----------------%
     %-covariance
-    cfg2.covariancewindow = erppeak(f).time + erppeak(f).wndw * [-.5 .5];
+    cfg2.covariancewindow = erppeak(p).time + erppeak(p).wndw * [-.5 .5];
     avgPost = ft_timelockanalysis(cfg2, data);
     %-----------------%
     
@@ -151,13 +153,13 @@ for k = 1:numel(cfg.erpsource.cond)
     %-source
     cfg3.lcmv.keepfilter = 'yes';
     cfg3.lcmv.realfilter = 'yes';
-    cfg3.lcmv.keepmom    = 'no';
-    source{f} = ft_sourceanalysis(cfg3, avgPost);
+    cfg3.lcmv.keepmom = 'no';
+    source{p} = ft_sourceanalysis(cfg3, avgPost);
     
-    source{f}.avg.nai = log(source{f}.avg.pow ./ souPre{f}.avg.pow);
-    chan = source{f}.cfg.channel;
-    source{f}.cfg = [];
-    source{f}.cfg.channel = chan;
+    source{p}.avg.nai = log(source{p}.avg.pow ./ souPre{p}.avg.pow);
+    chan = source{p}.cfg.channel;
+    source{p}.cfg = [];
+    source{p}.cfg.channel = chan;
     %-----------------%
     
     %-----------------%
@@ -166,7 +168,7 @@ for k = 1:numel(cfg.erpsource.cond)
         && isfield(cfg, 'bnd2lead') && isfield(cfg.bnd2lead, 'mni') ...
         && isfield(cfg.bnd2lead.mni, 'warp') && cfg.bnd2lead.mni.warp
       
-      source{f}.pos = grid.pos;
+      source{p}.pos = grid.pos;
     end
     %-----------------%
     %---------------------------%

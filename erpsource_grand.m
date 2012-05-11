@@ -38,8 +38,8 @@ function erpsource_grand(cfg)
 %  [cfg.derp 'erpsource_SUBJ_COND']: source data for period of interest and baseline for each subject
 %
 % OUT
-%  [cfg.derp 'COND_granderpsource']: source analysis for all subject
-%  [cfg.derp 'COND_soupeak']: significant source peaks in the ERP
+%  [cfg.derp 'NICK_granderpsource']: source analysis for all subject
+%  [cfg.derp 'NICK_soupeak']: significant source peaks in the ERP
 %
 % FIGURES
 %  gerppeak_COND_ERPPEAK: 3d plot of the source for one peak
@@ -65,7 +65,7 @@ for k = 1:numel(cfg.erpsource.cond)
   
   %-----------------%
   %-file for each cond
-  subjfile = @(s) sprintf('%serpsource_%02.f_%s.mat', cfg.derp, s, condname);
+  subjfile = @(s) sprintf('%serpsource_%04d_%s.mat', cfg.derp, s, condname);
   allname = cellfun(subjfile, num2cell(cfg.subjall), 'uni', 0);
   
   allfiles = true(1, numel(allname));
@@ -94,8 +94,8 @@ for k = 1:numel(cfg.erpsource.cond)
     cfg1 = [];
     cfg1.keepindividual = 'yes';
     cfg1.parameter = 'pow'; % instead of nai
-    gerpsouPre{p,a} = ft_sourcegrandaverage(cfg1, spre{:,a});
-    gerpsource{p,a} = ft_sourcegrandaverage(cfg1, sall{:,a});
+    gerpsouPre{k,a} = ft_sourcegrandaverage(cfg1, spre{:,a});
+    gerpsource{k,a} = ft_sourcegrandaverage(cfg1, sall{:,a});
   end
   %-----------------%
   
@@ -170,7 +170,7 @@ for i_cond = 1:numel(cfg.erpsource.cond)
   
   %-----------------%
   %-save
-  save([cfg.derp cfg.nick condname '_soupeak'], 'soupeak')
+  save([cfg.derp cfg.nick '_' condname '_soupeak'], 'soupeak')
   
   for p = 1:numel(erpstat)
     erpstat{p}.cfg = []; % this is huge

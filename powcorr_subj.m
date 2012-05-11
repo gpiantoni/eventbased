@@ -2,11 +2,11 @@ function powcorr_subj(cfg, subj)
 %POWCORR_SUBJ correlate power with trialinfo
 %
 % CFG
-%  .data: path of /data1/projects/PROJNAME/subjects/
-%  .rec: RECNAME in /data1/projects/PROJNAME/recordings/RECNAME/
-%  .nick: NICKNAME in /data1/projects/PROJNAME/subjects/0001/MOD/NICKNAME/
-%  .mod: modality, MOD in /data1/projects/PROJNAME/subjects/0001/MOD/NICKNAME/
-%  .endname: includes preprocessing steps (e.g. '_seldata_gclean_preproc_redef')
+%  .data: path of /data1/projects/PROJ/subjects/
+%  .rec: REC in /data1/projects/PROJ/recordings/REC/
+%  .nick: NICK in /data1/projects/PROJ/subjects/0001/MOD/NICK/
+%  .mod: modality, MOD in /data1/projects/PROJ/subjects/0001/MOD/NICK/
+%  .endname: includes preprocessing steps (e.g. '_seldata_gclean_redef')
 %
 %  .log: name of the file and directory to save log
 %  .dpow: directory for POW data
@@ -19,10 +19,10 @@ function powcorr_subj(cfg, subj)
 %  .powcorr.log: logical (take the log of power, strongly advised)
 %
 % IN:
-%  data in /PROJNAME/subjects/SUBJCODE/MOD/NICKNAME/
+%  data in /PROJ/subjects/SUBJCODE/MOD/NICK/
 %
 % OUT
-%  [cfg.dpow 'powcorr_SUBJCODE_COND']: power correlation for single-subject
+%  [cfg.dpow 'powcorr_SUBJ_COND']: power correlation for single-subject
 %
 % Part of EVENTBASED single-subject
 % see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND, 
@@ -32,8 +32,8 @@ function powcorr_subj(cfg, subj)
 
 %---------------------------%
 %-start log
-output = sprintf('(p%04d) %s started at %s on %s\n', ...
-  subj, mfilename,  datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
+output = sprintf('%s (p%04d) began at %s on %s\n', ...
+  mfilename, subj, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
 tic_t = tic;
 %---------------------------%
 

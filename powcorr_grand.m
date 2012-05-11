@@ -1,7 +1,7 @@
 function powcorr_grand(cfg)
 %POWCORR_GRAND grand power average
 % 1) read single subject-data and create gpowcorr in cfg.dpow
-% 2) do statistics for condition indicated by cfg.gpowcorr.stat.cond
+% 2) do statistics for condition indicated by cfg.gpowcorr.cond
 % 3) plot the topoplot over time, frequency and singleplot for some electrodes
 %
 % CFG
@@ -14,7 +14,7 @@ function powcorr_grand(cfg)
 %  .powcorr.cond: conditions to make averages
 %
 %-Statistics
-%  .gpowcorr.stat.cond: cells within cell (e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}})
+%  .gpowcorr.cond: cells within cell (e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}})
 %        but you cannot have more than 2 conditions (it's always a t-test).
 %   If empty, not statistics.
 %   If stats,
@@ -34,16 +34,16 @@ function powcorr_grand(cfg)
 %  .rslt: directory images are saved into
 %
 % IN
-%  [cfg.derp 'erp_SUBJ_COND']: timelock analysis for single-subject
+%  [cfg.dpow 'powcorr_SUBJ_COND']: power correlation for single-subject
 %
 % OUT
-%  [cfg.dpow 'COND_grandpow']: power analysis for all subjects
-%  [cfg.dpow 'COND_powpeak']: significant peaks in the POW
+%  [cfg.dpow 'NICK_grandpowcorr']: power analysis for all subjects
+%  [cfg.dpow 'NICK_powcorrpeak']: significant peaks in the POW
 %
 % FIGURES (saved in cfg.log and, if not empty, cfg.rslt)
-%  gpow_tfr_CHAN_COND: time-frequency plot POW, for each condition, for one channel group
-%  gpow_val_CHAN_FREQ: singleplot POW, all conditions, for one channel group, one frequency
-%  gpow_topo_COND_FREQ: topoplot POW for each condition and frequency, over time
+%  gpowcorr_tfr_CHAN_COND: time-frequency plot POW, for each condition, for one channel group
+%  gpowcorr_val_CHAN_FREQ: singleplot POW, all conditions, for one channel group, one frequency
+%  gpowcorr_topo_COND_FREQ: topoplot POW for each condition and frequency, over time
 %
 % Part of EVENTBASED group-analysis
 % see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND, 
@@ -69,7 +69,7 @@ for k = 1:numel(cfg.powcorr.cond)
   
   %-----------------%
   %-file for each cond
-  subjfile = @(s) sprintf('%spowcorr_%02.f_%s.mat', cfg.dpow, s, condname);
+  subjfile = @(s) sprintf('%spowcorr_%04d_%s.mat', cfg.dpow, s, condname);
   allname = cellfun(subjfile, num2cell(cfg.subjall), 'uni', 0);
   
   allfiles = true(1, numel(allname));
@@ -113,16 +113,16 @@ if ~isempty(gpowcorr)
   
   %-------------------------------------%
   %-loop over statistics conditions
-  for t = 1:numel(cfg.gpowcorr.stat.cond) % DOC: cfg.gpowcorr.stat.cond as cell
+  for t = 1:numel(cfg.gpowcorr.cond)
     
     %---------------------------%
     %-statistics for effects of interest
-    if numel(cfg.gpowcorr.stat.cond{t}) == 1
+    if numel(cfg.gpowcorr.cond{t}) == 1
       
       %-----------------%
       %-compare against baseline
-      cond = cfg.gpowcorr.stat.cond{t}{1};
-      i_cond = strfind(cfg.powcorr.cond, cond);
+      cond = cfg.gpowcorr.cond{t}{1};
+      i_cond = strcmp(cfg.powcorr.cond, cond);
       condname = regexprep(cond, '*', '');
       
       [powcorrpeak outtmp] = reportcluster(cfg, gfreq{i_cond});
@@ -138,10 +138,10 @@ if ~isempty(gpowcorr)
       
       %-----------------%
       %-compare two conditions
-      cond1 = cfg.gpowcorr.stat.cond{t}{1};
-      cond2 = cfg.gpowcorr.stat.cond{t}{2};
-      i_cond1 = strfind(cfg.powcorr.cond, cond1);
-      i_cond2 = strfind(cfg.powcorr.cond, cond2);
+      cond1 = cfg.gpowcorr.cond{t}{1};
+      cond2 = cfg.gpowcorr.cond{t}{2};
+      i_cond1 = strcmp(cfg.powcorr.cond, cond1);
+      i_cond2 = strcmp(cfg.powcorr.cond, cond2);
       condname = [regexprep(cond1, '*', '') '_' regexprep(cond2, '*', '')];
       
       [powcorrpeak outtmp] = reportcluster(cfg, gfreq{i_cond1}, gfreq{i_cond2});
@@ -150,7 +150,7 @@ if ~isempty(gpowcorr)
       %-----------------%
       %-data for plot
       gplot = gpowcorr{i_cond1};
-      gplot.tscore = log(gpowcorr{i_cond1}.tscore ./ gpowcorr{i_cond2}.tscore);
+      gplot.tscore = gpowcorr{i_cond1}.tscore - gpowcorr{i_cond2}.tscore;
       
       gtime{1} = gpowcorr{i_cond1}; % to plot freq fluctuations over time
       gtime{2} = gpowcorr{i_cond2}; % to plot freq fluctuations over time
@@ -158,7 +158,7 @@ if ~isempty(gpowcorr)
       
     end
     
-    save([cfg.dpow cfg.nick condname '_powcorrpeak'], 'powcorrpeak')
+    save([cfg.dpow cfg.nick '_' condname '_powcorrpeak'], 'powcorrpeak')
     output = [output outtmp];
     %---------------------------%
     
@@ -180,13 +180,13 @@ if ~isempty(gpowcorr)
       ft_singleplotTFR(cfg3, gplot);
       colorbar
       
-      title([condname ' ' cfg.gpowcorr.chan(c).name])
+      title([condname ' ' cfg.gpowcorr.chan(c).name], 'Interpreter', 'none')
       %--------%
       %-----------------%
       
       %-----------------%
       %-save and link
-      pngname = sprintf('gpow_tfr_c%02.f_%s', cfg.gpowcorr.chan(c).name, condname);
+      pngname = sprintf('gpow_tfr_%s_%s', condname, cfg.gpowcorr.chan(c).name);
       saveas(gcf, [cfg.log filesep pngname '.png'])
       close(gcf); drawnow
       
@@ -223,7 +223,8 @@ if ~isempty(gpowcorr)
         cfg5.commentpos = 'title';
         
         %-no topoplot if the data contains NaN
-        onedat = squeeze(gpowcorr{t}.tscore(1, cfg.gpowcorr.freq(f).freq(1), :)); % take one example, lowest frequency
+        i_freq1 = nearest(gpowcorr{f}.freq, cfg.gpowcorr.freq(f).freq(1));
+        onedat = squeeze(gpowcorr{t}.tscore(1, i_freq1, :)); % take one example, lowest frequency
         cfg5.xlim = gpowcorr{t}.time(~isnan(onedat));
         
         ft_topoplotER(cfg5, gplot);
@@ -268,7 +269,7 @@ if ~isempty(gpowcorr)
         legend('cond1', 'cond2')
         ylabel(cfg4.parameter)
         
-        title([condname ' ' cfg.gpowcorr.chan(c).name ' ' cfg.gpowcorr.freq(f).name])
+        title([condname ' ' cfg.gpowcorr.chan(c).name ' ' cfg.gpowcorr.freq(f).name], 'Interpreter', 'none')
         %--------%
         %-----------------%
         

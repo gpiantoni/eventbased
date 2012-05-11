@@ -2,11 +2,11 @@ function powsource_subj(cfg, subj)
 %POWSOURCE_SUBJ: identify sources from pow peaks using DICS
 %
 % CFG
-%  .data: path of /data1/projects/PROJNAME/subjects/
-%  .rec: RECNAME in /data1/projects/PROJNAME/recordings/RECNAME/
-%  .nick: NICKNAME in /data1/projects/PROJNAME/subjects/0001/MOD/NICKNAME/
-%  .mod: modality, MOD in /data1/projects/PROJNAME/subjects/0001/MOD/NICKNAME/
-%  .endname: includes preprocessing steps (e.g. '_seldata_gclean_preproc_redef')
+%  .data: path of /data1/projects/PROJ/subjects/
+%  .rec: REC in /data1/projects/PROJ/recordings/REC/
+%  .nick: NICK in /data1/projects/PROJ/subjects/0001/MOD/NICK/
+%  .mod: modality, MOD in /data1/projects/PROJ/subjects/0001/MOD/NICK/
+%  .endname: includes preprocessing steps (e.g. '_seldata_gclean_redef')
 %
 %  .log: name of the file and directory to save log
 %  .dpow: directory for POW data
@@ -19,7 +19,8 @@ function powsource_subj(cfg, subj)
 %      .bnd2lead.mni.warp: logical (optional. Instead of transforming the
 %      brain into MNI coordinates, you can wrap the grid onto it)
 %
-%  .powsource.areas: how to speficy peaks to analyze, 'manual' or 'erppeak' (peaks from granderp)
+%  .powsource.areas: how to speficy peaks to analyze, 'manual' or 'powpeak'
+%          (peaks from grandpow) or 'powcorrpeak' (peaks from grandpowcorr)
 %    if 'manual'
 %      .powsource.erppeak(1).name: string ('name_of_the_time_window')
 %      .powsource.erppeak(1).time: scalar (center of the time window in s)
@@ -37,10 +38,10 @@ function powsource_subj(cfg, subj)
 %  .powsource.powmethod: power method of beamformer ('trace' or 'lambda1')
 %
 % IN:
-%  data in /PROJNAME/subjects/SUBJCODE/MOD/NICKNAME/
+%  data in /PROJ/subjects/SUBJ/MOD/NICK/
 %
 % OUT
-%  [cfg.dpow 'powsource_SUBJCODE_COND']: source data for period of interest and baseline for each subject
+%  [cfg.dpow 'powsource_SUBJ_COND']: source data for period of interest and baseline for each subject
 %
 % Part of EVENTBASED single-subject
 % see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND,
@@ -62,7 +63,7 @@ tic_t = tic;
 
 %-------------------------------------%
 %-loop over conditions
-for k = 1:numel(cfg.powsource.cond) % DOC: CFG.POWSOURCE.COND
+for k = 1:numel(cfg.powsource.cond)
   cond     = cfg.powsource.cond{k};
   condname = regexprep(cond, '*', '');
 
@@ -72,11 +73,11 @@ for k = 1:numel(cfg.powsource.cond) % DOC: CFG.POWSOURCE.COND
     powpeak = cfg.powsource.powpeak;
     
   elseif strcmp(cfg.powsource.areas, 'powpeak')
-    peakname = regexprep(cfg.pow.refcond, '*', ''); % DOC: CFG.POW.REFCOND
+    peakname = regexprep(cfg.pow.refcond, '*', '');
     load([cfg.dpow cfg.cond peakname '_powpeak'], 'powpeak')
     
   elseif strcmp(cfg.powsource.areas, 'powcorrpeak')
-    peakname = regexprep(cfg.powcorr.refcond, '*', ''); % DOC: CFG.POWCORR.REFCOND
+    peakname = regexprep(cfg.powcorr.refcond, '*', '');
     load([cfg.dpow cfg.cond peakname '_powcorrpeak'], 'powcorrpeak')
     powpeak = powcorrpeak;
     
@@ -92,7 +93,7 @@ for k = 1:numel(cfg.powsource.cond) % DOC: CFG.POWSOURCE.COND
     continue
   end
   
-  outputfile = sprintf('powsource_%02.f_%s', subj, condname);
+  outputfile = sprintf('powsource_%04d_%s', subj, condname);
   %---------------------------%
 
   %---------------------------%
@@ -101,13 +102,13 @@ for k = 1:numel(cfg.powsource.cond) % DOC: CFG.POWSOURCE.COND
   [leadchan] = prepare_leadchan(lead, datachan);
   %---------------------------%
   
-  for f = 1:numel(powpeak)
+  for p = 1:numel(powpeak)
     
-    fprintf('\n   ->->-> Running % 2.f powpeak (%s) <-<-<-\n', f, powpeak(f).name);
+    fprintf('\n   ->->-> Running % 2d powpeak (%s) <-<-<-\n', p, powpeak(p).name);
     
     %---------------------------%
     %-more precise freq analysis reconstruction
-    freqparam = prepare_freqpeak(cfg, powpeak(f), data.time{1}(1));
+    freqparam = prepare_freqpeak(cfg, powpeak(p), data.time{1}(1));
     %---------------------------%
     
     %---------------------------%
@@ -145,12 +146,12 @@ for k = 1:numel(cfg.powsource.cond) % DOC: CFG.POWSOURCE.COND
     cfg1.dics.lambda = cfg.powsource.lambda;
     cfg1.dics.powmethod = cfg.powsource.powmethod;
     
-    cfg1.vol          = vol;
-    cfg1.grid         = leadchan;
-    cfg1.elec         = sens;
+    cfg1.vol = vol;
+    cfg1.grid = leadchan;
+    cfg1.elec = sens;
     
-    souPre{f}       = ft_sourceanalysis(cfg1, freq);
-    souPre{f}.cfg = [];
+    souPre{p} = ft_sourceanalysis(cfg1, freq);
+    souPre{p}.cfg = [];
     %-----------------%
     
     %-----------------%
@@ -163,7 +164,7 @@ for k = 1:numel(cfg.powsource.cond) % DOC: CFG.POWSOURCE.COND
         fileparts(which('ft_defaults')), cfg.bnd2lead.mni.resolution), 'grid'); 
       
       grid = ft_convert_units(grid, 'mm');
-      source{f}.pos = grid.pos;
+      source{p}.pos = grid.pos;
     end
     %-----------------%
     %---------------------------%
@@ -176,10 +177,10 @@ for k = 1:numel(cfg.powsource.cond) % DOC: CFG.POWSOURCE.COND
     cfg1.(cfg1.method).realfilter   = 'yes';
     
     cfg1.latency    = freqparam.time;
-    source{f}       = ft_sourceanalysis(cfg1, freq);
-    chan = source{f}.cfg.channel;
-    source{f}.cfg = [];
-    source{f}.cfg.channel = chan;
+    source{p}       = ft_sourceanalysis(cfg1, freq);
+    chan = source{p}.cfg.channel;
+    source{p}.cfg = [];
+    source{p}.cfg.channel = chan;
     %-----------------%
     
     %-----------------%
@@ -187,7 +188,7 @@ for k = 1:numel(cfg.powsource.cond) % DOC: CFG.POWSOURCE.COND
     if ~strcmp(cfg.vol.type, 'template') ...
         && isfield(cfg, 'bnd2lead') && isfield(cfg.bnd2lead, 'mni') ...
         && isfield(cfg.bnd2lead.mni, 'warp') && cfg.bnd2lead.mni.warp
-      source{f}.pos = grid.pos;
+      source{p}.pos = grid.pos;
     end
     %-----------------%
     %---------------------------%
