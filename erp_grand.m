@@ -78,6 +78,7 @@ for k = 1:numel(cfg.erp.cond)
   %-----------------%
   
 end
+clear gerp
 %---------------------------%
 
 %-----------------------------------------------%
@@ -86,7 +87,7 @@ if ~isempty(cfg.sens.layout)
   load(cfg.sens.layout, 'layout');
 end
 
-if ~isempty(gerp) && isfield(cfg.gerp, 'comp')
+if isfield(cfg.gerp, 'comp')
   
   %-------------------------------------%
   %-loop over statistics conditions
@@ -113,12 +114,12 @@ if ~isempty(gerp) && isfield(cfg.gerp, 'comp')
       gerpall1 = ft_timelockgrandaverage(cfg1, data{:});
       %-------%
       
-      [erppeak outtmp] = reportcluster(cfg, gerpall1);
-      %-----------------%
-      
-      %-----------------%
-      %-data for plot
+      %-------%
+      %-data to plot
       gplot = gerp{1};
+      %-------%
+      
+      [erppeak outtmp] = reportcluster(cfg, gerpall1);
       %-----------------%
       
     else
@@ -142,8 +143,7 @@ if ~isempty(gerp) && isfield(cfg.gerp, 'comp')
       
       %-------%
       %-erp over subj
-      [data outtmp] = load_subj(cfg, 'erp', cond2);
-      output = [output outtmp];
+      [data] = load_subj(cfg, 'erp', cond2);
       if isempty(data); continue; end
       
       cfg1 = [];
@@ -152,14 +152,15 @@ if ~isempty(gerp) && isfield(cfg.gerp, 'comp')
       gerpall2 = ft_timelockgrandaverage(cfg1, data{:});
       %-------%
       
+      %-------%
+      %-data for plot
+      gplot = gerp{2};
+      gplot.avg = gerp{2}.avg - gerp{1}.avg;
+      %-------%
+      
       [erppeak outtmp] = reportcluster(cfg, gerpall1, gerpall2);
       %-----------------%
-      
-      %-----------------%
-      %-data for plot
-      gplot.avg = gerp{2}.avg - gerp{1}.avg;
-      %-----------------%
-      
+            
     end
     
     save([cfg.derp 'erppeak_' comp], 'erppeak')
