@@ -1,7 +1,7 @@
 function pow_grand(cfg)
 %POW_GRAND grand power average
 % 1) read single subject-data and create gpow in cfg.dpow
-% 2) do statistics for condition indicated by cfg.gpow.cond
+% 2) do statistics for condition indicated by cfg.gpow.comp
 % 3) plot the topoplot over time, frequency and singleplot for some electrodes
 %
 % CFG
@@ -19,7 +19,7 @@ function pow_grand(cfg)
 %  .pow.bl.baselinetype: type of baseline ('relchange')
 %
 %-Statistics
-%  .gpow.cond: cells within cell (e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}})
+%  .gpow.comp: cells within cell (e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}})
 %        but you cannot have more than 2 conditions (it's always a t-test).
 %   If empty, not statistics.
 %   If stats,
@@ -43,18 +43,18 @@ function pow_grand(cfg)
 %  [cfg.dpow 'pow_SUBJ_COND']: timelock analysis for single-subject
 %
 % OUT
-%  [cfg.dpow 'NICK_grandpow']: power analysis for all subjects
-%  [cfg.dpow 'NICK_COND_powpeak']: significant peaks in the POW
+%  [cfg.dpow 'pow_COND']: power analysis for all subjects
+%  [cfg.dpow 'powpeak_COMP']: significant peaks in the POW for the comparison
 %
 % FIGURES (saved in cfg.log and, if not empty, cfg.rslt)
-%  gpow_tfr_c01_COND: time-frequency plot POW, for each condition, for one channel group
-%  gpow_val_c01_FREQ: singleplot POW, all conditions, for one channel group, one frequency
-%  gpow_topo_COND_FREQ: topoplot POW for each condition and frequency, over time
+%  gpow_tfr_COMP_CHAN: time-frequency plot POW, for each condition, for one channel group
+%  gpow_val_CHAN_FREQ: singleplot POW, all conditions, for one channel group, one frequency % TODO: does it re-write files
+%  gpow_topo_COMP_FREQ: topoplot POW for each frequency, over time
 %
 % Part of EVENTBASED group-analysis
-% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND, 
-% POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND, 
-% POWCORR_SUBJ, POWCORR_GRAND, POWSTAT_SUBJ, POWSTAT_GRAND, 
+% see also ERP_SUBJ, ERP_GRAND, ERP_STAT, ERPSOURCE_SUBJ, ERPSOURCE_GRAND,
+% POW_SUBJ, POW_GRAND, POW_STAT, POWSOURCE_SUBJ, POWSOURCE_GRAND, 
+% POWCORR_SUBJ, POWCORR_GRAND, POWCORR_STAT, POWSTAT_SUBJ, POWSTAT_GRAND, 
 % CONN_SUBJ, CONN_GRAND, CONN_STAT
 
 %---------------------------%
@@ -74,63 +74,28 @@ for k = 1:numel(cfg.pow.cond)
   condname = regexprep(cond, '*', '');
   
   %-----------------%
-  %-file for each cond
-  subjfile = @(s) sprintf('%spow_%04d_%s.mat', cfg.dpow, s, condname);
-  allname = cellfun(subjfile, num2cell(cfg.subjall), 'uni', 0);
-  
-  allfiles = true(1, numel(allname));
-  for i = 1:numel(allname)
-    if ~exist(allname{i}, 'file')
-      output = [output sprintf('%s does not exist\n', allname{i})];
-      allfiles(i) = false;
-    end
-  end
-  allname = allname(allfiles);
+  %-erp over subj
+  [data outtmp] = load_subj(cfg, 'pow', cond);
+  output = [output outtmp];
+  if isempty(data); continue; end
+  data = baseline(cfg, data);
   %-----------------%
-  
-  %-----------------%
-  %-load and apply baseline correction if necessary
-  freqall = [];
-  for i = 1:numel(allname)
-    load(allname{i}, 'freq')
-    
-    %-------%
-    %-baseline correction
-    if ~isempty(cfg.pow.bl)
-      cfg3 = [];
-      cfg3.baseline = cfg.pow.bl.baseline;
-      cfg3.baselinetype = cfg.pow.bl.baselinetype;
-      freq = ft_freqbaseline(cfg3, freq);
-    end
-    %-------%
-    
-    freqall{i} = freq;
-    
-  end
-  %-----------------%
-  
-  %-----------------%
-  %-read data from all subjects
-  cfg1 = [];
-  cfg1.keepindividual = 'yes';
-  gfreq{k} = ft_freqgrandaverage(cfg1, freqall{:});
-  %-----------------%
-  
+   
   %-----------------%
   %-average across subjects
   cfg2 = [];
   cfg2.variance = 'yes';
-  gpow{k} = ft_freqdescriptives(cfg2, gfreq{k});
+  gpow{k} = ft_freqdescriptives(cfg2, data{:}); 
   gpow{k}.tscore =  gpow{k}.powspctrm ./ gpow{k}.powspctrmsem;
   gpow{k}.cfg = []; % remove cfg
   %-----------------%
   
+  %-----------------%
+  %-save
+  save([cfg.dpow 'pow_' condname], 'gpow')
+  %-----------------%
+  
 end
-
-%-----------------%
-%-save
-save([cfg.dpow cfg.nick '_grandpow'], 'gpow')
-%-----------------%
 %---------------------------%
 %-----------------------------------------------%
 
@@ -144,15 +109,15 @@ if ~isempty(gpow) && isfield(cfg.gpow, 'cond')
   
   %-------------------------------------%
   %-loop over statistics conditions
-  for t = 1:numel(cfg.gpow.cond)
+  for t = 1:numel(cfg.gpow.comp)
     
     %---------------------------%
     %-statistics for effects of interest
-    if numel(cfg.gpow.cond{t}) == 1
+    if numel(cfg.gpow.comp{t}) == 1
       
       %-----------------%
       %-compare against baseline
-      cond = cfg.gpow.cond{t}{1};
+      cond = cfg.gpow.comp{t}{1};
       i_cond = strcmp(cfg.pow.cond, cond);
       condname = regexprep(cond, '*', '');
       
@@ -169,8 +134,8 @@ if ~isempty(gpow) && isfield(cfg.gpow, 'cond')
       
       %-----------------%
       %-compare two conditions
-      cond1 = cfg.gpow.cond{t}{1};
-      cond2 = cfg.gpow.cond{t}{2};
+      cond1 = cfg.gpow.comp{t}{1};
+      cond2 = cfg.gpow.comp{t}{2};
       i_cond1 = strcmp(cfg.pow.cond, cond1);
       i_cond2 = strcmp(cfg.pow.cond, cond2);
       condname = [regexprep(cond1, '*', '') '_' regexprep(cond2, '*', '')];
@@ -355,3 +320,22 @@ fwrite(fid, output);
 fclose(fid);
 %-----------------%
 %---------------------------%
+
+%-----------------------------------------------%
+%-apply baseline
+function [data] = baseline(cfg, data)
+%-load and apply baseline correction if necessary
+for i = 1:numel(data)
+  
+  %-------%
+  %-baseline correction
+  if ~isempty(cfg.pow.bl)
+    cfg3 = [];
+    cfg3.baseline = cfg.pow.bl.baseline;
+    cfg3.baselinetype = cfg.pow.bl.baselinetype;
+    data{i} = ft_freqbaseline(cfg3, data{i});
+  end
+  %-------%
+  
+end
+%-----------------------------------------------%

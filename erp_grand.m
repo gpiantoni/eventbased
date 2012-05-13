@@ -1,7 +1,7 @@
 function erp_grand(cfg)
 %ERP_GRAND grand time lock analysis.
 % 1) read single subject-data and create gerp in cfg.derp
-% 2) do statistics for condition indicated by cfg.gerp.cond
+% 2) do statistics for condition indicated by cfg.gerp.comp
 % 3) plot the topoplot over time and singleplot for some electrodes
 %
 % CFG
@@ -14,7 +14,8 @@ function erp_grand(cfg)
 %  .erp.cond: conditions to make averages
 %
 %-Statistics
-%  .gerp.cond: cells within cell (e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}})
+%  .gerp.comp: comparisons to test 
+%        (cell within cell, e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}})
 %        but you cannot have more than 2 conditions (it's always a t-test).
 %   If empty, not statistics and no plots
 %   If stats,
@@ -35,12 +36,12 @@ function erp_grand(cfg)
 %  [cfg.derp 'erp_SUBJ_COND']: timelock analysis for single-subject
 %
 % OUT
-%  [cfg.derp 'NICK_granderp']: timelock analysis for all subjects
-%  [cfg.derp 'NICK_erppeak']: significant peaks in the ERP
+%  [cfg.derp 'erp_COND']: timelock analysis for all subjects
+%  [cfg.derp 'erppeak_COMP']: significant peaks in the ERP for the comparison
 %
 % FIGURES (saved in cfg.log and, if not empty, cfg.rslt)
-%  gerp_erp_COND_CHAN: singleplot ERP, all conditions, for one channel group
-%  gerp_topo_COND: topoplot ERP for each condition, over time
+%  gerp_erp_COMP_CHAN: singleplot ERP, all conditions, for one channel group
+%  gerp_topo_COMP: topoplot ERP for each comparison, over time
 %
 % Part of EVENTBASED group-analysis
 % see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND, 
@@ -57,42 +58,26 @@ tic_t = tic;
 
 %---------------------------%
 %-loop over conditions
-gerp = [];
 for k = 1:numel(cfg.erp.cond) 
   cond     = cfg.erp.cond{k};
   condname = regexprep(cond, '*', '');
-  
-  %-----------------%
-  %-file for each cond
-  subjfile = @(s) sprintf('%serp_%04d_%s.mat', cfg.derp, s, condname);
-  allname = cellfun(subjfile, num2cell(cfg.subjall), 'uni', 0);
-  
-  allfiles = true(1, numel(allname));
-  for i = 1:numel(allname)
-    if ~exist(allname{i}, 'file')
-      output = [output sprintf('%s does not exist\n', allname{i})];
-      allfiles(i) = false;
-    end
-  end
-  allname = allname(allfiles);
-  %-----------------%
-  
+
   %-----------------%
   %-erp over subj
+  [data outtmp] = load_subj(cfg, 'erp', cond);
+  output = [output outtmp];
+  if isempty(data); continue; end
+  
   cfg1 = [];
-  cfg1.inputfile = allname;
-  gerp{k} = ft_timelockgrandaverage(cfg1);
-  gerp{k}.cfg = []; % save space, will see if it breaks something
-  cfg1.keepindividual = 'yes';
-  gerpall{k} = ft_timelockgrandaverage(cfg1);
+  gerp = ft_timelockgrandaverage(cfg1, data{:});
+  %-----------------%
+  
+  %-----------------%
+  %-save
+  save([cfg.derp 'erp_' condname], 'gerp')
   %-----------------%
   
 end
-
-%-----------------%
-%-save
-save([cfg.derp cfg.nick '_granderp'], 'gerp')
-%-----------------%
 %---------------------------%
 
 %-----------------------------------------------%
@@ -101,56 +86,83 @@ if ~isempty(cfg.sens.layout)
   load(cfg.sens.layout, 'layout');
 end
 
-if ~isempty(gerp) && isfield(cfg.gerp, 'cond')
+if ~isempty(gerp) && isfield(cfg.gerp, 'comp')
   
   %-------------------------------------%
   %-loop over statistics conditions
-  for t = 1:numel(cfg.gerp.cond)
+  for t = 1:numel(cfg.gerp.comp)
     
     %---------------------------%
     %-statistics for effects of interest
-    if numel(cfg.gerp.cond{t}) == 1
+    clear gerp gerpall
+    if numel(cfg.gerp.comp{t}) == 1
       
       %-----------------%
       %-compare against baseline
-      cond = cfg.gerp.cond{t}{1};
-      i_cond = strcmp(cfg.erp.cond, cond);
-      condname = regexprep(cond, '*', '');
+      cond = cfg.gerp.comp{t}{1};
+      comp = regexprep(cond, '*', '');
       
-      [erppeak outtmp] = reportcluster(cfg, gerpall{i_cond});
+      %-------%
+      %-erp over subj
+      [data] = load_subj(cfg, 'erp', cond);
+      if isempty(data); continue; end
+      
+      cfg1 = [];
+      gerp{1} = ft_timelockgrandaverage(cfg1, data{:});
+      cfg1.keepindividual = 'yes';
+      gerpall1 = ft_timelockgrandaverage(cfg1, data{:});
+      %-------%
+      
+      [erppeak outtmp] = reportcluster(cfg, gerpall1);
       %-----------------%
       
       %-----------------%
       %-data for plot
-      gplot = gerp{i_cond};
-      gtime{1} = gplot; % to plot freq fluctuations over time
+      gplot = gerp{1};
       %-----------------%
       
     else
       
       %-----------------%
       %-compare two conditions
-      cond1 = cfg.gerp.cond{t}{1};
-      cond2 = cfg.gerp.cond{t}{2};
-      i_cond1 = strcmp(cfg.erp.cond, cond1);
-      i_cond2 = strcmp(cfg.erp.cond, cond2);
-      condname = [regexprep(cond1, '*', '') '_' regexprep(cond2, '*', '')];
+      cond1 = cfg.gerp.comp{t}{1};
+      cond2 = cfg.gerp.comp{t}{2};
+      comp = [regexprep(cond1, '*', '') '_' regexprep(cond2, '*', '')];
       
-      [erppeak outtmp] = reportcluster(cfg, gerpall{i_cond1}, gerpall{i_cond2});
+      %-------%
+      %-erp over subj
+      [data] = load_subj(cfg, 'erp', cond1);
+      if isempty(data); continue; end
+      
+      cfg1 = [];
+      gerp{1} = ft_timelockgrandaverage(cfg1, data{:});
+      cfg1.keepindividual = 'yes';
+      gerpall1 = ft_timelockgrandaverage(cfg1, data{:});
+      %-------%
+      
+      %-------%
+      %-erp over subj
+      [data outtmp] = load_subj(cfg, 'erp', cond2);
+      output = [output outtmp];
+      if isempty(data); continue; end
+      
+      cfg1 = [];
+      gerp{2} = ft_timelockgrandaverage(cfg1, data{:});
+      cfg1.keepindividual = 'yes';
+      gerpall2 = ft_timelockgrandaverage(cfg1, data{:});
+      %-------%
+      
+      [erppeak outtmp] = reportcluster(cfg, gerpall1, gerpall2);
       %-----------------%
       
       %-----------------%
       %-data for plot
-      gplot = gerp{i_cond1};
-      gplot.avg = gerp{i_cond1}.avg - gerp{i_cond2}.avg;
-      
-      gtime{1} = gerp{i_cond1}; % to plot freq fluctuations over time
-      gtime{2} = gerp{i_cond2}; % to plot freq fluctuations over time
+      gplot.avg = gerp{2}.avg - gerp{1}.avg;
       %-----------------%
       
     end
     
-    save([cfg.derp cfg.nick condname '_erppeak'], 'erppeak')
+    save([cfg.derp 'erppeak_' comp], 'erppeak')
     output = [output outtmp];
   end
   %---------------------------%
@@ -174,13 +186,13 @@ if ~isempty(gerp) && isfield(cfg.gerp, 'cond')
     
     legend('cond1', 'cond2')
     
-    title([condname ' ' cfg.gerp.chan(c).name], 'Interpreter', 'none')
+    title([comp ' ' cfg.gerp.chan(c).name], 'Interpreter', 'none')
     %--------%
     %-----------------%
     
     %-----------------%
     %-save and link
-    pngname = sprintf('gerp_erp_%s_%s', condname, cfg.gerp.chan(c).name);
+    pngname = sprintf('gerp_erp_%s_%s', comp, cfg.gerp.chan(c).name);
     saveas(gcf, [cfg.log filesep pngname '.png'])
     close(gcf); drawnow
     
@@ -226,7 +238,7 @@ if ~isempty(gerp) && isfield(cfg.gerp, 'cond')
     
     %-----------------%
     %-save and link
-    pngname = sprintf('gerp_topo_%s', condname);
+    pngname = sprintf('gerp_topo_%s', comp);
     saveas(gcf, [cfg.log filesep pngname '.png'])
     close(gcf); drawnow
     
@@ -238,6 +250,7 @@ if ~isempty(gerp) && isfield(cfg.gerp, 'cond')
   %---------------------------%
   
 end
+%-----------------------------------------------%
 
 %---------------------------%
 %-end log

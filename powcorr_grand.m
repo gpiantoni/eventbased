@@ -1,7 +1,7 @@
 function powcorr_grand(cfg)
 %POWCORR_GRAND grand power average
 % 1) read single subject-data and create gpowcorr in cfg.dpow
-% 2) do statistics for condition indicated by cfg.gpowcorr.cond
+% 2) do statistics for condition indicated by cfg.gpowcorr.comp
 % 3) plot the topoplot over time, frequency and singleplot for some electrodes
 %
 % CFG
@@ -14,7 +14,7 @@ function powcorr_grand(cfg)
 %  .powcorr.cond: conditions to make averages
 %
 %-Statistics
-%  .gpowcorr.cond: cells within cell (e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}})
+%  .gpowcorr.comp: cells within cell (e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}})
 %        but you cannot have more than 2 conditions (it's always a t-test).
 %   If empty, not statistics.
 %   If stats,
@@ -37,13 +37,13 @@ function powcorr_grand(cfg)
 %  [cfg.dpow 'powcorr_SUBJ_COND']: power correlation for single-subject
 %
 % OUT
-%  [cfg.dpow 'NICK_grandpowcorr']: power analysis for all subjects
-%  [cfg.dpow 'NICK_powcorrpeak']: significant peaks in the POW
+%  [cfg.dpow 'powcorr_COND']: power correlation for all subjects
+%  [cfg.dpow 'powcorrpeak_COMP']: significant peaks in the POWCORR for the comparison
 %
 % FIGURES (saved in cfg.log and, if not empty, cfg.rslt)
-%  gpowcorr_tfr_CHAN_COND: time-frequency plot POW, for each condition, for one channel group
-%  gpowcorr_val_CHAN_FREQ: singleplot POW, all conditions, for one channel group, one frequency
-%  gpowcorr_topo_COND_FREQ: topoplot POW for each condition and frequency, over time
+%  gpowcorr_tfr_COMP_COND: time-frequency plot powcorr, for each comparison, for one channel group
+%  gpowcorr_val_CHAN_FREQ: singleplot powcorr, all conditions, for one channel group, one frequency
+%  gpowcorr_topo_COMP_FREQ: topoplot powcorr for each condition and frequency, over time
 %
 % Part of EVENTBASED group-analysis
 % see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND, 
@@ -114,15 +114,15 @@ if ~isempty(gpowcorr) && isfield(cfg.gpow, 'cond')
   
   %-------------------------------------%
   %-loop over statistics conditions
-  for t = 1:numel(cfg.gpowcorr.cond)
+  for t = 1:numel(cfg.gpowcorr.comp)
     
     %---------------------------%
     %-statistics for effects of interest
-    if numel(cfg.gpowcorr.cond{t}) == 1
+    if numel(cfg.gpowcorr.comp{t}) == 1
       
       %-----------------%
       %-compare against baseline
-      cond = cfg.gpowcorr.cond{t}{1};
+      cond = cfg.gpowcorr.comp{t}{1};
       i_cond = strcmp(cfg.powcorr.cond, cond);
       condname = regexprep(cond, '*', '');
       
@@ -153,8 +153,8 @@ if ~isempty(gpowcorr) && isfield(cfg.gpow, 'cond')
       
       %-----------------%
       %-compare two conditions
-      cond1 = cfg.gpowcorr.cond{t}{1};
-      cond2 = cfg.gpowcorr.cond{t}{2};
+      cond1 = cfg.gpowcorr.comp{t}{1};
+      cond2 = cfg.gpowcorr.comp{t}{2};
       i_cond1 = strcmp(cfg.powcorr.cond, cond1);
       i_cond2 = strcmp(cfg.powcorr.cond, cond2);
       condname = [regexprep(cond1, '*', '') '_' regexprep(cond2, '*', '')];
