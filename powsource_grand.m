@@ -17,9 +17,9 @@ function powsource_grand(cfg)
 %  .powsource.areas: how to speficy peaks to analyze, 'manual' or 'powpeak'
 %          (peaks from grandpow) or 'powcorrpeak' (peaks from grandpowcorr)
 %    if 'manual'
-%      .powsource.erppeak(1).name: string ('name_of_the_time_window')
-%      .powsource.erppeak(1).time: scalar (center of the time window in s)
-%      .powsource.erppeak(1).wndw: scalar (length of the time window in s)
+%      .powsource.powpeak(1).name: string ('name_of_the_time_window')
+%      .powsource.powpeak(1).time: scalar (center of the time window in s)
+%      .powsource.powpeak(1).wndw: scalar (length of the time window in s)
 %      .powsource.powpeak(1).freq = 10; % center of the frequency
 %      .powsource.powpeak(1).band = 4; % width of the frequency band
 %    if 'powpeak'
@@ -43,8 +43,11 @@ function powsource_grand(cfg)
 %  [cfg.dpow 'powsource_SUBJ_COND']: source data for period of interest and baseline for each subject
 %
 % OUT
-%  [cfg.dpow 'NICK_grandpowsource']: source analysis for all subject
-%  [cfg.dpow 'NICK_COND_soupeak']: significant source peaks in POW
+%  [cfg.dpow 'powsource_COND']: source analysis for all subject
+%  [cfg.dpow 'powsoupeak_COND']: significant source peaks in POW
+%
+% FIGURES
+%  gpowpeak_COND_POWPEAK: 3d plot of the source for one peak
 %
 % Part of EVENTBASED group-analysis
 % see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND,
@@ -60,53 +63,6 @@ tic_t = tic;
 %---------------------------%
 
 %---------------------------%
-%-loop over conditions
-for k = 1:numel(cfg.powsource.cond)
-  cond     = cfg.powsource.cond{k};
-  condname = regexprep(cond, '*', '');
-  
-  %-----------------%
-  %-file for each cond
-  subjfile = @(s) sprintf('%spowsource_%04d_%s.mat', cfg.dpow, s, condname);
-  allname = cellfun(subjfile, num2cell(cfg.subjall), 'uni', 0);
-  
-  allfiles = true(1, numel(allname));
-  for i = 1:numel(allname)
-    if ~exist(allname{i}, 'file')
-      output = [output sprintf('%s does not exist\n', allname{i})];
-      allfiles(i) = false;
-    end
-  end
-  allname = allname(allfiles);
-  %-----------------%
-  
-  %-----------------%
-  %-read data
-  for s = 1:numel(allname)
-    load(allname{s});
-    spre(s,:) = souPre;
-    sall(s,:) = source;
-    clear source souPre
-  end
-  %-----------------%
-  
-  %-----------------%
-  %-powsource over subj: loop over areas
-  for a = 1:size(sall,2) % this is powpeak, but implicit
-    cfg1 = [];
-    cfg1.keepindividual = 'yes';
-    gpowsouPre{k,a} = ft_sourcegrandaverage(cfg1, spre{:,a});
-    gpowsource{k,a} = ft_sourcegrandaverage(cfg1, sall{:,a});
-  end
-  %-----------------%
-  
-  clear sall spre
-end
-%---------------------------%
-
-%---------------------------------------------------------%
-%-statistics for main effects
-%-----------------%
 %-use predefined or power-peaks for areas of interest
 if strcmp(cfg.powsource.areas, 'manual')
   powpeak = cfg.powsource.powpeak;
@@ -121,13 +77,22 @@ elseif strcmp(cfg.powsource.areas, 'powcorrpeak')
   powpeak = powcorrpeak;
   
 end
-%-----------------%
+%---------------------------%
 
-%-------------------------------------%
-%-loop over statistics conditions
-for i_cond = 1:numel(cfg.powsource.cond)
-  cond     = cfg.powsource.cond{i_cond};
+%---------------------------------------------------------%
+%-statistics for main effects
+%---------------------------%
+%-loop over conditions
+for k = 1:numel(cfg.powsource.cond)
+  cond     = cfg.powsource.cond{k};
   condname = regexprep(cond, '*', '');
+  
+  %-----------------%
+  %-file for each cond
+  [data outtmp] = load_subj(cfg, 'powsource', cond);
+  output = [output outtmp];
+  if isempty(data); continue; end
+  %-----------------%
   
   %-----------------%
   %-loop over peaks
@@ -135,10 +100,19 @@ for i_cond = 1:numel(cfg.powsource.cond)
   for p = 1:numel(powpeak)
     output = sprintf('%s\n%s:\n', output, powpeak(p).name);
     
+    %-----------------%
+    %-grand average
+    cfg1 = [];
+    cfg1.keepindividual = 'yes';
+    cfg1.parameter = 'pow'; % instead of nai
+    gpowsouPre = ft_sourcegrandaverage(cfg1, data{:,1,p});
+    gpowsource = ft_sourcegrandaverage(cfg1, data{:,2,p});
+    %-----------------%
+    
     %--------%
     %-do stats and figure
     h = figure;
-    [soupos powstat{p} outtmp] = reportsource(cfg.powsource, gpowsource{i_cond, p}, gpowsouPre{i_cond, p});
+    [soupos powstat{p} outtmp] = reportsource(cfg.powsource, gpowsource, gpowsouPre);
     soupeak(p).pos = soupos;
     soupeak(p).center = mean(soupos,1);
     soupeak(p).name = powpeak(p).name;
@@ -163,7 +137,7 @@ for i_cond = 1:numel(cfg.powsource.cond)
       cfg1 = [];
       cfg1.parameter = 'image';
       souinterp = ft_sourceinterpolate(cfg1, powstat{p}, dtimri);
-  
+      
       mriname = [cfg.powsource.nifti '_' condname '_' soupeak(p).name];
       cfg1 = [];
       cfg1.parameter = 'image';
@@ -179,12 +153,12 @@ for i_cond = 1:numel(cfg.powsource.cond)
   
   %-----------------%
   %-save
-  save([cfg.dpow cfg.nick '_' condname '_soupeak'], 'soupeak')
+  save([cfg.dpow 'powsoupeak_' condname], 'soupeak')
   
   for p = 1:numel(powstat)
     powstat{p}.cfg = []; % this is huge
   end
-  save([cfg.dpow cfg.nick '_grandpowsource'], 'powstat', '-v7.3')
+  save([cfg.dpow 'powsource_' condname], 'powstat', '-v7.3')
   %-----------------%
   
 end

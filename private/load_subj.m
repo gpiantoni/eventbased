@@ -54,7 +54,7 @@ for i = 1:numel(cfg.subjall)
       dataout{i} = timelock;
     case {'pow' ,'powcorr'}
       dataout{i} = freq;
-    case {'erpsource'}
+    case {'erpsource' 'powsource'}
       for p = 1:numel(source) % n of peaks
         dataout{i,1,p} = souPre{p};
         dataout{i,2,p} = source{p};

@@ -69,7 +69,7 @@ for k = 1:numel(cfg.erpsource.cond)
     erppeak = cfg.erpsource.erppeak;
   elseif strcmp(cfg.erpsource.areas, 'erppeak')
     peakname = regexprep(cfg.erp.refcond, '*', '');
-    load([cfg.derp cfg.nick peakname '_erppeak'], 'erppeak')
+    load([cfg.derp 'erppeak_' peakname], 'erppeak')
   end
   %---------------------------%
   
@@ -121,6 +121,7 @@ for k = 1:numel(cfg.erpsource.cond)
     cfg3.grid = leadchan;
     cfg3.elec = sens;
     cfg3.feedback = 'none';
+    cfg3.lcmv.keepmom = 'no';
     
     souPre{p} = ft_sourceanalysis(cfg3, avgPre);
     souPre{p}.cfg = [];

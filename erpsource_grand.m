@@ -13,7 +13,7 @@ function erpsource_grand(cfg)
 %-Statistics
 %  The comparison is always against baseline. If you want to compare
 %  conditions, use powstats_subj.
-% 
+%
 %  .erpsource.areas: how to speficy peaks to analyze, 'manual' or 'erppeak' (peaks from granderp)
 %    if 'manual'
 %      .erpsource.erppeak(1).name: string ('name_of_the_time_window')
@@ -34,12 +34,12 @@ function erpsource_grand(cfg)
 %  .erpsource.nifti: directory and initial part of the name where you want to save the masks
 %  .dti.ref: template for mask ('/usr/share/data/fsl-mni152-templates/MNI152_T1_1mm_brain.nii.gz')
 %
-% IN 
+% IN
 %  [cfg.derp 'erpsource_SUBJ_COND']: source data for period of interest and baseline for each subject
 %
 % OUT
-%  [cfg.derp 'NICK_granderpsource']: source analysis for all subject
-%  [cfg.derp 'NICK_COND_soupeak']: significant source peaks in the ERP
+%  [cfg.derp 'erpsource_COND']: source analysis for all subject
+%  [cfg.derp 'erpsoupeak_COND']: significant source peaks in the ERP
 %
 % FIGURES
 %  gerppeak_COND_ERPPEAK: 3d plot of the source for one peak
@@ -58,6 +58,18 @@ tic_t = tic;
 %---------------------------%
 
 %---------------------------%
+%-use predefined or erppeaks for areas of interest
+if strcmp(cfg.erpsource.areas, 'manual')
+  erppeak = cfg.erpsource.erppeak;
+elseif strcmp(cfg.erpsource.areas, 'erppeak')
+  peakname = regexprep(cfg.erp.refcond, '*', '');
+  load([cfg.derp 'erppeak_' peakname], 'erppeak')
+end
+%---------------------------%
+
+%---------------------------------------------------------%
+%-statistics for main effects
+%---------------------------%
 %-loop over conditions
 for k = 1:numel(cfg.erpsource.cond)
   cond     = cfg.erpsource.cond{k};
@@ -65,61 +77,10 @@ for k = 1:numel(cfg.erpsource.cond)
   
   %-----------------%
   %-file for each cond
-  subjfile = @(s) sprintf('%serpsource_%04d_%s.mat', cfg.derp, s, condname);
-  allname = cellfun(subjfile, num2cell(cfg.subjall), 'uni', 0);
-  
-  allfiles = true(1, numel(allname));
-  for i = 1:numel(allname)
-    if ~exist(allname{i}, 'file')
-      output = [output sprintf('%s does not exist\n', allname{i})];
-      allfiles(i) = false;
-    end
-  end
-  allname = allname(allfiles);
+  [data outtmp] = load_subj(cfg, 'erpsource', cond);
+  output = [output outtmp];
+  if isempty(data); continue; end
   %-----------------%
-  
-  %-----------------%
-  %-read data
-  for s = 1:numel(allname)
-    load(allname{s});
-    spre(s,:) = souPre;
-    sall(s,:) = source;
-    clear source souPre
-  end
-  %-----------------%
-  
-  %-----------------%
-  %-powsource over subj: loop over areas
-  for a = 1:size(sall,2) % this is erppeak, but implicit
-    cfg1 = [];
-    cfg1.keepindividual = 'yes';
-    cfg1.parameter = 'pow'; % instead of nai
-    gerpsouPre{k,a} = ft_sourcegrandaverage(cfg1, spre{:,a});
-    gerpsource{k,a} = ft_sourcegrandaverage(cfg1, sall{:,a});
-  end
-  %-----------------%
-  
-  clear sall spre
-end
-%---------------------------%
-
-%---------------------------------------------------------%
-%-statistics for main effects
-%-----------------%
-%-use predefined or erppeaks for areas of interest
-if strcmp(cfg.erpsource.areas, 'manual')
-  erppeak = cfg.erpsource.erppeak;
-elseif strcmp(cfg.erpsource.areas, 'erppeak')
-  peakname = regexprep(cfg.erp.refcond, '*', '');
-  load([cfg.derp cfg.nick peakname '_erppeak'], 'erppeak')
-end
-%-----------------%
-
-%-------------------------------------%
-%-loop over statistics conditions
-for i_cond = 1:numel(cfg.erpsource.cond)
-  cond     = cfg.erpsource.cond{i_cond};
-  condname = regexprep(cond, '*', '');
   
   %-----------------%
   %-loop over peaks
@@ -127,10 +88,19 @@ for i_cond = 1:numel(cfg.erpsource.cond)
   for p = 1:numel(erppeak)
     output = sprintf('%s\n%s:\n', output, erppeak(p).name);
     
+    %-----------------%
+    %-grand average
+    cfg1 = [];
+    cfg1.keepindividual = 'yes';
+    cfg1.parameter = 'pow'; % instead of nai
+    gerpsouPre = ft_sourcegrandaverage(cfg1, data{:,1,p});
+    gerpsource = ft_sourcegrandaverage(cfg1, data{:,2,p});
+    %-----------------%
+    
     %--------%
     %-do stats and figure
     h = figure;
-    [soupos erpstat{p} outtmp] = reportsource(cfg.erpsource, gerpsource{i_cond, p}, gerpsouPre{i_cond, p});
+    [soupos erpstat{p} outtmp] = reportsource(cfg.erpsource, gerpsource, gerpsouPre);
     soupeak(p).pos = soupos;
     soupeak(p).center = mean(soupos,1);
     soupeak(p).name = erppeak(p).name;
@@ -171,12 +141,12 @@ for i_cond = 1:numel(cfg.erpsource.cond)
   
   %-----------------%
   %-save
-  save([cfg.derp cfg.nick '_' condname '_soupeak'], 'soupeak')
+  save([cfg.derp 'erpsoupeak_' condname], 'soupeak')
   
   for p = 1:numel(erpstat)
     erpstat{p}.cfg = []; % this is huge
   end
-  save([cfg.derp cfg.nick '_granderpsource'], 'erpstat', '-v7.3')
+  save([cfg.derp 'erpsource_' condname], 'erpstat', '-v7.3')
   %-----------------%
   
 end
