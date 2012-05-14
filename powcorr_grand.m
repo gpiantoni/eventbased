@@ -71,6 +71,7 @@ for k = 1:numel(cfg.powcorr.cond)
   [data outtmp] = load_subj(cfg, 'powcorr', cond);
   output = [output outtmp];
   if isempty(data); continue; end
+  data = data(~cellfun(@isempty, data));
   %-----------------%
   
   %-----------------%
@@ -134,6 +135,7 @@ if isfield(cfg.gpowcorr, 'comp')
       %-powcorr over subj
       [data] = load_subj(cfg, 'powcorr', cond);
       if isempty(data); continue; end
+      data = data(~cellfun(@isempty, data));
       
       cfg1 = [];
       cfg1.keepindividual = 'yes';
@@ -166,6 +168,7 @@ if isfield(cfg.gpowcorr, 'comp')
       %-powcorr over subj
       [data] = load_subj(cfg, 'powcorr', cond1);
       if isempty(data); continue; end
+      data = data(~cellfun(@isempty, data));
       
       cfg1 = [];
       cfg1.keepindividual = 'yes';
@@ -182,6 +185,7 @@ if isfield(cfg.gpowcorr, 'comp')
       %-powcorr over subj
       [data] = load_subj(cfg, 'powcorr', cond2);
       if isempty(data); continue; end
+      data = data(~cellfun(@isempty, data));
       
       cfg1 = [];
       cfg1.keepindividual = 'yes';

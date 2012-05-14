@@ -77,6 +77,7 @@ for k = 1:numel(cfg.pow.cond)
   [data outtmp] = load_subj(cfg, 'pow', cond);
   output = [output outtmp];
   if isempty(data); continue; end
+  data = data(~cellfun(@isempty, data));
   data = baseline(cfg, data);
   %-----------------%
   
@@ -128,6 +129,7 @@ if isfield(cfg.gpow, 'comp')
       %-pow over subj
       [data] = load_subj(cfg, 'pow', cond);
       if isempty(data); continue; end
+      data = data(~cellfun(@isempty, data));
       data = baseline(cfg, data);
       
       cfg1 = [];
@@ -156,6 +158,7 @@ if isfield(cfg.gpow, 'comp')
       %-pow over subj
       [data] = load_subj(cfg, 'pow', cond1);
       if isempty(data); continue; end
+      data = data(~cellfun(@isempty, data));
       data = baseline(cfg, data);
       
       cfg1 = [];
@@ -168,6 +171,7 @@ if isfield(cfg.gpow, 'comp')
       %-pow over subj
       [data] = load_subj(cfg, 'pow', cond2);
       if isempty(data); continue; end
+      data = data(~cellfun(@isempty, data));
       data = baseline(cfg, data);
       
       cfg1 = [];

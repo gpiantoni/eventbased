@@ -67,6 +67,7 @@ for k = 1:numel(cfg.erp.cond)
   [data outtmp] = load_subj(cfg, 'erp', cond);
   output = [output outtmp];
   if isempty(data); continue; end
+  data = data(~cellfun(@isempty, data));
   
   cfg1 = [];
   gerp = ft_timelockgrandaverage(cfg1, data{:});
@@ -107,6 +108,7 @@ if isfield(cfg.gerp, 'comp')
       %-erp over subj
       [data] = load_subj(cfg, 'erp', cond);
       if isempty(data); continue; end
+      data = data(~cellfun(@isempty, data));
       
       cfg1 = [];
       gerp{1} = ft_timelockgrandaverage(cfg1, data{:});
@@ -134,6 +136,7 @@ if isfield(cfg.gerp, 'comp')
       %-erp over subj
       [data] = load_subj(cfg, 'erp', cond1);
       if isempty(data); continue; end
+      data = data(~cellfun(@isempty, data));
       
       cfg1 = [];
       gerp{1} = ft_timelockgrandaverage(cfg1, data{:});
@@ -145,6 +148,7 @@ if isfield(cfg.gerp, 'comp')
       %-erp over subj
       [data] = load_subj(cfg, 'erp', cond2);
       if isempty(data); continue; end
+      data = data(~cellfun(@isempty, data));
       
       cfg1 = [];
       gerp{2} = ft_timelockgrandaverage(cfg1, data{:});
