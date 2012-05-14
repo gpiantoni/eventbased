@@ -28,9 +28,9 @@ function powsource_subj(cfg, subj)
 %      .powsource.powpeak(1).freq = 10; % center of the frequency
 %      .powsource.powpeak(1).band = 4; % width of the frequency band
 %    if 'powpeak'
-%      .pow.refcond: string of the condition whose peaks will be localized
+%      .pow.refcond: string of the comparison whose peaks will be localized
 %    if 'powcorrpeak'
-%      .powcorr.refcond: string of the condition whose peaks will be localized
+%      .powcorr.refcond: string of the comparison whose peaks will be localized
 %
 %  .powsource.bline: one number in s, the center of the covariance window of the baseline (the window length depends on powpeak)
 %
@@ -74,11 +74,11 @@ for k = 1:numel(cfg.powsource.cond)
     
   elseif strcmp(cfg.powsource.areas, 'powpeak')
     peakname = regexprep(cfg.pow.refcond, '*', '');
-    load([cfg.dpow cfg.cond peakname '_powpeak'], 'powpeak')
+    load([cfg.dpow 'powpeak_' peakname], 'powpeak')
     
   elseif strcmp(cfg.powsource.areas, 'powcorrpeak')
     peakname = regexprep(cfg.powcorr.refcond, '*', '');
-    load([cfg.dpow cfg.cond peakname '_powcorrpeak'], 'powcorrpeak')
+    load([cfg.dpow 'powcorrpeak_' peakname], 'powcorrpeak')
     powpeak = powcorrpeak;
     
   end

@@ -23,9 +23,9 @@ function powsource_grand(cfg)
 %      .powsource.powpeak(1).freq = 10; % center of the frequency
 %      .powsource.powpeak(1).band = 4; % width of the frequency band
 %    if 'powpeak'
-%      .pow.refcond: string of the condition whose peaks will be localized
+%      .pow.refcond: string of the comparison whose peaks will be localized
 %    if 'powcorrpeak'
-%      .powcorr.refcond: string of the condition whose peaks will be localized
+%      .powcorr.refcond: string of the comparison whose peaks will be localized
 %
 % Options for reportsource:
 %  .powsource.clusterstatistics: 'maxsize' or 'max'
@@ -68,12 +68,12 @@ if strcmp(cfg.powsource.areas, 'manual')
   powpeak = cfg.powsource.powpeak;
   
 elseif strcmp(cfg.powsource.areas, 'powpeak')
-  peakname = regexprep(cfg.pow.refcond, '*', ''); % DOC: CFG.POW.REFCOND
-  load([cfg.dpow cfg.cond peakname '_powpeak'], 'powpeak')
+  peakname = regexprep(cfg.pow.refcond, '*', '');
+  load([cfg.dpow 'powpeak_' peakname], 'powpeak')
   
 elseif strcmp(cfg.powsource.areas, 'powcorrpeak')
-  peakname = regexprep(cfg.powcorr.refcond, '*', ''); % DOC: CFG.POWCORR.REFCOND
-  load([cfg.dpow cfg.cond peakname '_powcorrpeak'], 'powcorrpeak')
+  peakname = regexprep(cfg.powcorr.refcond, '*', '');
+  load([cfg.dpow 'powcorrpeak_' peakname], 'powcorrpeak')
   powpeak = powcorrpeak;
   
 end

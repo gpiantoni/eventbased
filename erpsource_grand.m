@@ -20,7 +20,7 @@ function erpsource_grand(cfg)
 %      .erpsource.erppeak(1).time: scalar (center of the time window in s)
 %      .erpsource.erppeak(1).wndw: scalar (length of the time window in s)
 %    if 'erppeak'
-%      .erp.refcond: string of the condition whose peaks will be localized
+%      .erp.refcond: string of the comparison whose peaks will be localized
 %
 % Options for reportsource:
 %  .erpsource.clusterstatistics: 'maxsize' or 'max'

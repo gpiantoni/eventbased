@@ -191,7 +191,7 @@ if isfield(cfg.gpow, 'comp')
       
     end
     
-    save([cfg.dpow comp '_powpeak'], 'powpeak')
+    save([cfg.dpow 'powpeak_' comp], 'powpeak')
     output = [output outtmp];
     %---------------------------%
     

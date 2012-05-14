@@ -25,7 +25,7 @@ function erpsource_subj(cfg, subj)
 %      .erpsource.erppeak(1).time: scalar (center of the time window in s)
 %      .erpsource.erppeak(1).wndw: scalar (length of the time window in s)
 %    if 'erppeak'
-%      .erp.refcond: string of the condition whose peaks will be localized
+%      .erp.refcond: string of the comparison whose peaks will be localized
 %
 %  .erpsource.erp: a structure with cfg to pass to ft_timelockanalysis
 %  .erpsource.bline: one number in s, the center of the covariance window of the baseline (the window length depends on erppeak)
