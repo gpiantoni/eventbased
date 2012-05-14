@@ -14,7 +14,7 @@ function erp_grand(cfg)
 %  .erp.cond: conditions to make averages
 %
 %-Statistics
-%  .gerp.comp: comparisons to test 
+%  .gerp.comp: comparisons to test
 %        (cell within cell, e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}})
 %        but you cannot have more than 2 conditions (it's always a t-test).
 %   If empty, not statistics and no plots
@@ -26,10 +26,10 @@ function erp_grand(cfg)
 %  .gerp.bline: two scalars indicating the time window for baseline in s (only for plotting, TODO: check if necessary for normal analysis as well)
 %  .gerp.chan(1).name: 'name_of_channels'
 %  .gerp.chan(1).chan: cell with labels of channels of interest
-% 
+%
 %  .sens.layout: file with layout. It should be a mat containing 'layout'
 %                If empty, it does not plot topo.
-%  
+%
 %  .rslt: directory images are saved into
 %
 % IN
@@ -44,9 +44,9 @@ function erp_grand(cfg)
 %  gerp_topo_COMP: topoplot ERP for each comparison, over time
 %
 % Part of EVENTBASED group-analysis
-% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND, 
-% POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND, 
-% POWCORR_SUBJ, POWCORR_GRAND, POWSTAT_SUBJ, POWSTAT_GRAND, 
+% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND,
+% POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND,
+% POWCORR_SUBJ, POWCORR_GRAND, POWSTAT_SUBJ, POWSTAT_GRAND,
 % CONN_SUBJ, CONN_GRAND, CONN_STAT
 
 %---------------------------%
@@ -58,10 +58,10 @@ tic_t = tic;
 
 %---------------------------%
 %-loop over conditions
-for k = 1:numel(cfg.erp.cond) 
+for k = 1:numel(cfg.erp.cond)
   cond     = cfg.erp.cond{k};
   condname = regexprep(cond, '*', '');
-
+  
   %-----------------%
   %-erp over subj
   [data outtmp] = load_subj(cfg, 'erp', cond);
@@ -160,95 +160,97 @@ if isfield(cfg.gerp, 'comp')
       
       [erppeak outtmp] = reportcluster(cfg, gerpall1, gerpall2);
       %-----------------%
-            
+      
     end
     
     save([cfg.derp 'erppeak_' comp], 'erppeak')
     output = [output outtmp];
+    %---------------------------%
+    
+    %---------------------------%
+    %-singleplotER (multiple conditions at once)
+    for c = 1:numel(cfg.gerp.chan)
+      
+      %-----------------%
+      %-figure
+      h = figure;
+      set(h, 'Renderer', 'painters')
+      
+      %--------%
+      %-plot
+      cfg3 = [];
+      cfg3.channel = cfg.gerp.chan(c).chan;
+      cfg3.baseline = cfg.gerp.bline;
+      cfg3.ylim = 'maxabs';
+      ft_singleplotER(cfg3, gerp{:});
+      
+      legend('cond1', 'cond2')
+      
+      title([comp ' ' cfg.gerp.chan(c).name], 'Interpreter', 'none')
+      %--------%
+      %-----------------%
+      
+      %-----------------%
+      %-save and link
+      pngname = sprintf('gerp_erp_%s_%s', comp, cfg.gerp.chan(c).name);
+      saveas(gcf, [cfg.log filesep pngname '.png'])
+      close(gcf); drawnow
+      
+      [~, logfile] = fileparts(cfg.log);
+      system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
+      %-----------------%
+      
+    end
+    %---------------------------%
+    
+    %---------------------------%
+    %-topoplotTFR (loop over tests)
+    if ~isempty(cfg.sens.layout)
+      
+      %-----------------%
+      %-figure
+      h = figure;
+      set(h, 'Renderer', 'painters')
+      
+      %--------%
+      %-plot
+      cfg4 = [];
+      
+      timelim = gplot.time([1 end]);
+      cfg4.xlim = timelim(1):.1:timelim(2); % one plot every 100 ms
+      
+      cfg4.zlim = [-1 1] * max(gplot.avg(:));
+      
+      cfg4.layout = layout;
+      cfg4.style = 'straight';
+      cfg4.marker = 'off';
+      cfg4.comment = 'xlim';
+      cfg4.commentpos = 'title';
+      
+      ft_topoplotER(cfg4, gplot);
+      %--------%
+      
+      %--------%
+      %-colorbar only for last subplot, to give indication on scaling
+      colorbar
+      %--------%
+      %-----------------%
+      
+      %-----------------%
+      %-save and link
+      pngname = sprintf('gerp_topo_%s', comp);
+      saveas(gcf, [cfg.log filesep pngname '.png'])
+      close(gcf); drawnow
+      
+      [~, logfile] = fileparts(cfg.log);
+      system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
+      %-----------------%
+      
+    end
+    %---------------------------%
+    
   end
-  %---------------------------%
-  
-  %---------------------------%
-  %-singleplotER (multiple conditions at once)
-  for c = 1:numel(cfg.gerp.chan)
-    
-    %-----------------%
-    %-figure
-    h = figure;
-    set(h, 'Renderer', 'painters')
-    
-    %--------%
-    %-plot
-    cfg3 = [];
-    cfg3.channel = cfg.gerp.chan(c).chan;
-    cfg3.baseline = cfg.gerp.bline;
-    cfg3.ylim = 'maxabs';
-    ft_singleplotER(cfg3, gerp{:});
-    
-    legend('cond1', 'cond2')
-    
-    title([comp ' ' cfg.gerp.chan(c).name], 'Interpreter', 'none')
-    %--------%
-    %-----------------%
-    
-    %-----------------%
-    %-save and link
-    pngname = sprintf('gerp_erp_%s_%s', comp, cfg.gerp.chan(c).name);
-    saveas(gcf, [cfg.log filesep pngname '.png'])
-    close(gcf); drawnow
-    
-    [~, logfile] = fileparts(cfg.log);
-    system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
-    %-----------------%
-    
-  end
-  %---------------------------%
-  
-  %---------------------------%
-  %-topoplotTFR (loop over tests)
-  if ~isempty(cfg.sens.layout)
-    
-    %-----------------%
-    %-figure
-    h = figure;
-    set(h, 'Renderer', 'painters')
-    
-    %--------%
-    %-plot
-    cfg4 = [];
-    
-    timelim = gplot.time([1 end]);
-    cfg4.xlim = timelim(1):.1:timelim(2); % one plot every 100 ms
-    
-    cfg4.zlim = [-1 1] * max(gplot.avg(:));
-    
-    cfg4.layout = layout;
-    cfg4.style = 'straight';
-    cfg4.marker = 'off';
-    cfg4.comment = 'xlim';
-    cfg4.commentpos = 'title';
-    
-    ft_topoplotER(cfg4, gplot);
-    %--------%
-    
-    %--------%
-    %-colorbar only for last subplot, to give indication on scaling
-    colorbar
-    %--------%
-    %-----------------%
-    
-    %-----------------%
-    %-save and link
-    pngname = sprintf('gerp_topo_%s', comp);
-    saveas(gcf, [cfg.log filesep pngname '.png'])
-    close(gcf); drawnow
-    
-    [~, logfile] = fileparts(cfg.log);
-    system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
-    %-----------------%
-    
-  end
-  %---------------------------%
+  %-------------------------------------%
   
 end
 %-----------------------------------------------%

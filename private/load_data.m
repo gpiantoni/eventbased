@@ -33,21 +33,21 @@ function [data badchan] = load_data(cfg, subj, cond)
 ddir = sprintf('%s%04d/%s/%s/', cfg.data, subj, cfg.mod, cfg.nick); % data
 beginname = sprintf('%s_%s_%04d_%s_', cfg.nick, cfg.rec, subj, cfg.mod); % beginning of datafile
 
-allfile = dir([ddir beginname cond cfg.endname '.mat']); % files matching a preprocessing
+dnames = dir([ddir beginname cond cfg.endname '.mat']); % files matching a preprocessing
 %-----------------%
 
 %-----------------%
 %-concatenate only if you have more datasets
-if numel(allfile) > 1
+if numel(dnames) > 1
   spcell = @(name) sprintf('%s%s', ddir, name);
-  allname = cellfun(spcell, {allfile.name}, 'uni', 0);
+  allname = cellfun(spcell, {dnames.name}, 'uni', 0);
   
   cfg1 = [];
   cfg1.inputfile = allname;
   data = ft_appenddata(cfg1);
   
-elseif numel(allfile) == 1
-  load([ddir allfile(1).name], 'data')
+elseif numel(dnames) == 1
+  load([ddir dnames(1).name], 'data')
   
 else
   data = [];
