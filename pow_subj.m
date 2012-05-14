@@ -56,12 +56,7 @@ for k = 1:numel(cfg.pow.cond)
   %---------------------------%
   %-calculate power
   cfg2 = cfg.pow;
-  cfg2.feedback = 'etf';
-  
-  if cfg.pow.outliers
-    cfg2.keeptrials = 'yes';
-  end
-  
+  cfg2.feedback = 'etf';  
   freq = ft_freqanalysis(cfg2, data);
   
   if isfield(cfg.pow, 'toi')
