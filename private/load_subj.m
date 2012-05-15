@@ -73,7 +73,7 @@ end
 nodata = cellfun(@isempty, dataout);
 if any(nodata)
   output = sprintf('%s!!! WARNING: in condition %s, no data for subjects: %s !!!\n', ...
-    output, cond2, sprintf(' %d', cfg.subjall(nodata)));
+    output, cond, sprintf(' %d', cfg.subjall(nodata)));
   dataout = dataout(~nodata);
 end
 %---------------------------%
