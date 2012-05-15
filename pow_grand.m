@@ -255,8 +255,8 @@ if isfield(cfg.gpow, 'comp')
         cfg5.ylim = cfg.gpow.freq(f).freq;
         
         %-color scaling specific to each frequency band
-        i_freq1 = nearest(gpow{f}.freq, cfg.gpow.freq(f).freq(1));
-        i_freq2 = nearest(gpow{f}.freq, cfg.gpow.freq(f).freq(2));
+        i_freq1 = nearest(gpow{1}.freq, cfg.gpow.freq(f).freq(1));
+        i_freq2 = nearest(gpow{1}.freq, cfg.gpow.freq(f).freq(2));
         powspctrm = gplot.powspctrm(:, i_freq1:i_freq2, :);
         cfg5.zlim = [-1 1] * max(powspctrm(:));
         
@@ -266,8 +266,8 @@ if isfield(cfg.gpow, 'comp')
         cfg5.commentpos = 'title';
         
         %-no topoplot if the data contains NaN
-        onedat = squeeze(gpow{t}.powspctrm(1, i_freq1, :)); % take one example, lowest frequency
-        cfg5.xlim = gpow{t}.time(~isnan(onedat));
+        onedat = squeeze(gpow{1}.powspctrm(1, i_freq1, :)); % take one example, lowest frequency
+        cfg5.xlim = gpow{1}.time(~isnan(onedat));
         
         ft_topoplotER(cfg5, gplot);
         %--------%
