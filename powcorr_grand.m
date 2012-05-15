@@ -130,6 +130,7 @@ if isfield(cfg.gpowcorr, 'comp')
       %-compare against baseline
       cond = cfg.gpowcorr.comp{t}{1};
       comp = regexprep(cond, '*', '');
+      output = sprintf('%s\n   COMPARISON %s\n', output, cond);
       
       %-------%
       %-powcorr over subj
@@ -163,7 +164,7 @@ if isfield(cfg.gpowcorr, 'comp')
       cond1 = cfg.gpowcorr.comp{t}{1};
       cond2 = cfg.gpowcorr.comp{t}{2};
       comp = [regexprep(cond1, '*', '') '_' regexprep(cond2, '*', '')];
-      
+      output = sprintf('%s\n   COMPARISON %s vs %s\n', output, cond1, cond2);      
       %-------%
       %-powcorr over subj
       [data] = load_subj(cfg, 'powcorr', cond1);

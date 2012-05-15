@@ -124,6 +124,7 @@ if isfield(cfg.gpow, 'comp')
       %-compare against baseline
       cond = cfg.gpow.comp{t}{1};
       comp = regexprep(cond, '*', '');
+      output = sprintf('%s\n   COMPARISON %s\n', output, cond);
       
       %-------%
       %-pow over subj
@@ -154,6 +155,7 @@ if isfield(cfg.gpow, 'comp')
       cond1 = cfg.gpow.comp{t}{1};
       cond2 = cfg.gpow.comp{t}{2};
       comp = [regexprep(cond1, '*', '') '_' regexprep(cond2, '*', '')];
+      output = sprintf('%s\n   COMPARISON %s vs %s\n', output, cond1, cond2);
       
       %-------%
       %-pow over subj
