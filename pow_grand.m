@@ -52,9 +52,9 @@ function pow_grand(cfg)
 %  gpow_topo_COMP_FREQ: topoplot POW for each frequency, over time
 %
 % Part of EVENTBASED group-analysis
-% see also ERP_SUBJ, ERP_GRAND, ERP_STAT, ERPSOURCE_SUBJ, ERPSOURCE_GRAND,
-% POW_SUBJ, POW_GRAND, POW_STAT, POWSOURCE_SUBJ, POWSOURCE_GRAND,
-% POWCORR_SUBJ, POWCORR_GRAND, POWCORR_STAT, POWSTAT_SUBJ, POWSTAT_GRAND,
+% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND,
+% POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND,
+% POWCORR_SUBJ, POWCORR_GRAND, POWSTAT_SUBJ, POWSTAT_GRAND,
 % CONN_SUBJ, CONN_GRAND, CONN_STAT
 
 %---------------------------%
@@ -143,6 +143,7 @@ if isfield(cfg.gpow, 'comp')
       gplot = gpow{1};
       %-------%
       
+      disp(comp)
       [powpeak outtmp] = reportcluster(cfg, gpowall1);
       %-----------------%
       
@@ -190,6 +191,7 @@ if isfield(cfg.gpow, 'comp')
       end
       %-------%
       
+      disp(comp)
       [powpeak outtmp] = reportcluster(cfg, gpowall1, gpowall2);
       %-----------------%
       
@@ -365,7 +367,7 @@ for i = 1:numel(data)
   
   %-------%
   %-baseline correction
-  if ~isempty(cfg.pow.bl)
+  if isfield(cfg.pow, 'bl') && ~isempty(cfg.pow.bl)
     cfg3 = [];
     cfg3.baseline = cfg.pow.bl.baseline;
     cfg3.baselinetype = cfg.pow.bl.baselinetype;
