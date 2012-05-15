@@ -103,6 +103,7 @@ if isfield(cfg.gerp, 'comp')
       %-compare against baseline
       cond = cfg.gerp.comp{t}{1};
       comp = regexprep(cond, '*', '');
+      output = sprintf('%s\n   COMPARISON %s\n', output, cond);
       
       %-------%
       %-erp over subj
@@ -131,6 +132,7 @@ if isfield(cfg.gerp, 'comp')
       cond1 = cfg.gerp.comp{t}{1};
       cond2 = cfg.gerp.comp{t}{2};
       comp = [regexprep(cond1, '*', '') '_' regexprep(cond2, '*', '')];
+      output = sprintf('%s\n   COMPARISON %s vs %s\n', output, cond1, cond2);
       
       %-------%
       %-erp over subj

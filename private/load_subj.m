@@ -61,7 +61,7 @@ for i = 1:numel(cfg.subjall)
       end
   end
 end
-if isempty(data)
+if isempty(dataout)
   output = sprintf('%s%s data in condition %s does not exist!\n', ...
     output, type, cond);
   return

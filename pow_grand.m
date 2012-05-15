@@ -52,9 +52,9 @@ function pow_grand(cfg)
 %  gpow_topo_COMP_FREQ: topoplot POW for each frequency, over time
 %
 % Part of EVENTBASED group-analysis
-% see also ERP_SUBJ, ERP_GRAND, ERP_STAT, ERPSOURCE_SUBJ, ERPSOURCE_GRAND,
-% POW_SUBJ, POW_GRAND, POW_STAT, POWSOURCE_SUBJ, POWSOURCE_GRAND,
-% POWCORR_SUBJ, POWCORR_GRAND, POWCORR_STAT, POWSTAT_SUBJ, POWSTAT_GRAND,
+% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND,
+% POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND,
+% POWCORR_SUBJ, POWCORR_GRAND, POWSTAT_SUBJ, POWSTAT_GRAND,
 % CONN_SUBJ, CONN_GRAND, CONN_STAT
 
 %---------------------------%
@@ -122,6 +122,7 @@ if isfield(cfg.gpow, 'comp')
       %-compare against baseline
       cond = cfg.gpow.comp{t}{1};
       comp = regexprep(cond, '*', '');
+      output = sprintf('%s\n   COMPARISON %s\n', output, cond);
       
       %-------%
       %-pow over subj
@@ -141,6 +142,7 @@ if isfield(cfg.gpow, 'comp')
       gplot = gpow{1};
       %-------%
       
+      disp(comp)
       [powpeak outtmp] = reportcluster(cfg, gpowall1);
       %-----------------%
       
@@ -151,6 +153,7 @@ if isfield(cfg.gpow, 'comp')
       cond1 = cfg.gpow.comp{t}{1};
       cond2 = cfg.gpow.comp{t}{2};
       comp = [regexprep(cond1, '*', '') '_' regexprep(cond2, '*', '')];
+      output = sprintf('%s\n   COMPARISON %s vs %s\n', output, cond1, cond2);
       
       %-------%
       %-pow over subj
@@ -186,6 +189,7 @@ if isfield(cfg.gpow, 'comp')
       end
       %-------%
       
+      disp(comp)
       [powpeak outtmp] = reportcluster(cfg, gpowall1, gpowall2);
       %-----------------%
       
@@ -351,4 +355,27 @@ fid = fopen([cfg.log '.txt'], 'a');
 fwrite(fid, output);
 fclose(fid);
 %-----------------%
+<<<<<<< HEAD
 %---------------------------%
+=======
+%---------------------------%
+
+%-----------------------------------------------%
+%-apply baseline
+function [data] = baseline(cfg, data)
+%-load and apply baseline correction if necessary
+for i = 1:numel(data)
+  
+  %-------%
+  %-baseline correction
+  if isfield(cfg.pow, 'bl') && ~isempty(cfg.pow.bl)
+    cfg3 = [];
+    cfg3.baseline = cfg.pow.bl.baseline;
+    cfg3.baselinetype = cfg.pow.bl.baselinetype;
+    data{i} = ft_freqbaseline(cfg3, data{i});
+  end
+  %-------%
+  
+end
+%-----------------------------------------------%
+>>>>>>> 9990d7fa9af07df114113745a4958df29f7aafb5
