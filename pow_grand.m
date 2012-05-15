@@ -77,8 +77,6 @@ for k = 1:numel(cfg.pow.cond)
   [data outtmp] = load_subj(cfg, 'pow', cond);
   output = [output outtmp];
   if isempty(data); continue; end
-  data = data(~cellfun(@isempty, data));
-  data = baseline(cfg, data);
   %-----------------%
   
   %-----------------%
@@ -127,10 +125,10 @@ if isfield(cfg.gpow, 'comp')
       
       %-------%
       %-pow over subj
-      [data] = load_subj(cfg, 'pow', cond);
+      [data outtmp] = load_subj(cfg, 'pow', cond);
+      output = [output outtmp];
       if isempty(data); continue; end
-      data = data(~cellfun(@isempty, data));
-      data = baseline(cfg, data);
+      nodata = cellfun(@isempty, data);
       
       cfg1 = [];
       gpow{1} = ft_freqgrandaverage(cfg1, data{:});
@@ -156,28 +154,26 @@ if isfield(cfg.gpow, 'comp')
       
       %-------%
       %-pow over subj
-      [data] = load_subj(cfg, 'pow', cond1);
+      [data outtmp] = load_subj(cfg, 'pow', cond1);
+      output = [output outtmp];
       if isempty(data); continue; end
-      data = data(~cellfun(@isempty, data));
-      data = baseline(cfg, data);
       
       cfg1 = [];
-      gpow{1} = ft_timelockgrandaverage(cfg1, data{:});
+      gpow{1} = ft_freqgrandaverage(cfg1, data{:});
       cfg1.keepindividual = 'yes';
-      gpowall1 = ft_timelockgrandaverage(cfg1, data{:});
+      gpowall1 = ft_freqgrandaverage(cfg1, data{:});
       %-------%
       
       %-------%
       %-pow over subj
-      [data] = load_subj(cfg, 'pow', cond2);
+      [data outtmp] = load_subj(cfg, 'pow', cond2);
+      output = [output outtmp];
       if isempty(data); continue; end
-      data = data(~cellfun(@isempty, data));
-      data = baseline(cfg, data);
       
       cfg1 = [];
-      gpow{2} = ft_timelockgrandaverage(cfg1, data{:});
+      gpow{2} = ft_freqgrandaverage(cfg1, data{:});
       cfg1.keepindividual = 'yes';
-      gpowall2 = ft_timelockgrandaverage(cfg1, data{:});
+      gpowall2 = ft_freqgrandaverage(cfg1, data{:});
       %-------%
       
       %-------%
@@ -356,22 +352,3 @@ fwrite(fid, output);
 fclose(fid);
 %-----------------%
 %---------------------------%
-
-%-----------------------------------------------%
-%-apply baseline
-function [data] = baseline(cfg, data)
-%-load and apply baseline correction if necessary
-for i = 1:numel(data)
-  
-  %-------%
-  %-baseline correction
-  if ~isempty(cfg.pow.bl)
-    cfg3 = [];
-    cfg3.baseline = cfg.pow.bl.baseline;
-    cfg3.baselinetype = cfg.pow.bl.baselinetype;
-    data{i} = ft_freqbaseline(cfg3, data{i});
-  end
-  %-------%
-  
-end
-%-----------------------------------------------%

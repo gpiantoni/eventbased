@@ -30,7 +30,7 @@ function [dataout output] = load_subj(cfg, type, cond)
 output = '';
 dataout = [];
 
-%-----------------%
+%---------------------------%
 %-file for each cond
 typedir = ['d' type(1:3)]; % derp, dpow or dcon
 groupdir = cfg.(typedir);
@@ -61,4 +61,31 @@ for i = 1:numel(cfg.subjall)
       end
   end
 end
-%-----------------%
+%---------------------------%
+
+%---------------------------%
+%-check if datasets are missing
+nodata = cellfun(@isempty, dataout);
+if any(nodata)
+  output = sprintf('%s!!! WARNING: in condition %s, no data for subjects: %s !!!\n', ...
+    output, cond2, sprintf(' %d', cfg.subjall(nodata)));
+  dataout = dataout(~nodata);
+end
+%---------------------------%
+
+%---------------------------%
+%-apply baseline
+if isfield(cfg, 'pow') && isfield(cfg.pow, 'bl') && ~isempty(cfg.pow.bl)
+  for i = 1:numel(dataout)
+    
+    %-------%
+    %-baseline correction
+    cfg3 = [];
+    cfg3.baseline = cfg.pow.bl.baseline;
+    cfg3.baselinetype = cfg.pow.bl.baselinetype;
+    dataout{i} = ft_freqbaseline(cfg3, dataout{i});
+    %-------%
+    
+  end
+end
+%---------------------------%
