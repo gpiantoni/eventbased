@@ -355,27 +355,4 @@ fid = fopen([cfg.log '.txt'], 'a');
 fwrite(fid, output);
 fclose(fid);
 %-----------------%
-<<<<<<< HEAD
 %---------------------------%
-=======
-%---------------------------%
-
-%-----------------------------------------------%
-%-apply baseline
-function [data] = baseline(cfg, data)
-%-load and apply baseline correction if necessary
-for i = 1:numel(data)
-  
-  %-------%
-  %-baseline correction
-  if isfield(cfg.pow, 'bl') && ~isempty(cfg.pow.bl)
-    cfg3 = [];
-    cfg3.baseline = cfg.pow.bl.baseline;
-    cfg3.baselinetype = cfg.pow.bl.baselinetype;
-    data{i} = ft_freqbaseline(cfg3, data{i});
-  end
-  %-------%
-  
-end
-%-----------------------------------------------%
->>>>>>> 9990d7fa9af07df114113745a4958df29f7aafb5
