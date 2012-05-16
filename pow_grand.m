@@ -183,9 +183,9 @@ if isfield(cfg.gpow, 'comp')
       %-data for plot
       gplot = gpow{2};
       if isempty(cfg.pow.bl)
-        gplot.powspctrm = log(gpow{i_cond1}.powspctrm ./ gpow{i_cond2}.powspctrm);
+        gplot.powspctrm = log(gpow{2}.powspctrm ./ gpow{1}.powspctrm);
       else % with baseline correction, take the difference
-        gplot.powspctrm = gpow{i_cond1}.powspctrm - gpow{i_cond2}.powspctrm;
+        gplot.powspctrm = gpow{2}.powspctrm - gpow{1}.powspctrm;
       end
       %-------%
       
