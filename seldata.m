@@ -37,7 +37,7 @@ function seldata(cfg, subj)
 % later, during redef.m
 %
 % Part of EVENTBASED preprocessing
-% see also SELDATA, GCLEAN, PREPROC, REDEF
+% see also SELDATA, GCLEAN, REDEF
 
 %---------------------------%
 %-start log
