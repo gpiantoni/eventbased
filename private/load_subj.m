@@ -79,8 +79,9 @@ end
 %---------------------------%
 
 %---------------------------%
-%-apply baseline
-if isfield(cfg, 'pow') && isfield(cfg.pow, 'bl') && ~isempty(cfg.pow.bl)
+%-apply baseline to pow data
+if strcmp(type, 'pow') && ...
+    isfield(cfg, 'pow') && isfield(cfg.pow, 'bl') && ~isempty(cfg.pow.bl)
   for i = 1:numel(dataout)
     
     %-------%
