@@ -44,7 +44,7 @@ function redef(cfg, subj)
 %   output is a text for output
 %
 % Part of EVENTBASED preprocessing
-% see also SELDATA, GCLEAN, PREPROC, REDEF
+% see also SELDATA, GCLEAN, REDEF
 
 %---------------------------%
 %-start log

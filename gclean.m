@@ -37,7 +37,7 @@ function gclean(cfg, subj)
 %  It appends '_gclean' at the end of the filename
 %
 % Part of EVENTBASED preprocessing
-% see also SELDATA, GCLEAN, PREPROC, REDEF
+% see also SELDATA, GCLEAN, REDEF
 
 %---------------------------%
 %-start log
