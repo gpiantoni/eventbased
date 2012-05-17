@@ -74,7 +74,7 @@ for k = 1:numel(cfg.pow.cond)
   
   %-----------------%
   %-pow over subj
-  [data outtmp] = load_subj(cfg, 'pow', cond);
+  [outtmp data] = load_subj(cfg, 'pow', cond);
   output = [output outtmp];
   if isempty(data); continue; end
   %-----------------%
@@ -126,10 +126,9 @@ if isfield(cfg.gpow, 'comp')
       
       %-------%
       %-pow over subj
-      [data outtmp] = load_subj(cfg, 'pow', cond);
+      [outtmp data] = load_subj(cfg, 'pow', cond);
       output = [output outtmp];
       if isempty(data); continue; end
-      nodata = cellfun(@isempty, data);
       
       cfg1 = [];
       gpow{1} = ft_freqgrandaverage(cfg1, data{:});
@@ -141,8 +140,7 @@ if isfield(cfg.gpow, 'comp')
       %-data to plot
       gplot = gpow{1};
       %-------%
-      
-      disp(comp)
+
       [powpeak outtmp] = reportcluster(cfg, gpowall1);
       %-----------------%
       
@@ -157,26 +155,16 @@ if isfield(cfg.gpow, 'comp')
       
       %-------%
       %-pow over subj
-      [data outtmp] = load_subj(cfg, 'pow', cond1);
+      [outtmp data1 data2] = load_subj(cfg, 'pow', cfg.pow.cond{t});
       output = [output outtmp];
       if isempty(data); continue; end
       
       cfg1 = [];
-      gpow{1} = ft_freqgrandaverage(cfg1, data{:});
+      gpow{1} = ft_freqgrandaverage(cfg1, data1{:});
+      gpow{2} = ft_freqgrandaverage(cfg1, data2{:});
       cfg1.keepindividual = 'yes';
-      gpowall1 = ft_freqgrandaverage(cfg1, data{:});
-      %-------%
-      
-      %-------%
-      %-pow over subj
-      [data outtmp] = load_subj(cfg, 'pow', cond2);
-      output = [output outtmp];
-      if isempty(data); continue; end
-      
-      cfg1 = [];
-      gpow{2} = ft_freqgrandaverage(cfg1, data{:});
-      cfg1.keepindividual = 'yes';
-      gpowall2 = ft_freqgrandaverage(cfg1, data{:});
+      gpowall1 = ft_freqgrandaverage(cfg1, data1{:});
+      gpowall2 = ft_freqgrandaverage(cfg1, data2{:});
       %-------%
       
       %-------%
@@ -189,7 +177,6 @@ if isfield(cfg.gpow, 'comp')
       end
       %-------%
       
-      disp(comp)
       [powpeak outtmp] = reportcluster(cfg, gpowall1, gpowall2);
       %-----------------%
       

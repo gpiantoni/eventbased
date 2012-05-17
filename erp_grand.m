@@ -64,13 +64,13 @@ for k = 1:numel(cfg.erp.cond)
   
   %-----------------%
   %-erp over subj
-  [data outtmp] = load_subj(cfg, 'erp', cond);
+  [outtmp data] = load_subj(cfg, 'erp', cond);
   output = [output outtmp];
   if isempty(data); continue; end
-  data = data(~cellfun(@isempty, data));
   
   cfg1 = [];
   gerp = ft_timelockgrandaverage(cfg1, data{:});
+  gerp.cfg = [];
   %-----------------%
   
   %-----------------%
@@ -107,9 +107,9 @@ if isfield(cfg.gerp, 'comp')
       
       %-------%
       %-erp over subj
-      [data] = load_subj(cfg, 'erp', cond);
+      [outtmp data] = load_subj(cfg, 'erp', cond);
+      output = [output outtmp];
       if isempty(data); continue; end
-      data = data(~cellfun(@isempty, data));
       
       cfg1 = [];
       gerp{1} = ft_timelockgrandaverage(cfg1, data{:});
@@ -136,26 +136,17 @@ if isfield(cfg.gerp, 'comp')
       
       %-------%
       %-erp over subj
-      [data] = load_subj(cfg, 'erp', cond1);
-      if isempty(data); continue; end
-      data = data(~cellfun(@isempty, data));
+      [outtmp, data1, data2] = load_subj(cfg, 'erp', cfg.gerp.comp{t});
+      output = [output outtmp];
+      if isempty(data1); continue; end
       
       cfg1 = [];
-      gerp{1} = ft_timelockgrandaverage(cfg1, data{:});
-      cfg1.keepindividual = 'yes';
-      gerpall1 = ft_timelockgrandaverage(cfg1, data{:});
-      %-------%
+      gerp{1} = ft_timelockgrandaverage(cfg1, data1{:});
+      gerp{2} = ft_timelockgrandaverage(cfg1, data2{:});
       
-      %-------%
-      %-erp over subj
-      [data] = load_subj(cfg, 'erp', cond2);
-      if isempty(data); continue; end
-      data = data(~cellfun(@isempty, data));
-      
-      cfg1 = [];
-      gerp{2} = ft_timelockgrandaverage(cfg1, data{:});
       cfg1.keepindividual = 'yes';
-      gerpall2 = ft_timelockgrandaverage(cfg1, data{:});
+      gerpall1 = ft_timelockgrandaverage(cfg1, data1{:});
+      gerpall2 = ft_timelockgrandaverage(cfg1, data2{:});
       %-------%
       
       %-------%

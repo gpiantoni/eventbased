@@ -89,7 +89,7 @@ for k = 1:numel(cfg.powsource.cond)
   
   %-----------------%
   %-file for each cond
-  [data outtmp] = load_subj(cfg, 'powsource', cond);
+  [outtmp data] = load_subj(cfg, 'powsource', cond);
   output = [output outtmp];
   if isempty(data); continue; end
   %-----------------%

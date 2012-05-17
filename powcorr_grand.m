@@ -68,10 +68,9 @@ for k = 1:numel(cfg.powcorr.cond)
   
   %-----------------%
   %-powcorr over subj
-  [data outtmp] = load_subj(cfg, 'powcorr', cond);
+  [outtmp data] = load_subj(cfg, 'powcorr', cond);
   output = [output outtmp];
   if isempty(data); continue; end
-  data = data(~cellfun(@isempty, data));
   %-----------------%
   
   %-----------------%
@@ -134,9 +133,9 @@ if isfield(cfg.gpowcorr, 'comp')
       
       %-------%
       %-powcorr over subj
-      [data] = load_subj(cfg, 'powcorr', cond);
+      [outtmp data] = load_subj(cfg, 'powcorr', cond);
+      output = [output outtmp];
       if isempty(data); continue; end
-      data = data(~cellfun(@isempty, data));
       
       cfg1 = [];
       cfg1.keepindividual = 'yes';
@@ -164,36 +163,25 @@ if isfield(cfg.gpowcorr, 'comp')
       cond1 = cfg.gpowcorr.comp{t}{1};
       cond2 = cfg.gpowcorr.comp{t}{2};
       comp = [regexprep(cond1, '*', '') '_' regexprep(cond2, '*', '')];
-      output = sprintf('%s\n   COMPARISON %s vs %s\n', output, cond1, cond2);      
+      output = sprintf('%s\n   COMPARISON %s vs %s\n', output, cond1, cond2);
+      
       %-------%
       %-powcorr over subj
-      [data] = load_subj(cfg, 'powcorr', cond1);
+      [outtmp data1 data2] = load_subj(cfg, 'powcorr', cfg.gpowcorr.comp{t});
+      output = [output outtmp];
       if isempty(data); continue; end
-      data = data(~cellfun(@isempty, data));
       
       cfg1 = [];
       cfg1.keepindividual = 'yes';
-      gpowcorrall1 = ft_freqgrandaverage(cfg1, data{:});
+      gpowcorrall1 = ft_freqgrandaverage(cfg1, data1{:});
+      gpowcorrall2 = ft_freqgrandaverage(cfg1, data2{:});
       
       cfg2 = [];
       cfg2.variance = 'yes';
       gpowcorr{1} = ft_freqdescriptives(cfg2, gpowcorrall1);
       gpowcorr{1}.tscore =  gpowcorr{1}.powspctrm ./ gpowcorr{1}.powspctrmsem;
       gpowcorr{1}.cfg = []; % remove cfg
-      %-------%
-      
-      %-------%
-      %-powcorr over subj
-      [data] = load_subj(cfg, 'powcorr', cond2);
-      if isempty(data); continue; end
-      data = data(~cellfun(@isempty, data));
-      
-      cfg1 = [];
-      cfg1.keepindividual = 'yes';
-      gpowcorrall2 = ft_freqgrandaverage(cfg1, data{:});
-      
-      cfg2 = [];
-      cfg2.variance = 'yes';
+
       gpowcorr{2} = ft_freqdescriptives(cfg2, gpowcorrall2);
       gpowcorr{2}.tscore =  gpowcorr{2}.powspctrm ./ gpowcorr{2}.powspctrmsem;
       gpowcorr{2}.cfg = []; % remove cfg

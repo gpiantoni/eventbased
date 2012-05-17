@@ -77,7 +77,7 @@ for k = 1:numel(cfg.erpsource.cond)
   
   %-----------------%
   %-file for each cond
-  [data outtmp] = load_subj(cfg, 'erpsource', cond);
+  [outtmp data] = load_subj(cfg, 'erpsource', cond);
   output = [output outtmp];
   if isempty(data); continue; end
   %-----------------%

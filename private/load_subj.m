@@ -1,4 +1,4 @@
-function [dataout output] = load_subj(cfg, type, cond)
+function [output data1 data2] = load_subj(cfg, type, cond)
 %LOAD_SUBJ load single-subject data
 % Use as:
 %   [data] = load_subj(cfg, type, cond)
@@ -6,8 +6,8 @@ function [dataout output] = load_subj(cfg, type, cond)
 % CFG
 %  .data: path of /data1/projects/PROJ/subjects/
 %  .rec: REC in /data1/projects/PROJ/recordings/REC/
-%  .nick: NICK in /data1/projects/PROJ/subjects/SUBJCODE/MOD/NICK/
-%  .mod: modality, MOD in /data1/projects/PROJ/subjects/SUBJCODE/MOD/NICK/
+%  .nick: NICK in /data1/projects/PROJ/subjects/SUBJ/MOD/NICK/
+%  .mod: modality, MOD in /data1/projects/PROJ/subjects/SUBJ/MOD/NICK/
 %  .endname: includes preprocessing steps (e.g. '_seldata_gclean_preproc_redef')
 %
 % TYPE
@@ -17,6 +17,7 @@ function [dataout output] = load_subj(cfg, type, cond)
 %   a string with the name used to read the data. The file name is
 %   structured as: TYPE_SUBJ_COND
 %   COND should not have leading or trailing underscores
+%   It can also be a cell with multiple COND
 %
 % DATA
 %   data in the specified condition
@@ -27,11 +28,102 @@ function [dataout output] = load_subj(cfg, type, cond)
 %
 % Part of EVENTBASED/PRIVATE
 
-output = '';
-dataout = [];
+if ischar(cond)
+  
+  %-------------------------------------%
+  %-one condition
+  %-----------------%
+  %-read the data
+  [data1 output] = readdata(cfg, type, cond);
+  %-----------------%
+  
+  %-----------------%
+  %-if data is completely empty
+  if isempty(data1)
+    output = sprintf('%s data in condition %s does not exist!\n', ...
+      type, cond);
+    return
+  end
+  %-----------------%
+  
+  %-----------------%
+  %-check if datasets are missing
+  nodata = cellfun(@isempty, data1);
+  if any(nodata)
+    output = sprintf('%s!!! WARNING: in condition %s, no data for subjects: %s !!!\n', ...
+      output, cond, sprintf(' %d', cfg.subjall(nodata)));
+    data1 = data1(~nodata);
+  end
+  %-----------------%
+  
+  %-----------------%
+  %-baseline correction
+  if strcmp(type, 'pow') && ...
+      isfield(cfg, 'pow') && isfield(cfg.pow, 'bl') && ~isempty(cfg.pow.bl)
+    data1 = baseline(cfg, data1);
+  end
+  %-----------------%
+  %-------------------------------------%
+  
+else 
+  
+  %-------------------------------------%
+  %-two conditions
+  
+  %-----------------%
+  %-read the data
+  [data1 output] = readdata(cfg, type, cond{1});
+  [data2 outtmp] = readdata(cfg, type, cond{2});
+  output = [output outtmp];
+  %-----------------%
+  
+  %-----------------%
+  %-if data is completely empty
+  if isempty(data1) 
+    output = sprintf('%s data in condition %s does not exist!\n', ...
+      type, cond{1});
+    return
+  end
+  
+  if isempty(data2) 
+    output = sprintf('%s data in condition %s does not exist!\n', ...
+      type, cond{2});
+    return
+  end
+  %-----------------%
+  
+  %-----------------%
+  %-check if datasets are missing
+  nodata1 = cellfun(@isempty, data1);
+  nodata2 = cellfun(@isempty, data2);
+  nodata = nodata1 | nodata2;
+  if any(nodata)
+    output = sprintf('%s!!! WARNING: in condition %s and %s, missing data for subjects: %s !!!\n', ...
+      output, cond{1}, cond{2}, sprintf(' %04d', cfg.subjall(nodata)));
+    data1 = data1(~nodata);
+    data2 = data2(~nodata);
+  end
+  %-----------------%
+  
+  %-----------------%
+  %-baseline correction
+  if strcmp(type, 'pow') && ...
+      isfield(cfg, 'pow') && isfield(cfg.pow, 'bl') && ~isempty(cfg.pow.bl)
+    data1 = baseline(cfg, data1);
+    data2 = baseline(cfg, data2);
+  end
+  %-----------------%
+  
+end
+%-------------------------------------%
+
+%-------------------------------------%
+function [dataout output] = readdata(cfg, type, cond)
+%READDATA read the single subject data
 
 %---------------------------%
 %-file for each cond
+output = '';
 typedir = ['d' type(1:3)]; % derp, dpow or dcon
 groupdir = cfg.(typedir);
 condname = regexprep(cond, '*', '');
@@ -61,37 +153,23 @@ for i = 1:numel(cfg.subjall)
       end
   end
 end
-if isempty(dataout)
-  output = sprintf('%s%s data in condition %s does not exist!\n', ...
-    output, type, cond);
-  return
-end
 %---------------------------%
+%-------------------------------------%
+
+%-------------------------------------%
+function data = baseline(cfg, data)
 
 %---------------------------%
-%-check if datasets are missing
-nodata = cellfun(@isempty, dataout);
-if any(nodata)
-  output = sprintf('%s!!! WARNING: in condition %s, no data for subjects: %s !!!\n', ...
-    output, cond, sprintf(' %d', cfg.subjall(nodata)));
-  dataout = dataout(~nodata);
+for i = 1:numel(data)
+  
+  %-------%
+  %-baseline correction
+  cfg3 = [];
+  cfg3.baseline = cfg.pow.bl.baseline;
+  cfg3.baselinetype = cfg.pow.bl.baselinetype;
+  data{i} = ft_freqbaseline(cfg3, data{i});
+  %-------%
+  
 end
 %---------------------------%
-
-%---------------------------%
-%-apply baseline to pow data
-if strcmp(type, 'pow') && ...
-    isfield(cfg, 'pow') && isfield(cfg.pow, 'bl') && ~isempty(cfg.pow.bl)
-  for i = 1:numel(dataout)
-    
-    %-------%
-    %-baseline correction
-    cfg3 = [];
-    cfg3.baseline = cfg.pow.bl.baseline;
-    cfg3.baselinetype = cfg.pow.bl.baselinetype;
-    dataout{i} = ft_freqbaseline(cfg3, dataout{i});
-    %-------%
-    
-  end
-end
-%---------------------------%
+%-------------------------------------%

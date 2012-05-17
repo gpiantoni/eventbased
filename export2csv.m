@@ -71,7 +71,7 @@ for t = 1:numel(cfg.gpow.comp)
   %-------%
   
   %-------%
-  %-loop over first two peaks
+  %-loop over first peaks
   
   for p = 1:npeaks
     if  p <= numel(powpeak)
