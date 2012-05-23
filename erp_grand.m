@@ -19,7 +19,7 @@ function erp_grand(cfg)
 %        but you cannot have more than 2 conditions (it's always a t-test).
 %   If empty, not statistics and no plots
 %   If stats,
-%     .gerp.test.time: time limit for statistics (two scalars)
+%     .gerp.stat.time: time limit for statistics (two scalars)
 %     .cluster.thr: threshold to consider clusters are erppeaks
 %
 %-Plot

@@ -1,28 +1,64 @@
 function [clpeak output] = reportcluster(cfg, gdat, gdat2)
-%REPORTCLUSTER get cluster which are different from zero, even if not significant
-% The clusters to determine the main results of the analysis, for example
-% to concentrate the source reconstruction
-% It returns clpeak
-%   .freq = center of the frequency band
-%   .band = size in frequency of the frequency band (take half of that for dpss)
-%   .time = center of the time window
-%   .wndw = length of the time window
-%   .name = the name, based on the peak frequency and peak time
-% Note that the name refers to the peak frequency and peak time window,
-% they should not be very different from .freq and .time
+%REPORTCLUSTER report which clusters are significant
+% It compares against zero or two conditions. The significant
+% time-(freq)-sensor points are clustered and then statistics is run on
+% these clusters. Significant clusters will be reported and can be used for
+% further analysis, for example, for source reconstruction.
+%
+% Not to called directly, but this function is called by ERP_GRAND,
+% POW_GRAND and POWCORR_GRAND.
+% Use as:
+%   [clpeak output] = reportcluster(cfg, gdat, gdat2)
+%
+% CFG
+%  .sens.file: file with EEG sensors. It can be sfp or mat.
+%  .sens.dist: distance of two sensors to be considered neighbors
+%
+%  You can then specify the time window and frequency band to do statistics on:
+%  .gerp.stat.time: for ERP only, two scalars for the beginning and end of the time window
+%
+%  .gpow.stat.time: for POW only, two scalars for the beginning and end of the time window
+%  .gpow.stat.freq: for POW only, two scalars for the beginning and end of the frequency band
+% 
+%  .gpowcorr.stat.time: for POWCORR only, two scalars for the beginning and end of the time window
+%  .gpowcorr.stat.freq: for POWCORR only, two scalars for the beginning and end of the frequency band
+% 
+%  .cluster.thr: threshold 
+%
+%  .pow:
+%  
+% GDAT, GDAT2
+%  One or two datasets obtained from ft_timelockgrandaverage or
+%  ft_freqgrandaverage.
+%  If one dataset, the dataset is compared against zero
+%  If two datasets, the two datasets are compared against each other in a
+%  PAIRED t-test.
+%  More complicated designs are not possible.
+%
+% CLPEAK
+%  which is the cluster peak, with fields:
+%    .name: the name, based on the peak time for ERP data or on the peak
+%           frequency and peak time for POW data.
+%    .time: center of the time window (not the peak)
+%    .wndw: length of the time window
+%    .freq: center of the frequency band (not the peak)
+%    .band: width in frequency of the frequency band (take half of that for dpss)
+% The sizes of the frequency band and time window are defined by FWHM
+%
+% Note that the name uses the peak frequency and peak time window, which
+% should not be very different from .freq and .time 
 % This function is not very robust against one big significant cluster
 % which connects two blobs (beta and gamma for example). This can seen when
 % the peak freq (in the name) is very different from .freq
-% However, peak detection is very hard. It now relies on cluster analysis,
-% it might be made more flexible.
 %
-% The sizes of the frequency band and time window are defined by FWHM
-% Peaks used for the analysis should be significant below cfg.cluster.thr
-%
-% DOC: cfg.gerp.stat.time
-% DOC: cfg.gpow.stat.time
-% DOC: cfg.gpow.stat.freq
-% DOC: two inputs
+% Part of EVENTBASED/PRIVATE
+
+%-----------------%
+%-check CFG
+if ~isfield(cfg, 'cluster') || ~isfield(cfg.cluster, 'thr')
+  cfg.cluster.thr = 0.05;
+end
+%-----------------%
 
 %-----------------%
 %-check data

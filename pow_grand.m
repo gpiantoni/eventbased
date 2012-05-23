@@ -23,8 +23,8 @@ function pow_grand(cfg)
 %        but you cannot have more than 2 conditions (it's always a t-test).
 %   If empty, not statistics.
 %   If stats,
-%     .gpow.test.time: time limit for statistics (two scalars)
-%     .gpow.test.freq: freq limit for statistics (two scalars)
+%     .gpow.stat.time: time limit for statistics (two scalars)
+%     .gpow.stat.freq: freq limit for statistics (two scalars)
 %     .cluster.thr: threshold to consider clusters are erppeaks
 %
 %-Plot
@@ -155,9 +155,9 @@ if isfield(cfg.gpow, 'comp')
       
       %-------%
       %-pow over subj
-      [outtmp data1 data2] = load_subj(cfg, 'pow', cfg.pow.cond{t});
+      [outtmp data1 data2] = load_subj(cfg, 'pow', cfg.gpow.comp{t});
       output = [output outtmp];
-      if isempty(data); continue; end
+      if isempty(data1) || isempty(data2); continue; end
       
       cfg1 = [];
       gpow{1} = ft_freqgrandaverage(cfg1, data1{:});

@@ -32,7 +32,7 @@ function seldata(cfg, subj)
 %   [trl, event] = trialfun_XXX(cfg)
 % where trl is 1x3 vector (as in ft_definetrial) and event is the structure
 % which can be used later on in redef.m to prepare the actual trials.
-% It's better if you prepare only one big trials. gclean will clean the
+% It's better if you prepare only one big trial. gclean will clean the
 % whole trial and prefers continuous data. You can create smaller trials
 % later, during redef.m
 %

@@ -18,8 +18,8 @@ function powcorr_grand(cfg)
 %        but you cannot have more than 2 conditions (it's always a t-test).
 %   If empty, not statistics.
 %   If stats,
-%     .gpowcorr.test.time: time limit for statistics (two scalars)
-%     .gpowcorr.test.freq: freq limit for statistics (two scalars)
+%     .gpowcorr.stat.time: time limit for statistics (two scalars)
+%     .gpowcorr.stat.freq: freq limit for statistics (two scalars)
 %     .cluster.thr: threshold to consider clusters are erppeaks
 %
 %-Plot
@@ -169,7 +169,7 @@ if isfield(cfg.gpowcorr, 'comp')
       %-powcorr over subj
       [outtmp data1 data2] = load_subj(cfg, 'powcorr', cfg.gpowcorr.comp{t});
       output = [output outtmp];
-      if isempty(data); continue; end
+      if isempty(data1) || isempty(data2); continue; end
       
       cfg1 = [];
       cfg1.keepindividual = 'yes';
