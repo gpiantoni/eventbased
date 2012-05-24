@@ -131,7 +131,6 @@ for k = 1:numel(cfg.erpsource.cond)
       cfg3.lcmv.realfilter   = 'yes';
     end
     
-    
     souPre{p} = ft_sourceanalysis(cfg3, avgPre);
     souPre{p}.cfg = [];
     %-----------------%

@@ -67,6 +67,7 @@ tic_t = tic;
 souname = regexprep(cfg.powsource.refcond, '*', '');
 sourcefile = sprintf('powsource_%04d_%s', subj, souname);
 load([cfg.dpow sourcefile], 'source', 'souPre')
+souchan = source{1}.cfg.channel;
 %-----------------%
 %---------------------------%
 
@@ -108,7 +109,23 @@ for k = 1:numel(cfg.powstat.cond)
   %---------------------------%
   %-remove bad channels from leadfield
   datachan = ft_channelselection([{'all'}; cellfun(@(x) ['-' x], badchan, 'uni', false)], data.label);
-  [leadchan] = prepare_leadchan(lead, datachan);
+  %-------%
+  %-check if the channels match
+  % It can happen that they don't match if they come from slighly different
+  % datasets. However, it's no problem if setdiff(datachan, souchan) is not
+  % empty, which means that they are good channels in the data that were
+  % not used in the filter.
+  % It's a "problem" if setdiff(souchan, datachan) is not empty, because it
+  % means that channels that were used in the computation of the filter are
+  % interpolated channels in the data here. However, it's just
+  % interpolation, not really a huge problem.
+  chandiff = setdiff(souchan, datachan);
+  if ~isempty(chandiff)
+    output = sprintf('%sUsing interpolated channels for source-reconstruction: %s\n', ...
+      output, sprintf('%s, ', chandiff{:}));
+  end
+  %-------%
+  [leadchan] = prepare_leadchan(lead, souchan);
   %---------------------------%
   
   for p = 1:numel(powpeak)
