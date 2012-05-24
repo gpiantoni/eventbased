@@ -2,11 +2,11 @@ function powstat_subj(cfg, subj)
 %POWSTAT_SUBJ: identify sources from pow peaks using DICS
 %
 % CFG
-%  .data: path of /data1/projects/PROJNAME/subjects/
-%  .rec: RECNAME in /data1/projects/PROJNAME/recordings/RECNAME/
-%  .nick: NICKNAME in /data1/projects/PROJNAME/subjects/0001/MOD/NICKNAME/
-%  .mod: modality, MOD in /data1/projects/PROJNAME/subjects/0001/MOD/NICKNAME/
-%  .endname: includes preprocessing steps (e.g. '_seldata_gclean_preproc_redef')
+%  .data: path of /data1/projects/PROJ/subjects/
+%  .rec: REC in /data1/projects/PROJ/recordings/REC/
+%  .nick: NICK in /data1/projects/PROJ/subjects/0001/MOD/NICK/
+%  .mod: modality, MOD in /data1/projects/PROJ/subjects/0001/MOD/NICK/
+%  .endname: includes preprocessing steps (e.g. '_seldata_gclean_redef')
 %
 %  .log: name of the file and directory to save log
 %  .dpow: directory for POW data
@@ -39,11 +39,11 @@ function powstat_subj(cfg, subj)
 %     .powmethod: power method of beamformer ('trace' or 'lambda1')
 %
 % IN:
-%  data in /PROJNAME/subjects/SUBJCODE/MOD/NICKNAME/
-%  [cfg.dpow 'powsource_SUBJCODE_COND']: source data for period of interest for each subject
+%  data in /PROJ/subjects/SUBJ/MOD/NICK/
+%  [cfg.dpow 'powsource_SUBJ_COND']: source data for period of interest for each subject
 %
 % OUT
-%  [cfg.dpow 'powstat_SUBJCODE_COND']: source data for period of interest and baseline for each subject
+%  [cfg.dpow 'powstat_SUBJ_COND']: source data for period of interest and baseline for each subject
 %
 % Part of EVENTBASED single-subject
 % see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND,
