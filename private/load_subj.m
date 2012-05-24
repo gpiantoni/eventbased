@@ -23,7 +23,7 @@ function [output data1 data2] = load_subj(cfg, type, cond)
 %   data in the specified condition
 %   source-data has three dimensions:
 %   1- subject
-%   2- baseline source or effect source
+%   2- (1) baseline source or (2) effect source
 %   3- number of peaks
 %
 % Part of EVENTBASED/PRIVATE
@@ -150,6 +150,11 @@ for i = 1:numel(cfg.subjall)
       for p = 1:numel(source) % n of peaks
         dataout{i,1,p} = souPre{p};
         dataout{i,2,p} = source{p};
+      end
+    case {'erpstat' 'powstat'}
+      for p = 1:numel(soustat) % n of peaks
+        dataout{i,1,p} = statPre{p};
+        dataout{i,2,p} = soustat{p};
       end
   end
 end
