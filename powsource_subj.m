@@ -49,9 +49,10 @@ function powsource_subj(cfg, subj)
 %  [cfg.dpow 'powsource_SUBJ_COND']: source data for period of interest and baseline for each subject
 %
 % Part of EVENTBASED single-subject
-% see also ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, ERPSOURCE_GRAND,
-% POW_SUBJ, POW_GRAND, POWSOURCE_SUBJ, POWSOURCE_GRAND,
-% POWCORR_SUBJ, POWCORR_GRAND, POWSTAT_SUBJ, POWSTAT_GRAND, 
+% see also ERP_SUBJ, ERP_GRAND, 
+% ERPSOURCE_SUBJ, ERPSOURCE_GRAND, ERPSTAT_SUBJ, ERPSTAT_GRAND,
+% POW_SUBJ, POW_GRAND, POWCORR_SUBJ, POWCORR_GRAND,
+% POWSOURCE_SUBJ, POWSOURCE_GRAND, POWSTAT_SUBJ, POWSTAT_GRAND,
 % CONN_SUBJ, CONN_GRAND, CONN_STAT
 
 %---------------------------%
