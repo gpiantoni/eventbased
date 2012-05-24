@@ -36,12 +36,12 @@ function erpstat_subj(cfg, subj)
 %
 % IN:
 %  data in /PROJ/subjects/SUBJ/MOD/NICK/
-%  [cfg.derp 'erpsource_SUBJ_COND'] 'erpsource_subj_A': source data for period of interest for each subject
-%  [cfg.derp 'erpsource_SUBJ_COND'] 'erpsource_subj_B': source data for baseline for each subject
+%  [cfg.derp 'erpsource_SUBJ_COND'] 'erpsource_s_A': source data for period of interest for each subject
+%  [cfg.derp 'erpsource_SUBJ_COND'] 'erpsource_s_B': source data for baseline for each subject
 %
 % OUT
-%  [cfg.derp 'erpstat_SUBJ_COND'] 'erpstat_subj_A': source data for period of interest for each subject, after common filters
-%  [cfg.derp 'erpstat_SUBJ_COND'] 'erpstat_subj_B': source data for baseline for each subject, after common filters
+%  [cfg.derp 'erpstat_SUBJ_COND'] 'erpstat_s_A': source data for period of interest for each subject, after common filters
+%  [cfg.derp 'erpstat_SUBJ_COND'] 'erpstat_s_B': source data for baseline for each subject, after common filters
 %
 % Part of EVENTBASED single-subject
 % see also ERP_SUBJ, ERP_GRAND, 
@@ -65,7 +65,7 @@ tic_t = tic;
 %-load source
 souname = regexprep(cfg.erpsource.refcond, '*', '');
 sourcefile = sprintf('erpsource_%04d_%s', subj, souname);
-load([cfg.derp sourcefile], 'erpsource_subj_A', 'erpsource_subj_B')
+load([cfg.derp sourcefile], 'erpsource_s_A', 'erpsource_s_B')
 souchan = sourceA{1}.cfg.channel;
 %-----------------%
 %---------------------------%
@@ -156,10 +156,10 @@ for k = 1:numel(cfg.erpstat.cond)
     cfg3.feedback = 'none';
     cfg3.lcmv.keepmom = 'no';
     
-    cfg3.grid.filter  = erpsource_subj_B{p}.avg.filter;
+    cfg3.grid.filter  = erpsource_s_B{p}.avg.filter;
     
-    erpstat_subj_B{p} = ft_sourceanalysis(cfg3, avgPre);
-    erpstat_subj_B{p}.cfg = [];
+    erpstat_s_B{p} = ft_sourceanalysis(cfg3, avgPre);
+    erpstat_s_B{p}.cfg = [];
     %-----------------%
     
     %-----------------%
@@ -172,7 +172,7 @@ for k = 1:numel(cfg.erpstat.cond)
         fileparts(which('ft_defaults')), cfg.bnd2lead.mni.resolution), 'grid');
       grid = ft_convert_units(grid, 'mm');
       
-      erpstat_subj_B{p}.pos = grid.pos;
+      erpstat_s_B{p}.pos = grid.pos;
     end
     %-----------------%
     %---------------------------%
@@ -187,12 +187,12 @@ for k = 1:numel(cfg.erpstat.cond)
     
     %-----------------%
     %-source
-    cfg3.grid.filter  = erpsource_subj_A{p}.avg.filter;
-    erpstat_subj_A{p} = ft_sourceanalysis(cfg3, avgPost);
+    cfg3.grid.filter  = erpsource_s_A{p}.avg.filter;
+    erpstat_s_A{p} = ft_sourceanalysis(cfg3, avgPost);
     
-    chan = erpstat_subj_A{p}.cfg.channel;
-    erpstat_subj_A{p}.cfg = [];
-    erpstat_subj_A{p}.cfg.channel = chan;
+    chan = erpstat_s_A{p}.cfg.channel;
+    erpstat_s_A{p}.cfg = [];
+    erpstat_s_A{p}.cfg.channel = chan;
     %-----------------%
     
     %-----------------%
@@ -201,7 +201,7 @@ for k = 1:numel(cfg.erpstat.cond)
         && isfield(cfg, 'bnd2lead') && isfield(cfg.bnd2lead, 'mni') ...
         && isfield(cfg.bnd2lead.mni, 'warp') && cfg.bnd2lead.mni.warp
       
-      erpstat_subj_A{p}.pos = grid.pos;
+      erpstat_s_A{p}.pos = grid.pos;
     end
     %-----------------%
     %---------------------------%
@@ -210,7 +210,7 @@ for k = 1:numel(cfg.erpstat.cond)
   
   %-----------------%
   %-save source
-  save([cfg.derp outputfile], 'erpstat_subj_A', 'erpstat_subj_B', '-v7.3')
+  save([cfg.derp outputfile], 'erpstat_s_A', 'erpstat_s_B', '-v7.3')
   %-----------------%
   
 end
