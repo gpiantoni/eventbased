@@ -35,6 +35,9 @@ function erpsource_subj(cfg, subj)
 %     .powmethod: power method of beamformer ('trace' or 'lambda1')
 %     .refdip: location of the dipole for computing coherence to.
 %
+%  .erpsource.keepfilter: logical, to keep filters or not (keep them only
+%                          if you plan to use erpstat or conn analyses)
+%
 % IN:
 %  data in /PROJ/subjects/SUBJ/MOD/NICK/
 %
@@ -123,6 +126,11 @@ for k = 1:numel(cfg.erpsource.cond)
     cfg3.elec = sens;
     cfg3.feedback = 'none';
     cfg3.lcmv.keepmom = 'no';
+    if cfg.erpsource.keepfilter
+      cfg3.lcmv.keepfilter   = 'yes';
+      cfg3.lcmv.realfilter   = 'yes';
+    end
+    
     
     souPre{p} = ft_sourceanalysis(cfg3, avgPre);
     souPre{p}.cfg = [];
@@ -153,9 +161,6 @@ for k = 1:numel(cfg.erpsource.cond)
     
     %-----------------%
     %-source
-    cfg3.lcmv.keepfilter = 'yes';
-    cfg3.lcmv.realfilter = 'yes';
-    cfg3.lcmv.keepmom = 'no';
     source{p} = ft_sourceanalysis(cfg3, avgPost);
     
     source{p}.avg.nai = log(source{p}.avg.pow ./ souPre{p}.avg.pow);

@@ -39,6 +39,9 @@ function powsource_subj(cfg, subj)
 %     .powmethod: power method of beamformer ('trace' or 'lambda1')
 %     .refdip: location of the dipole for computing coherence to.
 %
+%  .powsource.keepfilter: logical, to keep filters or not (keep them only
+%                          if you plan to use powstat or conn analyses)
+%
 % IN:
 %  data in /PROJ/subjects/SUBJ/MOD/NICK/
 %
@@ -151,6 +154,11 @@ for k = 1:numel(cfg.powsource.cond)
     cfg1.grid = leadchan;
     cfg1.elec = sens;
     
+    if cfg.powsource.keepfilter
+      cfg1.dics.keepfilter   = 'yes';
+      cfg1.dics.realfilter   = 'yes';
+    end
+    
     souPre{p} = ft_sourceanalysis(cfg1, freq);
     souPre{p}.cfg = [];
     %-----------------%
@@ -173,10 +181,6 @@ for k = 1:numel(cfg.powsource.cond)
     %---------------------------%
     %-main analysis
     %-----------------%
-    %-keep filters only for source analysis
-    cfg1.(cfg1.method).keepfilter   = 'yes';
-    cfg1.(cfg1.method).realfilter   = 'yes';
-    
     cfg1.latency    = freqparam.time;
     source{p}       = ft_sourceanalysis(cfg1, freq);
     chan = source{p}.cfg.channel;
