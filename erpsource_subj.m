@@ -161,8 +161,7 @@ for k = 1:numel(cfg.erpsource.cond)
     %-----------------%
     %-source
     source{p} = ft_sourceanalysis(cfg3, avgPost);
-    
-    source{p}.avg.nai = log(source{p}.avg.pow ./ souPre{p}.avg.pow);
+
     chan = source{p}.cfg.channel;
     source{p}.cfg = [];
     source{p}.cfg.channel = chan;
