@@ -40,11 +40,11 @@ function pow_grand(cfg)
 %  .rslt: directory images are saved into
 %
 % IN
-%  [cfg.dpow 'pow_SUBJ_COND']: timelock analysis for single-subject
+%  [cfg.dpow 'pow_SUBJ_COND'] 'pow_subj': timelock analysis for single-subject
 %
 % OUT
-%  [cfg.dpow 'pow_COND']: power analysis for all subjects
-%  [cfg.dpow 'powpeak_COMP']: significant peaks in the POW for the comparison
+%  [cfg.dpow 'pow_COND'] 'pow': power analysis for all subjects
+%  [cfg.dpow 'pow_peak_COMP'] 'pow_peak': significant peaks in the POW for the comparison
 %
 % FIGURES (saved in cfg.log and, if not empty, cfg.rslt)
 %  gpow_tfr_COMP_CHAN: time-frequency plot POW, for each condition, for one channel group
@@ -88,14 +88,14 @@ for k = 1:numel(cfg.pow.cond)
   
   cfg2 = [];
   cfg2.variance = 'yes';
-  gpow = ft_freqdescriptives(cfg2, gpowall);
-  gpow.tscore =  gpow.powspctrm ./ gpow.powspctrmsem;
-  gpow.cfg = []; % remove cfg
+  pow = ft_freqdescriptives(cfg2, gpowall);
+  pow.tscore =  pow.powspctrm ./ pow.powspctrmsem;
+  pow.cfg = []; % remove cfg
   %-----------------%
   
   %-----------------%
   %-save
-  save([cfg.dpow 'pow_' condname], 'gpow')
+  save([cfg.dpow 'pow_' condname], 'pow')
   %-----------------%
   
 end
@@ -132,17 +132,17 @@ if isfield(cfg.gpow, 'comp')
       if isempty(data); continue; end
       
       cfg1 = [];
-      gpow{1} = ft_freqgrandaverage(cfg1, data{:});
+      pow{1} = ft_freqgrandaverage(cfg1, data{:});
       cfg1.keepindividual = 'yes';
       gpowall1 = ft_freqgrandaverage(cfg1, data{:});
       %-------%
       
       %-------%
       %-data to plot
-      gplot = gpow{1};
+      gplot = pow{1};
       %-------%
 
-      [powpeak outtmp] = reportcluster(cfg, gpowall1);
+      [pow_peak outtmp] = reportcluster(cfg, gpowall1);
       %-----------------%
       
     else
@@ -161,8 +161,8 @@ if isfield(cfg.gpow, 'comp')
       if isempty(data1) || isempty(data2); continue; end
       
       cfg1 = [];
-      gpow{1} = ft_freqgrandaverage(cfg1, data1{:});
-      gpow{2} = ft_freqgrandaverage(cfg1, data2{:});
+      pow{1} = ft_freqgrandaverage(cfg1, data1{:});
+      pow{2} = ft_freqgrandaverage(cfg1, data2{:});
       cfg1.keepindividual = 'yes';
       gpowall1 = ft_freqgrandaverage(cfg1, data1{:});
       gpowall2 = ft_freqgrandaverage(cfg1, data2{:});
@@ -170,20 +170,20 @@ if isfield(cfg.gpow, 'comp')
       
       %-------%
       %-data for plot
-      gplot = gpow{2};
+      gplot = pow{2};
       if isempty(cfg.pow.bl)
-        gplot.powspctrm = log(gpow{2}.powspctrm ./ gpow{1}.powspctrm);
+        gplot.powspctrm = log(pow{2}.powspctrm ./ pow{1}.powspctrm);
       else % with baseline correction, take the difference
-        gplot.powspctrm = gpow{2}.powspctrm - gpow{1}.powspctrm;
+        gplot.powspctrm = pow{2}.powspctrm - pow{1}.powspctrm;
       end
       %-------%
       
-      [powpeak outtmp] = reportcluster(cfg, gpowall1, gpowall2);
+      [pow_peak outtmp] = reportcluster(cfg, gpowall1, gpowall2);
       %-----------------%
       
     end
     
-    save([cfg.dpow 'powpeak_' comp], 'powpeak')
+    save([cfg.dpow 'pow_peak_' comp], 'pow_peak')
     output = [output outtmp];
     %---------------------------%
     
@@ -243,8 +243,8 @@ if isfield(cfg.gpow, 'comp')
         cfg5.ylim = cfg.gpow.freq(f).freq;
         
         %-color scaling specific to each frequency band
-        i_freq1 = nearest(gpow{1}.freq, cfg.gpow.freq(f).freq(1));
-        i_freq2 = nearest(gpow{1}.freq, cfg.gpow.freq(f).freq(2));
+        i_freq1 = nearest(pow{1}.freq, cfg.gpow.freq(f).freq(1));
+        i_freq2 = nearest(pow{1}.freq, cfg.gpow.freq(f).freq(2));
         powspctrm = gplot.powspctrm(:, i_freq1:i_freq2, :);
         cfg5.zlim = [-1 1] * max(powspctrm(:));
         
@@ -254,8 +254,8 @@ if isfield(cfg.gpow, 'comp')
         cfg5.commentpos = 'title';
         
         %-no topoplot if the data contains NaN
-        onedat = squeeze(gpow{1}.powspctrm(1, i_freq1, :)); % take one example, lowest frequency
-        cfg5.xlim = gpow{1}.time(~isnan(onedat));
+        onedat = squeeze(pow{1}.powspctrm(1, i_freq1, :)); % take one example, lowest frequency
+        cfg5.xlim = pow{1}.time(~isnan(onedat));
         
         ft_topoplotER(cfg5, gplot);
         %--------%
@@ -298,7 +298,7 @@ if isfield(cfg.gpow, 'comp')
         cfg4.channel = cfg.gpow.chan(c).chan;
         cfg4.parameter = 'powspctrm';
         cfg4.zlim = cfg.gpow.freq(f).freq;
-        ft_singleplotER(cfg4, gpow{:});
+        ft_singleplotER(cfg4, pow{:});
         
         legend('cond1', 'cond2')
         ylabel(cfg4.parameter)

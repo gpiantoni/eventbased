@@ -34,11 +34,11 @@ function powcorr_grand(cfg)
 %  .rslt: directory images are saved into
 %
 % IN
-%  [cfg.dpow 'powcorr_SUBJ_COND']: power correlation for single-subject
+%  [cfg.dpow 'powcorr_SUBJ_COND'] 'powcorr_subj': power correlation for single-subject
 %
 % OUT
-%  [cfg.dpow 'powcorr_COND']: power correlation for all subjects
-%  [cfg.dpow 'powcorrpeak_COMP']: significant peaks in the POWCORR for the comparison
+%  [cfg.dpow 'powcorr_COND'] 'powcorr': power correlation for all subjects
+%  [cfg.dpow 'powcorrpeak_COMP'] 'powcorr_peak': significant peaks in the POWCORR for the comparison
 %
 % FIGURES (saved in cfg.log and, if not empty, cfg.rslt)
 %  gpowcorr_tfr_COMP_COND: time-frequency plot powcorr, for each comparison, for one channel group
@@ -82,14 +82,14 @@ for k = 1:numel(cfg.powcorr.cond)
   
   cfg2 = [];
   cfg2.variance = 'yes';
-  gpowcorr = ft_freqdescriptives(cfg2, gpowcorrall);
-  gpowcorr.tscore =  gpowcorr.powspctrm ./ gpowcorr.powspctrmsem;
-  gpowcorr.cfg = []; % remove cfg
+  powcorr = ft_freqdescriptives(cfg2, gpowcorrall);
+  powcorr.tscore =  powcorr.powspctrm ./ powcorr.powspctrmsem;
+  powcorr.cfg = []; % remove cfg
   %-----------------%
   
   %-----------------%
   %-save
-  save([cfg.dpow 'powcorr_' condname], 'gpowcorr')
+  save([cfg.dpow 'powcorr_' condname], 'powcorr')
   %-----------------%
   
 end
@@ -144,17 +144,17 @@ if isfield(cfg.gpowcorr, 'comp')
       
       cfg2 = [];
       cfg2.variance = 'yes';
-      gpowcorr{1} = ft_freqdescriptives(cfg2, gpowcorrall1);
-      gpowcorr{1}.tscore =  gpowcorr{1}.powspctrm ./ gpowcorr{1}.powspctrmsem;
-      gpowcorr{1}.cfg = []; % remove cfg
+      powcorr{1} = ft_freqdescriptives(cfg2, gpowcorrall1);
+      powcorr{1}.tscore =  powcorr{1}.powspctrm ./ powcorr{1}.powspctrmsem;
+      powcorr{1}.cfg = []; % remove cfg
       %-------%
       
       %-------%
       %-data to plot
-      gplot = gpowcorr{1};
+      gplot = powcorr{1};
       %-------%
       
-      [powcorrpeak outtmp] = reportcluster(cfg, gpowcorrall1);
+      [powcorr_peak outtmp] = reportcluster(cfg, gpowcorrall1);
       %-----------------%
       
     else
@@ -179,27 +179,27 @@ if isfield(cfg.gpowcorr, 'comp')
       
       cfg2 = [];
       cfg2.variance = 'yes';
-      gpowcorr{1} = ft_freqdescriptives(cfg2, gpowcorrall1);
-      gpowcorr{1}.tscore =  gpowcorr{1}.powspctrm ./ gpowcorr{1}.powspctrmsem;
-      gpowcorr{1}.cfg = []; % remove cfg
+      powcorr{1} = ft_freqdescriptives(cfg2, gpowcorrall1);
+      powcorr{1}.tscore =  powcorr{1}.powspctrm ./ powcorr{1}.powspctrmsem;
+      powcorr{1}.cfg = []; % remove cfg
 
-      gpowcorr{2} = ft_freqdescriptives(cfg2, gpowcorrall2);
-      gpowcorr{2}.tscore =  gpowcorr{2}.powspctrm ./ gpowcorr{2}.powspctrmsem;
-      gpowcorr{2}.cfg = []; % remove cfg
+      powcorr{2} = ft_freqdescriptives(cfg2, gpowcorrall2);
+      powcorr{2}.tscore =  powcorr{2}.powspctrm ./ powcorr{2}.powspctrmsem;
+      powcorr{2}.cfg = []; % remove cfg
       %-------%
       
       %-------%
       %-data for plot
-      gplot = gpowcorr{2};
-      gplot.tscore = gpowcorr{2}.tscore - gpowcorr{1}.tscore;
+      gplot = powcorr{2};
+      gplot.tscore = powcorr{2}.tscore - powcorr{1}.tscore;
       %-------%
       
-      [powcorrpeak outtmp] = reportcluster(cfg, gpowcorrall1, gpowcorrall2);
+      [powcorr_peak outtmp] = reportcluster(cfg, gpowcorrall1, gpowcorrall2);
       %-----------------%
       
     end
     
-    save([cfg.dpow 'powcorrpeak_' comp], 'powcorrpeak')
+    save([cfg.dpow 'powcorr_peak_' comp], 'powcorr_peak')
     output = [output outtmp];
     %---------------------------%
     
@@ -264,9 +264,9 @@ if isfield(cfg.gpowcorr, 'comp')
         cfg5.commentpos = 'title';
         
         %-no topoplot if the data contains NaN
-        i_freq1 = nearest(gpowcorr{f}.freq, cfg.gpowcorr.freq(f).freq(1));
-        onedat = squeeze(gpowcorr{t}.tscore(1, i_freq1, :)); % take one example, lowest frequency
-        cfg5.xlim = gpowcorr{t}.time(~isnan(onedat));
+        i_freq1 = nearest(powcorr{f}.freq, cfg.gpowcorr.freq(f).freq(1));
+        onedat = squeeze(powcorr{t}.tscore(1, i_freq1, :)); % take one example, lowest frequency
+        cfg5.xlim = powcorr{t}.time(~isnan(onedat));
         
         ft_topoplotER(cfg5, gplot);
         %--------%
@@ -305,7 +305,7 @@ if isfield(cfg.gpowcorr, 'comp')
         cfg4.channel = cfg.gpowcorr.chan(c).chan;
         cfg4.parameter = 'tscore';
         cfg4.zlim = cfg.gpowcorr.freq(f).freq;
-        ft_singleplotER(cfg4, gpowcorr{:});
+        ft_singleplotER(cfg4, powcorr{:});
         
         legend('cond1', 'cond2')
         ylabel(cfg4.parameter)

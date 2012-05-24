@@ -40,12 +40,13 @@ function powsource_grand(cfg)
 %  .powsource.nifti: directory and initial part of the name where you want to save the masks
 %  .dti.ref: template for mask ('/usr/share/data/fsl-mni152-templates/MNI152_T1_1mm_brain.nii.gz')
 %
-% IN 
-%  [cfg.dpow 'powsource_SUBJ_COND']: source data for period of interest and baseline for each subject
+% IN
+%  [cfg.dpow 'powsource_SUBJ_COND'] 'powsource_subj_A': source data for period of interest for each subject
+%  [cfg.dpow 'powsource_SUBJ_COND'] 'powsource_subj_B': source data for baseline for each subject
 %
 % OUT
-%  [cfg.dpow 'powsource_COND']: source analysis for all subject
-%  [cfg.dpow 'powsoupeak_COND']: significant source peaks in POW
+%  [cfg.dpow 'powsource_COND'] 'powsource': source analysis for all subject
+%  [cfg.dpow 'powsource_peak_COND'] 'powsource_peak': significant source peaks in POW
 %
 % FIGURES
 %  gpowpeak_COND_POWPEAK: 3d plot of the source for one peak
@@ -98,7 +99,8 @@ for k = 1:numel(cfg.powsource.cond)
   
   %-----------------%
   %-loop over peaks
-  soupeak = [];
+  powsource_peak = [];
+  powsource = [];
   for p = 1:numel(powpeak)
     output = sprintf('%s\n%s:\n', output, powpeak(p).name);
     
@@ -118,10 +120,10 @@ for k = 1:numel(cfg.powsource.cond)
     %--------%
     %-do stats and figure
     h = figure;
-    [soupos powstat{p} outtmp] = reportsource(cfg.powsource, gpowsource, gpowsouPre);
-    soupeak(p).pos = soupos;
-    soupeak(p).center = mean(soupos,1);
-    soupeak(p).name = powpeak(p).name;
+    [soupos powsource{p} outtmp] = reportsource(cfg.powsource, gpowsource, gpowsouPre);
+    powsource_peak(p).pos = soupos;
+    powsource_peak(p).center = mean(soupos,1);
+    powsource_peak(p).name = powpeak(p).name;
     output = [output outtmp];
     
     %--------%
@@ -141,9 +143,9 @@ for k = 1:numel(cfg.powsource.cond)
       
       cfg1 = [];
       cfg1.parameter = 'image';
-      souinterp = ft_sourceinterpolate(cfg1, powstat{p}, dtimri);
+      souinterp = ft_sourceinterpolate(cfg1, powsource{p}, dtimri);
       
-      mriname = [cfg.powsource.nifti '_' condname '_' soupeak(p).name];
+      mriname = [cfg.powsource.nifti '_' condname '_' powsource_peak(p).name];
       cfg1 = [];
       cfg1.parameter = 'image';
       cfg1.filename = mriname;
@@ -158,12 +160,12 @@ for k = 1:numel(cfg.powsource.cond)
   
   %-----------------%
   %-save
-  save([cfg.dpow 'powsoupeak_' condname], 'soupeak')
+  save([cfg.dpow 'powsource_peak_' condname], 'powsource_peak')
   
-  for p = 1:numel(powstat)
-    powstat{p}.cfg = []; % this is huge
+  for p = 1:numel(powsource)
+    powsource{p}.cfg = []; % this is huge
   end
-  save([cfg.dpow 'powsource_' condname], 'powstat', '-v7.3')
+  save([cfg.dpow 'powsource_' condname], 'powsource', '-v7.3')
   %-----------------%
   
 end

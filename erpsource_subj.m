@@ -19,16 +19,16 @@ function erpsource_subj(cfg, subj)
 %      .bnd2lead.mni.warp: logical (optional. Instead of transforming the
 %      brain into MNI coordinates, you can wrap the grid onto it)
 %
-%  .erpsource.areas: how to speficy peaks to analyze, 'manual' or 'erppeak' (peaks from granderp)
+%  .erpsource.areas: how to speficy peaks to analyze, 'manual' or 'erp_peak' (peaks from granderp)
 %    if 'manual'
-%      .erpsource.erppeak(1).name: string ('name_of_the_time_window')
-%      .erpsource.erppeak(1).time: scalar (center of the time window in s)
-%      .erpsource.erppeak(1).wndw: scalar (length of the time window in s)
-%    if 'erppeak'
+%      .erpsource.erp_peak(1).name: string ('name_of_the_time_window')
+%      .erpsource.erp_peak(1).time: scalar (center of the time window in s)
+%      .erpsource.erp_peak(1).wndw: scalar (length of the time window in s)
+%    if 'erp_peak'
 %      .erp.refcond: string of the comparison whose peaks will be localized
 %
 %  .erpsource.erp: a structure with cfg to pass to ft_timelockanalysis
-%  .erpsource.bline: one number in s, the center of the covariance window of the baseline (the window length depends on erppeak)
+%  .erpsource.bline: one number in s, the center of the covariance window of the baseline (the window length depends on erp_peak)
 %
 %  .erpsource.lcmv: options that will be passed to beamformer. Examples:
 %     .lambda: regularization parameter of beamformer ('25%')
@@ -42,7 +42,8 @@ function erpsource_subj(cfg, subj)
 %  data in /PROJ/subjects/SUBJ/MOD/NICK/
 %
 % OUT
-%  [cfg.derp 'erpsource_SUBJ_COND']: source data for period of interest and baseline for each subject
+%  [cfg.derp 'erpsource_SUBJ_COND'] 'erpsource_subj_A': source data for period of interest for each subject
+%  [cfg.derp 'erpsource_SUBJ_COND'] 'erpsource_subj_B': source data for baseline for each subject
 %
 % Part of EVENTBASED single-subject
 % see also ERP_SUBJ, ERP_GRAND, 
@@ -70,12 +71,12 @@ for k = 1:numel(cfg.erpsource.cond)
   condname = regexprep(cond, '*', '');
   
   %---------------------------%
-  %-use predefined or erppeaks for areas of interest
+  %-use predefined or erp_peaks for areas of interest
   if strcmp(cfg.erpsource.areas, 'manual')
-    erppeak = cfg.erpsource.erppeak;
-  elseif strcmp(cfg.erpsource.areas, 'erppeak')
+    erp_peak = cfg.erpsource.erp_peak;
+  elseif strcmp(cfg.erpsource.areas, 'erp_peak')
     peakname = regexprep(cfg.erp.refcond, '*', '');
-    load([cfg.derp 'erppeak_' peakname], 'erppeak')
+    load([cfg.derp 'erp_peak_' peakname], 'erp_peak')
   end
   %---------------------------%
   
@@ -97,9 +98,9 @@ for k = 1:numel(cfg.erpsource.cond)
   [leadchan] = prepare_leadchan(lead, datachan);
   %---------------------------%
   
-  for p = 1:numel(erppeak)
+  for p = 1:numel(erp_peak)
     
-    fprintf('\n   ->->-> Running % 2d erppeak (%s) <-<-<-\n', p, erppeak(p).name);
+    fprintf('\n   ->->-> Running % 2d erp_peak (%s) <-<-<-\n', p, erp_peak(p).name);
     
     %---------------------------%
     %-baseline
@@ -107,7 +108,7 @@ for k = 1:numel(cfg.erpsource.cond)
     %-covariance window
     cfg2 = cfg.erpsource.erp;
     cfg2.covariance = 'yes';
-    cfg2.covariancewindow = cfg.erpsource.bline  + erppeak(p).wndw * [-.5 .5];
+    cfg2.covariancewindow = cfg.erpsource.bline  + erp_peak(p).wndw * [-.5 .5];
     cfg2.feedback = 'none';
     cfg2.channel = datachan;
     
@@ -132,8 +133,8 @@ for k = 1:numel(cfg.erpsource.cond)
       cfg3.lcmv.realfilter   = 'yes';
     end
     
-    souPre{p} = ft_sourceanalysis(cfg3, avgPre);
-    souPre{p}.cfg = [];
+    erpsource_subj_B{p} = ft_sourceanalysis(cfg3, avgPre);
+    erpsource_subj_B{p}.cfg = [];
     %-----------------%
     
     %-----------------%
@@ -146,7 +147,7 @@ for k = 1:numel(cfg.erpsource.cond)
         fileparts(which('ft_defaults')), cfg.bnd2lead.mni.resolution), 'grid');
       grid = ft_convert_units(grid, 'mm');
       
-      souPre{p}.pos = grid.pos;
+      erpsource_subj_B{p}.pos = grid.pos;
     end
     %-----------------%
     %---------------------------%
@@ -155,17 +156,17 @@ for k = 1:numel(cfg.erpsource.cond)
     %-main effect
     %-----------------%
     %-covariance
-    cfg2.covariancewindow = erppeak(p).time + erppeak(p).wndw * [-.5 .5];
+    cfg2.covariancewindow = erp_peak(p).time + erp_peak(p).wndw * [-.5 .5];
     avgPost = ft_timelockanalysis(cfg2, data);
     %-----------------%
     
     %-----------------%
     %-source
-    source{p} = ft_sourceanalysis(cfg3, avgPost);
+    erpsource_subj_A{p} = ft_sourceanalysis(cfg3, avgPost);
 
-    chan = source{p}.cfg.channel;
-    source{p}.cfg = [];
-    source{p}.cfg.channel = chan;
+    chan = erpsource_subj_A{p}.cfg.channel;
+    erpsource_subj_A{p}.cfg = [];
+    erpsource_subj_A{p}.cfg.channel = chan;
     %-----------------%
     
     %-----------------%
@@ -174,7 +175,7 @@ for k = 1:numel(cfg.erpsource.cond)
         && isfield(cfg, 'bnd2lead') && isfield(cfg.bnd2lead, 'mni') ...
         && isfield(cfg.bnd2lead.mni, 'warp') && cfg.bnd2lead.mni.warp
       
-      source{p}.pos = grid.pos;
+      erpsource_subj_A{p}.pos = grid.pos;
     end
     %-----------------%
     %---------------------------%
@@ -183,7 +184,7 @@ for k = 1:numel(cfg.erpsource.cond)
   
   %-----------------%
   %-save source
-  save([cfg.derp outputfile], 'source', 'souPre', '-v7.3')
+  save([cfg.derp outputfile], 'erpsource_subj_A', 'erpsource_subj_B', '-v7.3')
   %-----------------%
   
 end

@@ -14,12 +14,12 @@ function erpsource_grand(cfg)
 %  The comparison is always against baseline. If you want to compare
 %  conditions, use powstats_subj.
 %
-%  .erpsource.areas: how to speficy peaks to analyze, 'manual' or 'erppeak' (peaks from granderp)
+%  .erpsource.areas: how to speficy peaks to analyze, 'manual' or 'erp_peak' (peaks from granderp)
 %    if 'manual'
-%      .erpsource.erppeak(1).name: string ('name_of_the_time_window')
-%      .erpsource.erppeak(1).time: scalar (center of the time window in s)
-%      .erpsource.erppeak(1).wndw: scalar (length of the time window in s)
-%    if 'erppeak'
+%      .erpsource.erp_peak(1).name: string ('name_of_the_time_window')
+%      .erpsource.erp_peak(1).time: scalar (center of the time window in s)
+%      .erpsource.erp_peak(1).wndw: scalar (length of the time window in s)
+%    if 'erp_peak'
 %      .erp.refcond: string of the comparison whose peaks will be localized
 %
 % Options for reportsource:
@@ -36,14 +36,15 @@ function erpsource_grand(cfg)
 %  .dti.ref: template for mask ('/usr/share/data/fsl-mni152-templates/MNI152_T1_1mm_brain.nii.gz')
 %
 % IN
-%  [cfg.derp 'erpsource_SUBJ_COND']: source data for period of interest and baseline for each subject
+%  [cfg.derp 'erpsource_SUBJ_COND'] 'erpsource_subj_A': source data for period of interest for each subject
+%  [cfg.derp 'erpsource_SUBJ_COND'] 'erpsource_subj_B': source data for baseline for each subject
 %
 % OUT
-%  [cfg.derp 'erpsource_COND']: source analysis for all subject
-%  [cfg.derp 'erpsoupeak_COND']: significant source peaks in the ERP
+%  [cfg.derp 'erpsource_COND'] 'erpsource': source analysis for all subject
+%  [cfg.derp 'erpsource_peak_COND'] 'erpsource_peak': significant source peaks in the ERP
 %
 % FIGURES
-%  gerppeak_COND_ERPPEAK: 3d plot of the source for one peak
+%  gerp_peak_COND_ERPPEAK: 3d plot of the source for one peak
 %
 % Part of EVENTBASED group-analysis
 % see also ERP_SUBJ, ERP_GRAND, 
@@ -60,12 +61,12 @@ tic_t = tic;
 %---------------------------%
 
 %---------------------------%
-%-use predefined or erppeaks for areas of interest
+%-use predefined or erp_peaks for areas of interest
 if strcmp(cfg.erpsource.areas, 'manual')
-  erppeak = cfg.erpsource.erppeak;
-elseif strcmp(cfg.erpsource.areas, 'erppeak')
+  erp_peak = cfg.erpsource.erp_peak;
+elseif strcmp(cfg.erpsource.areas, 'erp_peak')
   peakname = regexprep(cfg.erp.refcond, '*', '');
-  load([cfg.derp 'erppeak_' peakname], 'erppeak')
+  load([cfg.derp 'erp_peak_' peakname], 'erp_peak')
 end
 %---------------------------%
 
@@ -86,9 +87,11 @@ for k = 1:numel(cfg.erpsource.cond)
   
   %-----------------%
   %-loop over peaks
-  soupeak = [];
-  for p = 1:numel(erppeak)
-    output = sprintf('%s\n%s:\n', output, erppeak(p).name);
+  erpsource_peak = [];
+  erpsource = [];
+  
+  for p = 1:numel(erp_peak)
+    output = sprintf('%s\n%s:\n', output, erp_peak(p).name);
     
     %-----------------%
     %-grand average
@@ -106,15 +109,15 @@ for k = 1:numel(cfg.erpsource.cond)
     %--------%
     %-do stats and figure
     h = figure;
-    [soupos erpstat{p} outtmp] = reportsource(cfg.erpsource, gerpsource, gerpsouPre);
-    soupeak(p).pos = soupos;
-    soupeak(p).center = mean(soupos,1);
-    soupeak(p).name = erppeak(p).name;
+    [soupos erpsource{p} outtmp] = reportsource(cfg.erpsource, gerpsource, gerpsouPre);
+    erpsource_peak(p).pos = soupos;
+    erpsource_peak(p).center = mean(soupos,1);
+    erpsource_peak(p).name = erp_peak(p).name;
     output = [output outtmp];
     %--------%
     
     %--------%
-    pngname = sprintf('gerppeak_%s_%s', condname, erppeak(p).name);
+    pngname = sprintf('gerp_peak_%s_%s', condname, erp_peak(p).name);
     saveas(gcf, [cfg.log filesep pngname '.png'])
     close(gcf); drawnow
     
@@ -130,9 +133,9 @@ for k = 1:numel(cfg.erpsource.cond)
       
       cfg1 = [];
       cfg1.parameter = 'image';
-      souinterp = ft_sourceinterpolate(cfg1, erpstat{p}, dtimri);
+      souinterp = ft_sourceinterpolate(cfg1, erpsource{p}, dtimri);
       
-      mriname = [cfg.erpsource.nifti '_' condname '_' soupeak(p).name];
+      mriname = [cfg.erpsource.nifti '_' condname '_' erpsource_peak(p).name];
       cfg1 = [];
       cfg1.parameter = 'image';
       cfg1.filename = mriname;
@@ -147,12 +150,12 @@ for k = 1:numel(cfg.erpsource.cond)
   
   %-----------------%
   %-save
-  save([cfg.derp 'erpsoupeak_' condname], 'soupeak')
+  save([cfg.derp 'erpsource_peak_' condname], 'erpsource_peak')
   
-  for p = 1:numel(erpstat)
-    erpstat{p}.cfg = []; % this is huge
+  for p = 1:numel(erpsource)
+    erpsource{p}.cfg = []; % this is huge
   end
-  save([cfg.derp 'erpsource_' condname], 'erpstat', '-v7.3')
+  save([cfg.derp 'erpsource_' condname], 'erpsource', '-v7.3')
   %-----------------%
   
 end

@@ -40,10 +40,12 @@ function powstat_subj(cfg, subj)
 %
 % IN:
 %  data in /PROJ/subjects/SUBJ/MOD/NICK/
-%  [cfg.dpow 'powsource_SUBJ_COND']: source data for period of interest for each subject
+%  [cfg.dpow 'powsource_SUBJ_COND'] 'powsource_subj_A': source data for period of interest for each subject
+%  [cfg.dpow 'powsource_SUBJ_COND'] 'powsource_subj_B': source data for baseline for each subject
 %
 % OUT
-%  [cfg.dpow 'powstat_SUBJ_COND']: source data for period of interest and baseline for each subject
+%  [cfg.dpow 'powstat_SUBJ_COND'] 'powstat_subj_A': source data for period of interest for each subject, after common filters
+%  [cfg.dpow 'powstat_SUBJ_COND'] 'powstat_subj_B': source data for baseline for each subject, after common filters
 %
 % Part of EVENTBASED single-subject
 % see also ERP_SUBJ, ERP_GRAND, 
@@ -179,10 +181,10 @@ for k = 1:numel(cfg.powstat.cond)
     cfg1.grid = leadchan;
     cfg1.elec = sens;
     
-    cfg1.grid.filter  = souPre{p}.avg.filter;
+    cfg1.grid.filter  = powsource_subj_B{p}.avg.filter;
     
-    statPre{p} = ft_sourceanalysis(cfg1, freq);
-    statPre{p}.cfg = [];
+    powstat_subj_B{p} = ft_sourceanalysis(cfg1, freq);
+    powstat_subj_B{p}.cfg = [];
     %-----------------%
     
     %-----------------%
@@ -195,7 +197,7 @@ for k = 1:numel(cfg.powstat.cond)
         fileparts(which('ft_defaults')), cfg.bnd2lead.mni.resolution), 'grid');
       
       grid = ft_convert_units(grid, 'mm');
-      source{p}.pos = grid.pos;
+      powstat_subj_B{p}.pos = grid.pos;
     end
     %-----------------%
     %---------------------------%
@@ -204,11 +206,11 @@ for k = 1:numel(cfg.powstat.cond)
     %-main analysis
     %-----------------%
     cfg1.latency = freqparam.time;
-    cfg1.grid.filter  = source{p}.avg.filter;
-    soustat{p}       = ft_sourceanalysis(cfg1, freq);
+    cfg1.grid.filter  = powsource_subj_A{p}.avg.filter;
+    powstat_subj_A{p}       = ft_sourceanalysis(cfg1, freq);
     chan = source{p}.cfg.channel;
-    soustat{p}.cfg = [];
-    soustat{p}.cfg.channel = chan;
+    powstat_subj_A{p}.cfg = [];
+    powstat_subj_A{p}.cfg.channel = chan;
     %-----------------%
     
     %-----------------%
@@ -216,7 +218,7 @@ for k = 1:numel(cfg.powstat.cond)
     if ~strcmp(cfg.vol.type, 'template') ...
         && isfield(cfg, 'bnd2lead') && isfield(cfg.bnd2lead, 'mni') ...
         && isfield(cfg.bnd2lead.mni, 'warp') && cfg.bnd2lead.mni.warp
-      source{p}.pos = grid.pos;
+      powstat_subj_A{p}.pos = grid.pos;
     end
     %-----------------%
     %---------------------------%
@@ -225,7 +227,7 @@ for k = 1:numel(cfg.powstat.cond)
   
   %-----------------%
   %-save source
-  save([cfg.dpow outputfile], 'soustat', 'statPre', '-v7.3')
+  save([cfg.dpow outputfile], 'powstat_subj_A', 'powstat_subj_B', '-v7.3')
   %-----------------%
   
 end

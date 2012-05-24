@@ -20,7 +20,7 @@ function pow_subj(cfg, subj)
 %  data in /PROJ/subjects/SUBJ/MOD/NICK/
 %
 % OUT
-%  [cfg.dpow 'pow_SUBJ_COND']: power analysis for single-subject
+%  [cfg.dpow 'pow_SUBJ_COND'] 'pow_subj': power analysis for single-subject
 %
 % Part of EVENTBASED single-subject
 % see also ERP_SUBJ, ERP_GRAND, 
@@ -58,14 +58,14 @@ for k = 1:numel(cfg.pow.cond)
   %-calculate power
   cfg2 = cfg.pow;
   cfg2.feedback = 'etf';  
-  freq = ft_freqanalysis(cfg2, data);
+  pow_subj = ft_freqanalysis(cfg2, data);
   
   if isfield(cfg.pow, 'toi')
-    freq.time = cfg.pow.toi;
+    pow_subj.time = cfg.pow.toi;
   end
   %---------------------------%
   
-  save([cfg.dpow outputfile], 'freq')
+  save([cfg.dpow outputfile], 'pow_subj')
   
 end
 %-------------------------------------%

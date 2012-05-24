@@ -33,11 +33,11 @@ function erp_grand(cfg)
 %  .rslt: directory images are saved into
 %
 % IN
-%  [cfg.derp 'erp_SUBJ_COND']: timelock analysis for single-subject
+%  [cfg.derp 'erp_SUBJ_COND'] 'erp_subj': timelock analysis for single-subject
 %
 % OUT
-%  [cfg.derp 'erp_COND']: timelock analysis for all subjects
-%  [cfg.derp 'erppeak_COMP']: significant peaks in the ERP for the comparison
+%  [cfg.derp 'erp_COND'] 'erp': the ERP for all subjects
+%  [cfg.derp 'erp_peak_COMP'] 'erp_peak': significant peaks in the ERP for the comparison
 %
 % FIGURES (saved in cfg.log and, if not empty, cfg.rslt)
 %  gerp_erp_COMP_CHAN: singleplot ERP, all conditions, for one channel group
@@ -70,17 +70,17 @@ for k = 1:numel(cfg.erp.cond)
   if isempty(data); continue; end
   
   cfg1 = [];
-  gerp = ft_timelockgrandaverage(cfg1, data{:});
-  gerp.cfg = [];
+  erp = ft_timelockgrandaverage(cfg1, data{:});
+  erp.cfg = [];
   %-----------------%
   
   %-----------------%
   %-save
-  save([cfg.derp 'erp_' condname], 'gerp')
+  save([cfg.derp 'erp_' condname], 'erp')
   %-----------------%
   
 end
-clear gerp
+clear erp
 %---------------------------%
 
 %-----------------------------------------------%
@@ -123,7 +123,7 @@ if isfield(cfg.gerp, 'comp')
       gplot = gerp{1};
       %-------%
       
-      [erppeak outtmp] = reportcluster(cfg, gerpall1);
+      [erp_peak outtmp] = reportcluster(cfg, gerpall1);
       %-----------------%
       
     else
@@ -156,12 +156,12 @@ if isfield(cfg.gerp, 'comp')
       gplot.avg = gerp{2}.avg - gerp{1}.avg;
       %-------%
       
-      [erppeak outtmp] = reportcluster(cfg, gerpall1, gerpall2);
+      [erp_peak outtmp] = reportcluster(cfg, gerpall1, gerpall2);
       %-----------------%
       
     end
     
-    save([cfg.derp 'erppeak_' comp], 'erppeak')
+    save([cfg.derp 'erp_peak_' comp], 'erp_peak')
     output = [output outtmp];
     %---------------------------%
     

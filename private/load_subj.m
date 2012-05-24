@@ -11,7 +11,7 @@ function [output data1 data2] = load_subj(cfg, type, cond)
 %  .endname: includes preprocessing steps (e.g. '_seldata_gclean_preproc_redef')
 %
 % TYPE
-%   erp, erpsource, pow, powcorr, powsource
+%   erp, erpsource, erpstat, pow, powcorr, powsource, powstat
 %
 % COND
 %   a string with the name used to read the data. The file name is
@@ -23,7 +23,7 @@ function [output data1 data2] = load_subj(cfg, type, cond)
 %   data in the specified condition
 %   source-data has three dimensions:
 %   1- subject
-%   2- (1) baseline source or (2) effect source
+%   2- (1) source at baseline or (2) source of interest
 %   3- number of peaks
 %
 % Part of EVENTBASED/PRIVATE
@@ -69,7 +69,6 @@ else
   
   %-------------------------------------%
   %-two conditions
-  
   %-----------------%
   %-read the data
   [data1 output] = readdata(cfg, type, cond{1});
@@ -142,19 +141,37 @@ for i = 1:numel(cfg.subjall)
   load([groupdir subjfile])
   
   switch type
-    case {'erp'}
-      dataout{i} = timelock;
-    case {'pow' ,'powcorr'}
-      dataout{i} = freq;
-    case {'erpsource' 'powsource'}
-      for p = 1:numel(source) % n of peaks
-        dataout{i,1,p} = souPre{p};
-        dataout{i,2,p} = source{p};
+    case 'erp'
+      dataout{i} = erp_subj;
+      
+    case 'pow'
+      dataout{i} = pow_subj;
+
+    case 'powcorr'
+      dataout{i} = powcorr_subj;
+      
+    case 'erpsource'
+      for p = 1:numel(erpsource_subj_A) % n of peaks
+        dataout{i,1,p} = erpsource_subj_B{p}; % baseline
+        dataout{i,2,p} = erpsource_subj_A{p}; % of interest
       end
-    case {'erpstat' 'powstat'}
-      for p = 1:numel(soustat) % n of peaks
-        dataout{i,1,p} = statPre{p};
-        dataout{i,2,p} = soustat{p};
+      
+    case 'powsource'
+      for p = 1:numel(powsource_subj_A) % n of peaks
+        dataout{i,1,p} = powsource_subj_B{p}; % baseline
+        dataout{i,2,p} = powsource_subj_A{p}; % of interest
+      end
+      
+    case 'erpstat'
+      for p = 1:numel(erpstat_subj_A) % n of peaks
+        dataout{i,1,p} = erpstat_subj_B{p}; % baseline
+        dataout{i,2,p} = erpstat_subj_A{p}; % of interest
+      end
+      
+    case 'powstat'
+      for p = 1:numel(powstat_subj_A) % n of peaks
+        dataout{i,1,p} = powstat_subj_B{p}; % baseline
+        dataout{i,2,p} = powstat_subj_A{p}; % of interest
       end
   end
 end
