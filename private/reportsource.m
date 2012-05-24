@@ -9,20 +9,13 @@ function [soupeak stat output] = reportsource(cfg, gdat1, gdat2)
 
 %-------------------------------------%
 %-check data
-output = '';
 nsubj = numel(gdat1.trial);
 
 %-----------------%
-%-pow or nai
-if isfield(gdat1.avg, 'nai')
-  param = 'nai';
-  
-elseif isfield(gdat1.avg, 'pow')
-  param = 'pow';
-  
-else
-  error('field in .avg. not recognized')
-end
+%-pow or coh
+params = fieldnames(gdat1.avg);
+param = params(1);
+output = sprintf('REPORT SOURCE\non field %s, with %d subjects\n', param, nsubj);
 %-----------------%
 %-------------------------------------%
 
@@ -30,7 +23,11 @@ end
 %-calc clusters
 cfg3 = [];
 cfg3.method      = 'montecarlo';
-cfg3.statistic   = 'depsamplesT';
+if strcmp(param, 'coh')
+  cfg3.statistic   = 'depsamplesregrT';
+else
+  cfg3.statistic   = 'depsamplesT';
+end
 cfg3.correctm    = 'cluster';
 cfg3.clusterstatistic = cfg.clusterstatistics; % 'maxsize' or 'max' ('max' might be better for focal sources)
 cfg3.numrandomization = 1e5;

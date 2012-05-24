@@ -32,6 +32,7 @@ function powsource_grand(cfg)
 %  .powsource.clusteralpha: level to select sensors (default 0.05)
 %                           it can be a string in format '5%' to take top 5 voxels and put them in a cluster.
 %  .powsource.maxvox: max number of significant voxels to be used in soupeak
+%  .powsource.param: 'pow' or 'coh' ('coh' only works if you specified cfg.powsource.dics.refdip)
 %
 %  .rslt: directory images are saved into
 %
@@ -104,7 +105,11 @@ for k = 1:numel(cfg.powsource.cond)
     %-grand average
     cfg1 = [];
     cfg1.keepindividual = 'yes';
-    cfg1.parameter = 'pow'; % instead of nai
+    if ~isfield(cfg.powsource, 'param')
+      cfg1.parameter = 'pow';
+    else
+      cfg1.parameter = cfg.powsource.param;
+    end
     gpowsouPre = ft_sourcegrandaverage(cfg1, data{:,1,p});
     gpowsource = ft_sourcegrandaverage(cfg1, data{:,2,p});
     %-----------------%
