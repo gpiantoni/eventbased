@@ -30,8 +30,10 @@ function erpsource_subj(cfg, subj)
 %  .erpsource.erp: a structure with cfg to pass to ft_timelockanalysis
 %  .erpsource.bline: one number in s, the center of the covariance window of the baseline (the window length depends on erppeak)
 %
-%  .erpsource.lambda: regularization parameter of beamformer ('10%')
-%  .erpsource.powmethod: power method of beamformer ('trace' or 'lambda1')
+%  .erpsource.lcmv: options that will be passed to beamformer. Examples:
+%     .lambda: regularization parameter of beamformer ('25%')
+%     .powmethod: power method of beamformer ('trace' or 'lambda1')
+%     .refdip: location of the dipole for computing coherence to.
 %
 % IN:
 %  data in /PROJ/subjects/SUBJ/MOD/NICK/
@@ -113,8 +115,7 @@ for k = 1:numel(cfg.erpsource.cond)
     cfg3              = [];
     
     cfg3.method   = 'lcmv';
-    cfg3.lcmv.lambda = cfg.erpsource.lambda;
-    cfg3.lcmv.powmethod = cfg.erpsource.powmethod;
+    cfg3.lcmv = cfg.erpsource.lcmv;
     cfg3.lcmv.feedback = 'none';
     
     cfg3.vol = vol;

@@ -34,8 +34,10 @@ function powsource_subj(cfg, subj)
 %
 %  .powsource.bline: one number in s, the center of the covariance window of the baseline (the window length depends on powpeak)
 %
-%  .powsource.lambda: regularization parameter of beamformer ('10%')
-%  .powsource.powmethod: power method of beamformer ('trace' or 'lambda1')
+%  .powsource.dics: options that will be passed to beamformer. Examples:
+%     .lambda: regularization parameter of beamformer ('25%')
+%     .powmethod: power method of beamformer ('trace' or 'lambda1')
+%     .refdip: location of the dipole for computing coherence to.
 %
 % IN:
 %  data in /PROJ/subjects/SUBJ/MOD/NICK/
@@ -143,8 +145,7 @@ for k = 1:numel(cfg.powsource.cond)
     
     cfg1.method = 'dics';
     cfg1.dics.feedback = 'none';
-    cfg1.dics.lambda = cfg.powsource.lambda;
-    cfg1.dics.powmethod = cfg.powsource.powmethod;
+    cfg1.dics = cfg.powsource.dics;
     
     cfg1.vol = vol;
     cfg1.grid = leadchan;
