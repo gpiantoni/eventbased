@@ -1,5 +1,5 @@
 function erpstat_subj(cfg, subj)
-%ERPSTAT_SUBJ: identify sources from erp peaks using DICS
+%ERPSTAT_SUBJ: use LCMV common filters for each condition
 %
 % CFG
 %  .data: path of /data1/projects/PROJ/subjects/

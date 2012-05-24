@@ -1,5 +1,5 @@
 function powstat_subj(cfg, subj)
-%POWSTAT_SUBJ: identify sources from pow peaks using DICS
+%POWSTAT_SUBJ: use DICS common filters for each condition
 %
 % CFG
 %  .data: path of /data1/projects/PROJ/subjects/
