@@ -7,7 +7,7 @@ function powsource_grand(cfg)
 %  .log: name of the file and directory with analysis log
 %  .subjall: index of the number of subjects
 %
-%  .dpow: directory with ERP data
+%  .dpow: directory with POW data
 %  .powsource.cond: cell to make averages
 %
 %-Statistics
@@ -102,7 +102,7 @@ for k = 1:numel(cfg.powsource.cond)
   for p = 1:numel(powpeak)
     output = sprintf('%s\n%s:\n', output, powpeak(p).name);
     
-    %-----------------%
+    %--------%
     %-grand average
     cfg1 = [];
     cfg1.keepindividual = 'yes';
@@ -113,7 +113,7 @@ for k = 1:numel(cfg.powsource.cond)
     end
     gpowsouPre = ft_sourcegrandaverage(cfg1, data{:,1,p});
     gpowsource = ft_sourcegrandaverage(cfg1, data{:,2,p});
-    %-----------------%
+    %--------%
     
     %--------%
     %-do stats and figure
@@ -123,7 +123,6 @@ for k = 1:numel(cfg.powsource.cond)
     soupeak(p).center = mean(soupos,1);
     soupeak(p).name = powpeak(p).name;
     output = [output outtmp];
-    %--------%
     
     %--------%
     pngname = sprintf('gpowpeak_%s_%s', condname, powpeak(p).name);
