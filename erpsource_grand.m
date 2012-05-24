@@ -27,7 +27,7 @@ function erpsource_grand(cfg)
 %  .erpsource.clusteralpha: level to select sensors (default 0.05)
 %                           it can be a string in format '5%' to take top 5 voxels and put them in a cluster.
 %  .erpsource.maxvox: max number of significant voxels to be used in soupeak
-%  .powsource.param: 'pow' or 'coh' ('coh' only works if you specified cfg.powsource.dics.refdip)
+%  .erpsource.param: 'pow' or 'coh' ('coh' only works if you specified cfg.erpsource.lcmv.refdip)
 %
 %  .rslt: directory images are saved into
 %
