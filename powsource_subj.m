@@ -46,8 +46,8 @@ function powsource_subj(cfg, subj)
 %  data in /PROJ/subjects/SUBJ/MOD/NICK/
 %
 % OUT
-%  [cfg.dpow 'powsource_SUBJ_COND'] 'powsource_subj_A': source data for period of interest for each subject
-%  [cfg.dpow 'powsource_SUBJ_COND'] 'powsource_subj_B': source data for baseline for each subject
+%  [cfg.dpow 'powsource_SUBJ_COND'] 'powsource_s_A': source data for period of interest for each subject
+%  [cfg.dpow 'powsource_SUBJ_COND'] 'powsource_s_B': source data for baseline for each subject
 %
 % Part of EVENTBASED single-subject
 % see also ERP_SUBJ, ERP_GRAND, 
@@ -161,8 +161,8 @@ for k = 1:numel(cfg.powsource.cond)
       cfg1.dics.realfilter   = 'yes';
     end
     
-    powsource_subj_B{p} = ft_sourceanalysis(cfg1, freq);
-    powsource_subj_B{p}.cfg = [];
+    powsource_s_B{p} = ft_sourceanalysis(cfg1, freq);
+    powsource_s_B{p}.cfg = [];
     %-----------------%
     
     %-----------------%
@@ -175,7 +175,7 @@ for k = 1:numel(cfg.powsource.cond)
         fileparts(which('ft_defaults')), cfg.bnd2lead.mni.resolution), 'grid'); 
       
       grid = ft_convert_units(grid, 'mm');
-      powsource_subj_B{p}.pos = grid.pos;
+      powsource_s_B{p}.pos = grid.pos;
     end
     %-----------------%
     %---------------------------%
@@ -184,10 +184,10 @@ for k = 1:numel(cfg.powsource.cond)
     %-main analysis
     %-----------------%
     cfg1.latency    = freqparam.time;
-    powsource_subj_A{p}       = ft_sourceanalysis(cfg1, freq);
-    chan = powsource_subj_A{p}.cfg.channel;
-    powsource_subj_A{p}.cfg = [];
-    powsource_subj_A{p}.cfg.channel = chan;
+    powsource_s_A{p}       = ft_sourceanalysis(cfg1, freq);
+    chan = powsource_s_A{p}.cfg.channel;
+    powsource_s_A{p}.cfg = [];
+    powsource_s_A{p}.cfg.channel = chan;
     %-----------------%
     
     %-----------------%
@@ -195,7 +195,7 @@ for k = 1:numel(cfg.powsource.cond)
     if ~strcmp(cfg.vol.type, 'template') ...
         && isfield(cfg, 'bnd2lead') && isfield(cfg.bnd2lead, 'mni') ...
         && isfield(cfg.bnd2lead.mni, 'warp') && cfg.bnd2lead.mni.warp
-      powsource_subj_A{p}.pos = grid.pos;
+      powsource_s_A{p}.pos = grid.pos;
     end
     %-----------------%
     %---------------------------%
@@ -204,7 +204,7 @@ for k = 1:numel(cfg.powsource.cond)
 
   %-----------------%
   %-save source
-  save([cfg.dpow outputfile], 'powsource_subj_A', 'powsource_subj_B', '-v7.3')
+  save([cfg.dpow outputfile], 'powsource_s_A', 'powsource_s_B', '-v7.3')
   %-----------------%
   
 end

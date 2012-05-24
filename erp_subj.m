@@ -18,7 +18,7 @@ function erp_subj(cfg, subj)
 %  data in /PROJ/subjects/SUBJ/MOD/NICK/
 % 
 % OUT
-%  [cfg.derp 'erp_SUBJ_COND'] 'erp_subj': timelock analysis for single-subject
+%  [cfg.derp 'erp_SUBJ_COND'] 'erp_s': timelock analysis for single-subject
 %
 % Part of EVENTBASED single-subject
 % see also ERP_SUBJ, ERP_GRAND, 
@@ -57,10 +57,10 @@ for k = 1:numel(cfg.erp.cond)
   cfg2 = cfg.erp;
   cfg2.feedback = 'none';
   cfg2.preproc.feedback = 'none';
-  erp_subj = ft_timelockanalysis(cfg2, data);
+  erp_s = ft_timelockanalysis(cfg2, data);
   %---------------------------%
   
-  save([cfg.derp outputfile], 'erp_subj')
+  save([cfg.derp outputfile], 'erp_s')
   
 end
 %-------------------------------------%

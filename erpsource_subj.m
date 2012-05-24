@@ -42,8 +42,8 @@ function erpsource_subj(cfg, subj)
 %  data in /PROJ/subjects/SUBJ/MOD/NICK/
 %
 % OUT
-%  [cfg.derp 'erpsource_SUBJ_COND'] 'erpsource_subj_A': source data for period of interest for each subject
-%  [cfg.derp 'erpsource_SUBJ_COND'] 'erpsource_subj_B': source data for baseline for each subject
+%  [cfg.derp 'erpsource_SUBJ_COND'] 'erpsource_s_A': source data for period of interest for each subject
+%  [cfg.derp 'erpsource_SUBJ_COND'] 'erpsource_s_B': source data for baseline for each subject
 %
 % Part of EVENTBASED single-subject
 % see also ERP_SUBJ, ERP_GRAND, 
@@ -133,8 +133,8 @@ for k = 1:numel(cfg.erpsource.cond)
       cfg3.lcmv.realfilter   = 'yes';
     end
     
-    erpsource_subj_B{p} = ft_sourceanalysis(cfg3, avgPre);
-    erpsource_subj_B{p}.cfg = [];
+    erpsource_s_B{p} = ft_sourceanalysis(cfg3, avgPre);
+    erpsource_s_B{p}.cfg = [];
     %-----------------%
     
     %-----------------%
@@ -147,7 +147,7 @@ for k = 1:numel(cfg.erpsource.cond)
         fileparts(which('ft_defaults')), cfg.bnd2lead.mni.resolution), 'grid');
       grid = ft_convert_units(grid, 'mm');
       
-      erpsource_subj_B{p}.pos = grid.pos;
+      erpsource_s_B{p}.pos = grid.pos;
     end
     %-----------------%
     %---------------------------%
@@ -162,11 +162,11 @@ for k = 1:numel(cfg.erpsource.cond)
     
     %-----------------%
     %-source
-    erpsource_subj_A{p} = ft_sourceanalysis(cfg3, avgPost);
+    erpsource_s_A{p} = ft_sourceanalysis(cfg3, avgPost);
 
-    chan = erpsource_subj_A{p}.cfg.channel;
-    erpsource_subj_A{p}.cfg = [];
-    erpsource_subj_A{p}.cfg.channel = chan;
+    chan = erpsource_s_A{p}.cfg.channel;
+    erpsource_s_A{p}.cfg = [];
+    erpsource_s_A{p}.cfg.channel = chan;
     %-----------------%
     
     %-----------------%
@@ -175,7 +175,7 @@ for k = 1:numel(cfg.erpsource.cond)
         && isfield(cfg, 'bnd2lead') && isfield(cfg.bnd2lead, 'mni') ...
         && isfield(cfg.bnd2lead.mni, 'warp') && cfg.bnd2lead.mni.warp
       
-      erpsource_subj_A{p}.pos = grid.pos;
+      erpsource_s_A{p}.pos = grid.pos;
     end
     %-----------------%
     %---------------------------%
@@ -184,7 +184,7 @@ for k = 1:numel(cfg.erpsource.cond)
   
   %-----------------%
   %-save source
-  save([cfg.derp outputfile], 'erpsource_subj_A', 'erpsource_subj_B', '-v7.3')
+  save([cfg.derp outputfile], 'erpsource_s_A', 'erpsource_s_B', '-v7.3')
   %-----------------%
   
 end

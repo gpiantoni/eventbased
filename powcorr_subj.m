@@ -22,7 +22,7 @@ function powcorr_subj(cfg, subj)
 %  data in /PROJ/subjects/SUBJCODE/MOD/NICK/
 %
 % OUT
-%  [cfg.dpow 'powcorr_SUBJ_COND'] 'powcorr_subj': power correlation for single-subject
+%  [cfg.dpow 'powcorr_SUBJ_COND'] 'powcorr_s': power correlation for single-subject
 %
 % Part of EVENTBASED single-subject
 % see also ERP_SUBJ, ERP_GRAND, 
@@ -72,10 +72,10 @@ for k = 1:numel(cfg.powcorr.cond)
   %-fix baseline
   if isfield(cfg.powcorr, 'bl') && ~isempty(cfg.powcorr.bl.baseline)
     cfg3 = cfg.powcorr.bl;
-    powcorr_subj = ft_freqbaseline(cfg3, data);
+    powcorr_s = ft_freqbaseline(cfg3, data);
     
   else
-    powcorr_subj = data;
+    powcorr_s = data;
     
   end
   %---------------------------%
@@ -83,10 +83,10 @@ for k = 1:numel(cfg.powcorr.cond)
   %---------------------------%
   %-regression at each point
   if cfg.powcorr.log
-    powcorr_subj.powspctrm = log(powcorr_subj.powspctrm);
+    powcorr_s.powspctrm = log(powcorr_s.powspctrm);
   end
   
-  [s1 s2 s3 s4] = size(powcorr_subj.powspctrm);
+  [s1 s2 s3 s4] = size(powcorr_s.powspctrm);
   
   powspctrm = nan(s2,s3,s4);
   warning('off', 'MATLAB:rankDeficientMatrix') % NaN in \
@@ -94,8 +94,8 @@ for k = 1:numel(cfg.powcorr.cond)
   for i2 = 1:s2
     for i3 = 1:s3
       for i4 = 1:s4
-        regr = [ones(size(powcorr_subj.trialinfo,1),1) powcorr_subj.powspctrm(:,i2,i3,i4)];
-        beta = regr \ powcorr_subj.trialinfo(:, cfg.powcorr.info);
+        regr = [ones(size(powcorr_s.trialinfo,1),1) powcorr_s.powspctrm(:,i2,i3,i4)];
+        beta = regr \ powcorr_s.trialinfo(:, cfg.powcorr.info);
         powspctrm(i2,i3,i4) = beta(2);
       end
     end
@@ -105,12 +105,12 @@ for k = 1:numel(cfg.powcorr.cond)
   
   %---------------------------%
   %-restructure freq for multiple subjects
-  powcorr_subj = rmfield(powcorr_subj, 'trialinfo');
-  powcorr_subj.dimord = powcorr_subj.dimord(5:end);
-  powcorr_subj.powspctrm = powspctrm;
+  powcorr_s = rmfield(powcorr_s, 'trialinfo');
+  powcorr_s.dimord = powcorr_s.dimord(5:end);
+  powcorr_s.powspctrm = powspctrm;
   %---------------------------%
   
-  save([cfg.dpow outputfile], 'powcorr_subj')
+  save([cfg.dpow outputfile], 'powcorr_s')
   
 end
 %-------------------------------------%
