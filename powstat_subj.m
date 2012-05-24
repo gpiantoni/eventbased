@@ -109,6 +109,7 @@ for k = 1:numel(cfg.powstat.cond)
   %---------------------------%
   %-remove bad channels from leadfield
   datachan = ft_channelselection([{'all'}; cellfun(@(x) ['-' x], badchan, 'uni', false)], data.label);
+  
   %-------%
   %-check if the channels match
   % It can happen that they don't match if they come from slighly different
@@ -124,8 +125,10 @@ for k = 1:numel(cfg.powstat.cond)
     output = sprintf('%sUsing interpolated channels for source-reconstruction: %s\n', ...
       output, sprintf('%s, ', chandiff{:}));
   end
+  datachan = souchan;
   %-------%
-  [leadchan] = prepare_leadchan(lead, souchan);
+  
+  [leadchan] = prepare_leadchan(lead, datachan);
   %---------------------------%
   
   for p = 1:numel(powpeak)
