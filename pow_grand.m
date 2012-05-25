@@ -99,7 +99,7 @@ for k = 1:numel(cfg.pow.cond)
   %-----------------%
   
 end
-clear gpow gpowall
+clear pow powall
 %---------------------------%
 %-----------------------------------------------%
 
@@ -114,6 +114,7 @@ if isfield(cfg.gpow, 'comp')
   %-------------------------------------%
   %-loop over statistics conditions
   for t = 1:numel(cfg.gpow.comp)
+    clear pow
     
     %---------------------------%
     %-statistics for effects of interest

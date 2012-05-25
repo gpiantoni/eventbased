@@ -97,7 +97,7 @@ if isfield(cfg.gerp, 'comp')
     
     %---------------------------%
     %-statistics for effects of interest
-    clear gerp gerpall
+    clear gerp gerpall* erp_peak
     if numel(cfg.gerp.comp{t}) == 1
       
       %-----------------%
