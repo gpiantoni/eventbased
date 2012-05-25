@@ -29,7 +29,7 @@ function powstat_grand(cfg)
 %  .powstat.clusterstatistics: 'maxsize' or 'max'
 %  .powstat.clusteralpha: level to select sensors (default 0.05)
 %                           it can be a string in format '5%' to take top 5 voxels and put them in a cluster.
-%  .powstat.maxvox: max number of significant voxels to be used in soupeak
+%  .powstat.maxvox: max number of significant voxels to be used in powstat_peak
 %  .powstat.param: 'pow' or 'nai'
 %  .powstat.clusterthr: threshold to report clusters in output
 %
@@ -39,11 +39,11 @@ function powstat_grand(cfg)
 %  [cfg.dpow 'powstat_SUBJ_COND']: source data for period of interest and baseline for each subject
 %
 % OUT
-%  [cfg.dpow 'powstat_COND']: source analysis for all subject
-%  [cfg.dpow 'powsoupeak_COND']: significant source peaks in POW
+%  [cfg.dpow 'powstat_COMP']: source analysis for each cfg.powstat.comp
+%  [cfg.dpow 'powpowstat_peak_COMP']: significant source peaks for each cfg.powstat.comp
 %
 % FIGURES
-%  gpow_peak_COND_POWPEAK: 3d plot of the source for one peak
+%  gpow_peak_COMP_POWPEAK: 3d plot of the source for one peak
 %
 % Part of EVENTBASED group-analysis
 % see also ERP_SUBJ, ERP_GRAND,
@@ -134,7 +134,7 @@ for t = 1:numel(cfg.powstat.comp) % DOC: cfg.powstat.comp
   
   %---------------------------%
   %-loop over peaks
-  soupeak = [];
+  powstat_peak = [];
   for p = 1:numel(pow_peak)
     output = sprintf('%s\n%s:\n', output, pow_peak(p).name);
 
@@ -151,9 +151,9 @@ for t = 1:numel(cfg.powstat.comp) % DOC: cfg.powstat.comp
     %-do stats and figure
     h = figure;
     [soupos powstat{p} outtmp] = reportsource(cfg.powstat, soustat1, soustat2); % DOC: cfg.powstat
-    soupeak(p).pos = soupos;
-    soupeak(p).center = mean(soupos,1);
-    soupeak(p).name = pow_peak(p).name;
+    powstat_peak(p).pos = soupos;
+    powstat_peak(p).center = mean(soupos,1);
+    powstat_peak(p).name = pow_peak(p).name;
     output = [output outtmp];
     
     %--------%
@@ -171,12 +171,12 @@ for t = 1:numel(cfg.powstat.comp) % DOC: cfg.powstat.comp
   
   %-----------------%
   %-save
-  save([cfg.dpow 'powstatpeak_' condname], 'soupeak')
+  save([cfg.dpow 'powstat_peak_' comp], 'powstat_peak')
   
   for p = 1:numel(powstat)
     powstat{p}.cfg = []; % this is huge
   end
-  save([cfg.dpow 'powstat_' condname], 'powstat', '-v7.3')
+  save([cfg.dpow 'powstat_' comp], 'powstat', '-v7.3')
   %-----------------%
   
 end
