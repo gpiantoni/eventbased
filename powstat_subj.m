@@ -32,7 +32,7 @@ function powstat_subj(cfg, subj)
 %      .powsource.refcomp: cell of string(s) of the comparison whose peaks
 %                     will be localized (one of the cells of cfg.gpow.comp or cfg.gpowcorr.comp)
 %
-%  .powsource.bline: one number in s, the center of the covariance window of the baseline (the window length depends on powpeak)
+%  .powsource.bline: one number in s, the center of the covariance window of the baseline (the window length depends on pow_peak)
 %
 %  .powsource.dics: options that will be passed to beamformer. Examples:
 %     .lambda: regularization parameter of beamformer ('25%')
@@ -70,7 +70,7 @@ tic_t = tic;
 souname = regexprep(cfg.powsource.refcond, '*', '');
 sourcefile = sprintf('powsource_%04d_%s', subj, souname);
 load([cfg.dpow sourcefile], 'powsource_s_A', 'powsource_s_B')
-souchan = powsource_s_B{1}.cfg.channel;
+souchan = powsource_s_A{1}.cfg.channel;
 %-----------------%
 
 pow_peak = getpeak(cfg, 'pow');
@@ -119,13 +119,13 @@ for k = 1:numel(cfg.powstat.cond)
   [leadchan] = prepare_leadchan(lead, datachan);
   %---------------------------%
   
-  for p = 1:numel(powpeak)
+  for p = 1:numel(pow_peak)
     
-    fprintf('\n   ->->-> Running % 2d powstat (%s) <-<-<-\n', p, powpeak(p).name);
+    fprintf('\n   ->->-> Running % 2d powstat (%s) <-<-<-\n', p, pow_peak(p).name);
     
     %---------------------------%
     %-more precise freq analysis reconstruction
-    freqparam = prepare_freqpeak(cfg, powpeak(p), data.time{1}(1));
+    freqparam = prepare_freqpeak(cfg, pow_peak(p), data.time{1}(1));
     %---------------------------%
     
     %---------------------------%
@@ -193,7 +193,7 @@ for k = 1:numel(cfg.powstat.cond)
     cfg1.latency = freqparam.time;
     cfg1.grid.filter  = powsource_s_A{p}.avg.filter;
     powstat_s_A{p}       = ft_sourceanalysis(cfg1, freq);
-    chan = source{p}.cfg.channel;
+    chan = powstat_s_A{p}.cfg.channel;
     powstat_s_A{p}.cfg = [];
     powstat_s_A{p}.cfg.channel = chan;
     %-----------------%

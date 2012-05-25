@@ -10,8 +10,9 @@ function powstat_grand(cfg)
 %  .dpow: directory with POW data
 %
 %-Statistics
-%  The comparison is always against baseline. If you want to compare
-%  conditions, use powstats_subj.
+%  .powstat.comp: cells within cell (e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}})
+%         but you cannot have more than 2 conditions (it's always a t-test)
+%  .powstat.nai: use NAI calculated from baseline or not (logical)
 %
 %  .powsource.peaks: how to speficy peaks to analyze, 'manual' or 'pow_peak'
 %          (peaks from grandpow) or 'powcorr_peak' (peaks from grandpowcorr)
@@ -25,17 +26,14 @@ function powstat_grand(cfg)
 %      .powsource.refcomp: cell of string(s) of the comparison whose peaks
 %                     will be localized (one of the cells of cfg.gpow.comp or cfg.gpowcorr.comp)
 %
-% Options for reportsource:
 %  .powstat.clusterstatistics: 'maxsize' or 'max'
 %  .powstat.clusteralpha: level to select sensors (default 0.05)
 %                           it can be a string in format '5%' to take top 5 voxels and put them in a cluster.
 %  .powstat.maxvox: max number of significant voxels to be used in soupeak
+%  .powstat.param: 'pow' or 'nai'
+%  .powstat.clusterthr: threshold to report clusters in output
 %
 %  .rslt: directory images are saved into
-%
-% Options if you want to create significance mask
-%  .powstat.nifti: directory and initial part of the name where you want to save the masks
-%  .dti.ref: template for mask ('/usr/share/data/fsl-mni152-templates/MNI152_T1_1mm_brain.nii.gz')
 %
 % IN
 %  [cfg.dpow 'powstat_SUBJ_COND']: source data for period of interest and baseline for each subject
@@ -45,7 +43,7 @@ function powstat_grand(cfg)
 %  [cfg.dpow 'powsoupeak_COND']: significant source peaks in POW
 %
 % FIGURES
-%  gpowpeak_COND_POWPEAK: 3d plot of the source for one peak
+%  gpow_peak_COND_POWPEAK: 3d plot of the source for one peak
 %
 % Part of EVENTBASED group-analysis
 % see also ERP_SUBJ, ERP_GRAND,
@@ -86,14 +84,15 @@ for t = 1:numel(cfg.powstat.comp) % DOC: cfg.powstat.comp
     
     sousubj1 = squeeze(data(:,2,:)); % period of interest
     sousubj2 = squeeze(data(:,1,:)); % baseline
+    param = 'pow';
     %-----------------%
     
   else
     
     %-----------------%
     %-compare two conditions (cond1 - cond2)
-    cond1 = cfg.gpow.comp{t}{1};
-    cond2 = cfg.gpow.comp{t}{2};
+    cond1 = cfg.powstat.comp{t}{1};
+    cond2 = cfg.powstat.comp{t}{2};
     comp = [regexprep(cond1, '*', '') '_' regexprep(cond2, '*', '')];
     output = sprintf('%s\n   COMPARISON %s vs %s\n', output, cond1, cond2);
     
@@ -101,23 +100,28 @@ for t = 1:numel(cfg.powstat.comp) % DOC: cfg.powstat.comp
     %-pow over subj
     [outtmp data1] = load_subj(cfg, 'powstat', cond1);
     output = [output outtmp];
-    if isempty(data); continue; end
+    if isempty(data1); continue; end
     %-------%
     
     %-------%
     %-pow over subj
     [outtmp data2] = load_subj(cfg, 'powstat', cond2);
     output = [output outtmp];
-    if isempty(data); continue; end
+    if isempty(data2); continue; end
     %-------%
+    param = 'pow';
     
-    if cfg.powstat.nai % DOC: cfg.powstat.nai
+    if isfield(cfg.powstat, 'nai') && cfg.powstat.nai
       for i1 = 1:size(data1,1)
-        for i2 = 1:size(data1,2)
-          data1{:,2,:}.avg.pow = data1{:,2,:}.avg.pow ./ data1{:,1,:}.avg.pow;
-          data2{:,2,:}.avg.pow = data2{:,2,:}.avg.pow ./ data2{:,1,:}.avg.pow;
+        for i3 = 1:size(data1,3)
+          data1{i1,2,i3}.avg.nai = data1{i1,2,i3}.avg.pow ./ data1{i1,1,i3}.avg.pow;
+          data1{i1,2,i3}.avg = rmfield(data1{i1,2,i3}.avg, 'pow');
+          
+          data2{i1,2,i3}.avg.nai = data2{i1,2,i3}.avg.pow ./ data2{i1,1,i3}.avg.pow;
+          data2{i1,2,i3}.avg = rmfield(data2{i1,2,i3}.avg, 'pow');
         end
       end
+      param = 'nai';
     end
     
     sousubj1 = squeeze(data1(:,2,:)); % cond1
@@ -131,14 +135,14 @@ for t = 1:numel(cfg.powstat.comp) % DOC: cfg.powstat.comp
   %---------------------------%
   %-loop over peaks
   soupeak = [];
-  for p = 1:numel(powpeak)
-    output = sprintf('%s\n%s:\n', output, powpeak(p).name);
+  for p = 1:numel(pow_peak)
+    output = sprintf('%s\n%s:\n', output, pow_peak(p).name);
 
     %-----------------%
     %-grand average
     cfg1 = [];
     cfg1.keepindividual = 'yes';
-    cfg1.parameter = 'pow';
+    cfg1.parameter = param;
     soustat1 = ft_sourcegrandaverage(cfg1, sousubj1{:,p});
     soustat2 = ft_sourcegrandaverage(cfg1, sousubj2{:,p});
     %-----------------%    
@@ -149,11 +153,11 @@ for t = 1:numel(cfg.powstat.comp) % DOC: cfg.powstat.comp
     [soupos powstat{p} outtmp] = reportsource(cfg.powstat, soustat1, soustat2); % DOC: cfg.powstat
     soupeak(p).pos = soupos;
     soupeak(p).center = mean(soupos,1);
-    soupeak(p).name = powpeak(p).name;
+    soupeak(p).name = pow_peak(p).name;
     output = [output outtmp];
     
     %--------%
-    pngname = sprintf('gpowstat_%s_%s', comp, powpeak(p).name);
+    pngname = sprintf('gpowstat_%s_%s', comp, pow_peak(p).name);
     saveas(gcf, [cfg.log filesep pngname '.png'])
     close(gcf); drawnow
     

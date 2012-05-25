@@ -33,6 +33,7 @@ function powsource_grand(cfg)
 %                           it can be a string in format '5%' to take top 5 voxels and put them in a cluster.
 %  .powsource.maxvox: max number of significant voxels to be used in soupeak
 %  .powsource.param: 'pow' or 'coh' ('coh' only works if you specified cfg.powsource.dics.refdip)
+%  .powsource.clusterthr: threshold to report clusters in output
 %
 %  .rslt: directory images are saved into
 %

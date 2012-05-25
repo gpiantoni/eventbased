@@ -1,13 +1,38 @@
 function [soupeak stat output] = reportsource(cfg, gdat1, gdat2)
-%REPORTSOURCE get cluster which are different from baseline, even if not significant
-% The clusters to determine the main results of the analysis, for example
-% to concentrate the source reconstruction
+%REPORTSOURCE get clusters in the comparison between two conditions or against baseline
 %
-% For source, it only reports either positive or negative clusters. It does
-% not make sense to have both (how can one TFR element be associated with
-% activation and disactivation from baseline?)
+% It only reports either positive or negative clusters. It does not make
+% sense to have both (how can one TFR element be associated with activation
+% and disactivation from baseline?)  
+% 
+% Use as:
+%   [soupeak stat output] = reportsource(cfg, gdat1, gdat2)
+%
+% CFG
+%  .clusterstatistics: 'maxsize' or 'max'
+%  .clusteralpha: level to select sensors (default 0.05)
+%                   it can be a string in format '5%' to take top 5 voxels
+%                   and put them in a cluster. 
+%  .maxvox: max number of significant voxels to be used in soupeak
+%  .param: 'pow', 'coh' or 'nai' but it needs to be in the data
+%  .clusterthr: threshold to report clusters in output (default 0.5)
+%
+% GDAT1/GDAT2
+%  grandaverage datasets for source
+%
+% Part of EVENTBASED/PRIVATE
 
 %-------------------------------------%
+%---------------------------%
+%-cfg default values
+if ~isfield(cfg, 'clusterstatistics'); cfg.clusterstatistics = 'maxsize'; end
+if ~isfield(cfg, 'numrandomization'); cfg.numrandomization = 1e5; end
+if ~isfield(cfg, 'clusteralpha'); cfg.clusteralpha = 0.05; end
+if ~isfield(cfg, 'maxvox'); cfg.maxvox = 50; end
+if ~isfield(cfg, 'clusterthr'); cfg.clusterthr = .5; end
+%---------------------------%
+
+%---------------------------%
 %-check data
 nsubj = numel(gdat1.trial);
 
@@ -15,28 +40,34 @@ nsubj = numel(gdat1.trial);
 %-pow or coh
 params = fieldnames(gdat1.avg);
 param = params{1};
-output = sprintf('on field %s, with %d subjects\n', param, nsubj);
+if ~isfield(cfg, 'parameter'); cfg.parameter = param; end
+if all(~strcmp(cfg.parameter, params))
+  error(sprintf('no field called %s in data.avg, which fields %s', ...
+    cfg.parameter, sprintf(' %s,', params{:})))
+end
+output = sprintf('on field %s, with %d subjects\n', cfg.parameter, nsubj);
 %-----------------%
+%---------------------------%
 %-------------------------------------%
 
 %-------------------------------------%
 %-calc clusters
 cfg3 = [];
 cfg3.method      = 'montecarlo';
-if strcmp(param, 'coh')
+if strcmp(cfg.parameter, 'coh')
   cfg3.statistic   = 'depsamplesregrT';
 else
   cfg3.statistic   = 'depsamplesT';
 end
 cfg3.correctm    = 'cluster';
 cfg3.clusterstatistic = cfg.clusterstatistics; % 'maxsize' or 'max' ('max' might be better for focal sources)
-cfg3.numrandomization = 1e5;
+cfg3.numrandomization = cfg.numrandomization;
 cfg3.design = [ones(1,nsubj) ones(1,nsubj).*2; 1:nsubj 1:nsubj];
 cfg3.ivar = 1;
 cfg3.uvar = 2;
 cfg3.feedback = 'etf';
 
-cfg3.parameter = param;
+cfg3.parameter = cfg.parameter;
 cfg3.dim = gdat1.dim;
 
 cfg3.alpha = 0.05;
@@ -100,8 +131,6 @@ end
 
 %-----------------%
 %-report cluster
-clusterthr = .8;
-
 %-------%
 %-find out if more positive or negative
 % it does not make sense to have both increase and decrease in power for
@@ -127,7 +156,7 @@ end
 
 %-------%
 %-report significant cluster
-signcl = find([clusters.prob] < clusterthr);
+signcl = find([clusters.prob] < cfg.clusterthr);
 
 for i = 1:numel(signcl)
   
