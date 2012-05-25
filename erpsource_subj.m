@@ -19,13 +19,14 @@ function erpsource_subj(cfg, subj)
 %      .bnd2lead.mni.warp: logical (optional. Instead of transforming the
 %      brain into MNI coordinates, you can wrap the grid onto it)
 %
-%  .erpsource.areas: how to speficy peaks to analyze, 'manual' or 'erp_peak' (peaks from granderp)
+%  .erpsource.peaks: how to speficy peaks to analyze, 'manual' or 'erp_peak' (peaks from granderp)
 %    if 'manual'
 %      .erpsource.erp_peak(1).name: string ('name_of_the_time_window')
 %      .erpsource.erp_peak(1).time: scalar (center of the time window in s)
 %      .erpsource.erp_peak(1).wndw: scalar (length of the time window in s)
 %    if 'erp_peak'
-%      .erp.refcond: string of the comparison whose peaks will be localized
+%      .erpsource.refcomp: cell of string(s) of the comparison whose peaks
+%                     will be localized (one of the cells of cfg.gerp.comp)
 %
 %  .erpsource.erp: a structure with cfg to pass to ft_timelockanalysis
 %  .erpsource.bline: one number in s, the center of the covariance window of the baseline (the window length depends on erp_peak)
@@ -64,21 +65,13 @@ tic_t = tic;
 [vol, lead, sens] = load_headshape(cfg, subj);
 %---------------------------%
 
+erp_peak = getpeak(cfg, 'erp');
+
 %-------------------------------------%
 %-loop over conditions
 for k = 1:numel(cfg.erpsource.cond)
   cond     = cfg.erpsource.cond{k};
   condname = regexprep(cond, '*', '');
-  
-  %---------------------------%
-  %-use predefined or erp_peaks for areas of interest
-  if strcmp(cfg.erpsource.areas, 'manual')
-    erp_peak = cfg.erpsource.erp_peak;
-  elseif strcmp(cfg.erpsource.areas, 'erp_peak')
-    peakname = regexprep(cfg.erp.refcond, '*', '');
-    load([cfg.derp 'erp_peak_' peakname], 'erp_peak')
-  end
-  %---------------------------%
   
   %---------------------------%
   %-read data

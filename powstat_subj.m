@@ -20,17 +20,17 @@ function powstat_subj(cfg, subj)
 %      .bnd2lead.mni.warp: logical (optional. Instead of transforming the
 %      brain into MNI coordinates, you can wrap the grid onto it)
 %
-%  .powsource.areas: how to speficy peaks to analyze, 'manual' or 'erppeak' (peaks from granderp)
+%  .powsource.peaks: how to speficy peaks to analyze, 'manual' or 'pow_peak'
+%          (peaks from grandpow) or 'powcorr_peak' (peaks from grandpowcorr)
 %    if 'manual'
-%      .powsource.erppeak(1).name: string ('name_of_the_time_window')
-%      .powsource.erppeak(1).time: scalar (center of the time window in s)
-%      .powsource.erppeak(1).wndw: scalar (length of the time window in s)
-%      .powsource.powpeak(1).freq = 10; % center of the frequency
-%      .powsource.powpeak(1).band = 4; % width of the frequency band
-%    if 'powpeak'
-%      .pow.refcond: string of the condition whose peaks will be localized
-%    if 'powcorrpeak'
-%      .powcorr.refcond: string of the condition whose peaks will be localized
+%      .powsource.pow_peak(1).name: string ('name_of_the_time_window')
+%      .powsource.pow_peak(1).time: scalar (center of the time window in s)
+%      .powsource.pow_peak(1).wndw: scalar (length of the time window in s)
+%      .powsource.pow_peak(1).freq = 10; % center of the frequency
+%      .powsource.pow_peak(1).band = 4; % width of the frequency band
+%    if 'pow_peak' or 'powcorr_peak'
+%      .powsource.refcomp: cell of string(s) of the comparison whose peaks
+%                     will be localized (one of the cells of cfg.gpow.comp or cfg.gpowcorr.comp)
 %
 %  .powsource.bline: one number in s, the center of the covariance window of the baseline (the window length depends on powpeak)
 %
@@ -70,25 +70,10 @@ tic_t = tic;
 souname = regexprep(cfg.powsource.refcond, '*', '');
 sourcefile = sprintf('powsource_%04d_%s', subj, souname);
 load([cfg.dpow sourcefile], 'powsource_s_A', 'powsource_s_B')
-souchan = source{1}.cfg.channel;
+souchan = powsource_s_B{1}.cfg.channel;
 %-----------------%
-%---------------------------%
 
-%---------------------------%
-%-use predefined or power-peaks for areas of interest
-if strcmp(cfg.powsource.areas, 'manual')
-  powpeak = cfg.powsource.powpeak;
-  
-elseif strcmp(cfg.powsource.areas, 'powpeak')
-  peakname = regexprep(cfg.pow.refcond, '*', '');
-  load([cfg.dpow cfg.cond peakname '_powpeak'], 'powpeak')
-  
-elseif strcmp(cfg.powsource.areas, 'powcorrpeak')
-  peakname = regexprep(cfg.powcorr.refcond, '*', '');
-  load([cfg.dpow cfg.cond peakname '_powcorrpeak'], 'powcorrpeak')
-  powpeak = powcorrpeak;
-  
-end
+pow_peak = getpeak(cfg, 'pow');
 %---------------------------%
 
 %-------------------------------------%

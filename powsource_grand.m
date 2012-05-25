@@ -14,18 +14,18 @@ function powsource_grand(cfg)
 %  The comparison is always against baseline. If you want to compare
 %  conditions, use powstats_subj.
 % 
-%  .powsource.areas: how to speficy peaks to analyze, 'manual' or 'powpeak'
+%  .powsource.peaks: how to speficy peaks to analyze, 'manual' or 'pow_peak'
 %          (peaks from grandpow) or 'powcorrpeak' (peaks from grandpowcorr)
 %    if 'manual'
-%      .powsource.powpeak(1).name: string ('name_of_the_time_window')
-%      .powsource.powpeak(1).time: scalar (center of the time window in s)
-%      .powsource.powpeak(1).wndw: scalar (length of the time window in s)
-%      .powsource.powpeak(1).freq = 10; % center of the frequency
-%      .powsource.powpeak(1).band = 4; % width of the frequency band
-%    if 'powpeak'
-%      .pow.refcond: string of the comparison whose peaks will be localized
+%      .powsource.pow_peak(1).name: string ('name_of_the_time_window')
+%      .powsource.pow_peak(1).time: scalar (center of the time window in s)
+%      .powsource.pow_peak(1).wndw: scalar (length of the time window in s)
+%      .powsource.pow_peak(1).freq = 10; % center of the frequency
+%      .powsource.pow_peak(1).band = 4; % width of the frequency band
+%    if 'pow_peak'
+%      .pow.refcomp: string of the comparison whose peaks will be localized
 %    if 'powcorrpeak'
-%      .powcorr.refcond: string of the comparison whose peaks will be localized
+%      .powcorr.refcomp: string of the comparison whose peaks will be localized
 %
 % Options for reportsource:
 %  .powsource.clusterstatistics: 'maxsize' or 'max'
@@ -49,7 +49,7 @@ function powsource_grand(cfg)
 %  [cfg.dpow 'powsource_peak_COND'] 'powsource_peak': significant source peaks in POW
 %
 % FIGURES
-%  gpowpeak_COND_POWPEAK: 3d plot of the source for one peak
+%  gpow_peak_COND_POWPEAK: 3d plot of the source for one peak
 %
 % Part of EVENTBASED group-analysis
 % see also ERP_SUBJ, ERP_GRAND, 
@@ -65,22 +65,7 @@ output = sprintf('%s began at %s on %s\n', ...
 tic_t = tic;
 %---------------------------%
 
-%---------------------------%
-%-use predefined or power-peaks for areas of interest
-if strcmp(cfg.powsource.areas, 'manual')
-  powpeak = cfg.powsource.powpeak;
-  
-elseif strcmp(cfg.powsource.areas, 'powpeak')
-  peakname = regexprep(cfg.pow.refcond, '*', '');
-  load([cfg.dpow 'powpeak_' peakname], 'powpeak')
-  
-elseif strcmp(cfg.powsource.areas, 'powcorrpeak')
-  peakname = regexprep(cfg.powcorr.refcond, '*', '');
-  load([cfg.dpow 'powcorrpeak_' peakname], 'powcorrpeak')
-  powpeak = powcorrpeak;
-  
-end
-%---------------------------%
+pow_peak = getpeak(cfg, 'pow');
 
 %---------------------------------------------------------%
 %-statistics for main effects
@@ -101,8 +86,8 @@ for k = 1:numel(cfg.powsource.cond)
   %-loop over peaks
   powsource_peak = [];
   powsource = [];
-  for p = 1:numel(powpeak)
-    output = sprintf('%s\n%s:\n', output, powpeak(p).name);
+  for p = 1:numel(pow_peak)
+    output = sprintf('%s\n%s:\n', output, pow_peak(p).name);
     
     %--------%
     %-grand average
@@ -123,11 +108,11 @@ for k = 1:numel(cfg.powsource.cond)
     [soupos powsource{p} outtmp] = reportsource(cfg.powsource, gpowsource, gpowsouPre);
     powsource_peak(p).pos = soupos;
     powsource_peak(p).center = mean(soupos,1);
-    powsource_peak(p).name = powpeak(p).name;
+    powsource_peak(p).name = pow_peak(p).name;
     output = [output outtmp];
     
     %--------%
-    pngname = sprintf('gpowpeak_%s_%s', condname, powpeak(p).name);
+    pngname = sprintf('gpow_peak_%s_%s', condname, pow_peak(p).name);
     saveas(gcf, [cfg.log filesep pngname '.png'])
     close(gcf); drawnow
     

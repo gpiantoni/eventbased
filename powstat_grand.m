@@ -13,18 +13,17 @@ function powstat_grand(cfg)
 %  The comparison is always against baseline. If you want to compare
 %  conditions, use powstats_subj.
 %
-%  .powsource.areas: how to speficy peaks to analyze, 'manual' or 'powpeak'
-%          (peaks from grandpow) or 'powcorrpeak' (peaks from grandpowcorr)
+%  .powsource.peaks: how to speficy peaks to analyze, 'manual' or 'pow_peak'
+%          (peaks from grandpow) or 'powcorr_peak' (peaks from grandpowcorr)
 %    if 'manual'
-%      .powsource.powpeak(1).name: string ('name_of_the_time_window')
-%      .powsource.powpeak(1).time: scalar (center of the time window in s)
-%      .powsource.powpeak(1).wndw: scalar (length of the time window in s)
-%      .powsource.powpeak(1).freq = 10; % center of the frequency
-%      .powsource.powpeak(1).band = 4; % width of the frequency band
-%    if 'powpeak'
-%      .pow.refcond: string of the comparison whose peaks will be localized
-%    if 'powcorrpeak'
-%      .powcorr.refcond: string of the comparison whose peaks will be localized
+%      .powsource.pow_peak(1).name: string ('name_of_the_time_window')
+%      .powsource.pow_peak(1).time: scalar (center of the time window in s)
+%      .powsource.pow_peak(1).wndw: scalar (length of the time window in s)
+%      .powsource.pow_peak(1).freq = 10; % center of the frequency
+%      .powsource.pow_peak(1).band = 4; % width of the frequency band
+%    if 'pow_peak' or 'powcorr_peak'
+%      .powsource.refcomp: cell of string(s) of the comparison whose peaks
+%                     will be localized (one of the cells of cfg.gpow.comp or cfg.gpowcorr.comp)
 %
 % Options for reportsource:
 %  .powstat.clusterstatistics: 'maxsize' or 'max'
@@ -62,22 +61,7 @@ output = sprintf('%s began at %s on %s\n', ...
 tic_t = tic;
 %---------------------------%
 
-%---------------------------%
-%-use predefined or power-peaks for areas of interest
-if strcmp(cfg.powsource.areas, 'manual')
-  powpeak = cfg.powsource.powpeak;
-  
-elseif strcmp(cfg.powsource.areas, 'powpeak')
-  peakname = regexprep(cfg.pow.refcond, '*', '');
-  load([cfg.dpow 'powpeak_' peakname], 'powpeak')
-  
-elseif strcmp(cfg.powsource.areas, 'powcorrpeak')
-  peakname = regexprep(cfg.powcorr.refcond, '*', '');
-  load([cfg.dpow 'powcorrpeak_' peakname], 'powcorrpeak')
-  powpeak = powcorrpeak;
-  
-end
-%---------------------------%
+pow_peak = getpeak(cfg, 'pow');
 
 %-------------------------------------%
 %-loop over statistics conditions

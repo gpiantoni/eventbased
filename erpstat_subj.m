@@ -10,8 +10,6 @@ function erpstat_subj(cfg, subj)
 %
 %  .log: name of the file and directory to save log
 %  .derp: directory for ERP data
-%  .erpsource.refcond: string of the condition used for LCMV-filter
-%  .erpstat.cond: cell with conditions (e.g. {'*cond1' '*cond2'})
 %
 %  .vol.type: 'template' or subject-specific ('dipoli' or 'openmeeg')
 %    if 'template'
@@ -20,15 +18,18 @@ function erpstat_subj(cfg, subj)
 %      .bnd2lead.mni.warp: logical (optional. Instead of transforming the
 %      brain into MNI coordinates, you can wrap the grid onto it)
 %
-%  .erpsource.areas: how to speficy peaks to analyze, 'manual' or 'erppeak' (peaks from granderp)
-%    if 'manual'
-%      .erpsource.erppeak(1).name: string ('name_of_the_time_window')
-%      .erpsource.erppeak(1).time: scalar (center of the time window in s)
-%      .erpsource.erppeak(1).wndw: scalar (length of the time window in s)
-%    if 'erppeak'
-%      .erp.refcond: string of the condition whose peaks will be localized
+%  .erpstat.refcond: string of the condition used for LCMV-filter
+%  .erpstat.cond: cell with conditions to calculate (e.g. {'*cond1' '*cond2'})
 %
-%  .erpsource.bline: one number in s, the center of the covariance window of the baseline (the window length depends on erppeak)
+%  .erpsource.peaks: how to speficy peaks to analyze, 'manual' or 'erp_peak' (peaks from granderp)
+%    if 'manual'
+%      .erpsource.erp_peak(1).name: string ('name_of_the_time_window')
+%      .erpsource.erp_peak(1).time: scalar (center of the time window in s)
+%      .erpsource.erp_peak(1).wndw: scalar (length of the time window in s)
+%    if 'erp_peak'
+%      .erpsource.refcomp: string of the condition whose peaks will be localized
+%
+%  .erpsource.bline: one number in s, the center of the covariance window of the baseline (the window length depends on erp_peak)
 %
 %  .erpsource.lcmv: options that will be passed to beamformer. Examples:
 %     .lambda: regularization parameter of beamformer ('25%')
@@ -63,23 +64,13 @@ tic_t = tic;
 
 %-----------------%
 %-load source
-souname = regexprep(cfg.erpsource.refcond, '*', '');
+souname = regexprep(cfg.erpstat.refcond, '*', '');
 sourcefile = sprintf('erpsource_%04d_%s', subj, souname);
 load([cfg.derp sourcefile], 'erpsource_s_A', 'erpsource_s_B')
 souchan = sourceA{1}.cfg.channel;
 %-----------------%
-%---------------------------%
 
-%---------------------------%
-%-use predefined or erp-peaks for areas of interest
-if strcmp(cfg.erpsource.areas, 'manual')
-  erppeak = cfg.erpsource.erppeak;
-  
-elseif strcmp(cfg.erpsource.areas, 'erppeak')
-  peakname = regexprep(cfg.erp.refcond, '*', '');
-  load([cfg.derp cfg.cond peakname '_erppeak'], 'erppeak')
-  
-end
+erp_peak = getpeak(cfg, 'erp');
 %---------------------------%
 
 %-------------------------------------%
@@ -125,9 +116,9 @@ for k = 1:numel(cfg.erpstat.cond)
   [leadchan] = prepare_leadchan(lead, datachan);
   %---------------------------%
   
-  for p = 1:numel(erppeak)
+  for p = 1:numel(erp_peak)
     
-    fprintf('\n   ->->-> Running % 2d erpstat (%s) <-<-<-\n', p, erppeak(p).name);
+    fprintf('\n   ->->-> Running % 2d erpstat (%s) <-<-<-\n', p, erp_peak(p).name);
     
     %---------------------------%
     %-baseline
@@ -135,7 +126,7 @@ for k = 1:numel(cfg.erpstat.cond)
     %-covariance window
     cfg2 = cfg.erpsource.erp;
     cfg2.covariance = 'yes';
-    cfg2.covariancewindow = cfg.erpsource.bline  + erppeak(p).wndw * [-.5 .5];
+    cfg2.covariancewindow = cfg.erpsource.bline  + erp_peak(p).wndw * [-.5 .5];
     cfg2.feedback = 'none';
     cfg2.channel = datachan;
     
@@ -181,7 +172,7 @@ for k = 1:numel(cfg.erpstat.cond)
     %-main effect
     %-----------------%
     %-covariance
-    cfg2.covariancewindow = erppeak(p).time + erppeak(p).wndw * [-.5 .5];
+    cfg2.covariancewindow = erp_peak(p).time + erp_peak(p).wndw * [-.5 .5];
     avgPost = ft_timelockanalysis(cfg2, data);
     %-----------------%
     
