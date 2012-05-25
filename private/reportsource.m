@@ -15,7 +15,7 @@ nsubj = numel(gdat1.trial);
 %-pow or coh
 params = fieldnames(gdat1.avg);
 param = params{1};
-output = sprintf('REPORT SOURCE\non field %s, with %d subjects\n', param, nsubj);
+output = sprintf('on field %s, with %d subjects\n', param, nsubj);
 %-----------------%
 %-------------------------------------%
 
