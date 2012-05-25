@@ -1,5 +1,9 @@
 function powstat_subj(cfg, subj)
 %POWSTAT_SUBJ: use DICS common filters for each condition
+% Notice that this function reuses the same filters for all the conditions
+% but the beamforming depends on the CSD, which is different across
+% conditions. You'd need to rewrite the function, where you load all the
+% data at once and reseparate conditions after beamforming and rawtrial
 %
 % CFG
 %  .data: path of /data1/projects/PROJ/subjects/
@@ -191,8 +195,8 @@ for k = 1:numel(cfg.powstat.cond)
     %-main analysis
     %-----------------%
     cfg1.latency = freqparam.time;
-    cfg1.grid.filter  = powsource_s_A{p}.avg.filter;
-    powstat_s_A{p}       = ft_sourceanalysis(cfg1, freq);
+    cfg1.grid.filter = powsource_s_A{p}.avg.filter;
+    powstat_s_A{p} = ft_sourceanalysis(cfg1, freq);
     chan = powstat_s_A{p}.cfg.channel;
     powstat_s_A{p}.cfg = [];
     powstat_s_A{p}.cfg.channel = chan;

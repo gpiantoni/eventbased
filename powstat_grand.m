@@ -109,7 +109,6 @@ for t = 1:numel(cfg.powstat.comp) % DOC: cfg.powstat.comp
     output = [output outtmp];
     if isempty(data2); continue; end
     %-------%
-    param = 'pow';
     
     if isfield(cfg.powstat, 'nai') && cfg.powstat.nai
       for i1 = 1:size(data1,1)
@@ -121,7 +120,6 @@ for t = 1:numel(cfg.powstat.comp) % DOC: cfg.powstat.comp
           data2{i1,2,i3}.avg = rmfield(data2{i1,2,i3}.avg, 'pow');
         end
       end
-      param = 'nai';
     end
     
     sousubj1 = squeeze(data1(:,2,:)); % cond1
@@ -130,6 +128,17 @@ for t = 1:numel(cfg.powstat.comp) % DOC: cfg.powstat.comp
     
   end
   clear data*
+  %---------------------------%
+  
+  %---------------------------%
+  %-pow, coh or nai
+  if isfield(sousubj1{1}.avg, 'coh') % coh wins
+    cfg.powstat.parameter = 'coh'; 
+  elseif isfield(cfg.powstat, 'nai') && cfg.powstat.nai
+    cfg.powstat.parameter = 'nai';
+  else
+    cfg.powstat.parameter = 'pow';
+  end
   %---------------------------%
   
   %---------------------------%
@@ -142,7 +151,7 @@ for t = 1:numel(cfg.powstat.comp) % DOC: cfg.powstat.comp
     %-grand average
     cfg1 = [];
     cfg1.keepindividual = 'yes';
-    cfg1.parameter = param;
+    cfg1.parameter = cfg.powstat.parameter;
     soustat1 = ft_sourcegrandaverage(cfg1, sousubj1{:,p});
     soustat2 = ft_sourcegrandaverage(cfg1, sousubj2{:,p});
     %-----------------%    

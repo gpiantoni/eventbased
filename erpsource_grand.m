@@ -27,7 +27,6 @@ function erpsource_grand(cfg)
 %  .erpsource.clusteralpha: level to select sensors (default 0.05)
 %                           it can be a string in format '5%' to take top 5 voxels and put them in a cluster.
 %  .erpsource.maxvox: max number of significant voxels to be used in soupeak
-%  .erpsource.param: 'pow', 'coh' or 'nai' but it needs to be in the data
 %  .erpsource.clusterthr: threshold to report clusters in output
 %
 %  .rslt: directory images are saved into
@@ -87,6 +86,15 @@ for k = 1:numel(cfg.erpsource.cond)
   %-----------------%
   
   %-----------------%
+  %-pow or coh
+  if isfield(data{1}.avg, 'coh') % coh wins
+    cfg.erpsource.parameter = 'coh';
+  else
+    cfg.erpsource.parameter = 'pow';
+  end
+  %-----------------%
+  
+  %-----------------%
   %-loop over peaks
   erpsource_peak = [];
   erpsource = [];
@@ -98,11 +106,7 @@ for k = 1:numel(cfg.erpsource.cond)
     %-grand average
     cfg1 = [];
     cfg1.keepindividual = 'yes';
-    if ~isfield(cfg.erpsource, 'param')
-      cfg1.parameter = 'pow';
-    else
-      cfg1.parameter = cfg.erpsource.param;
-    end
+    cfg1.parameter = cfg.erpsource.parameter;
     gerpsouPre = ft_sourcegrandaverage(cfg1, data{:,1,p});
     gerpsource = ft_sourcegrandaverage(cfg1, data{:,2,p});
     %-----------------%

@@ -13,12 +13,15 @@ function [soupeak stat output] = reportsource(cfg, gdat1, gdat2)
 %  .clusteralpha: level to select sensors (default 0.05)
 %                   it can be a string in format '5%' to take top 5 voxels
 %                   and put them in a cluster. 
+%  .numrandomization: n of randomizations (default 1e5)
 %  .maxvox: max number of significant voxels to be used in soupeak
-%  .param: 'pow', 'coh' or 'nai' but it needs to be in the data
 %  .clusterthr: threshold to report clusters in output (default 0.5)
 %
 % GDAT1/GDAT2
 %  grandaverage datasets for source
+% The results are GDAT1 - GDAT2
+% If positive, more source in GDAT1 than GDAT2
+% If negative, more source in GDAT2 than GDAT1
 %
 % Part of EVENTBASED/PRIVATE
 
@@ -35,16 +38,6 @@ if ~isfield(cfg, 'clusterthr'); cfg.clusterthr = .5; end
 %---------------------------%
 %-check data
 nsubj = numel(gdat1.trial);
-
-%-----------------%
-%-pow or coh
-params = fieldnames(gdat1.avg);
-param = params{1};
-if ~isfield(cfg, 'parameter'); cfg.parameter = param; end
-if all(~strcmp(cfg.parameter, params))
-  error(sprintf('no field called %s in data.avg, which fields %s', ...
-    cfg.parameter, sprintf(' %s,', params{:})))
-end
 output = sprintf('on field %s, with %d subjects\n', cfg.parameter, nsubj);
 %-----------------%
 %---------------------------%
