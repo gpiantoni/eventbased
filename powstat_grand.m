@@ -61,6 +61,23 @@ tic_t = tic;
 
 pow_peak = getpeak(cfg, 'pow');
 
+%---------------------------%
+%-which parameter: pow, coh or nai
+if isfield(cfg.powsource, 'dics') && isfield(cfg.powsource.dics, 'refdip')
+  cfg.powstat.parameter = 'coh'; 
+  ndat = 1; % has only one dataset compared against zero
+  
+elseif isfield(cfg.powstat, 'nai') && cfg.powstat.nai
+  cfg.powstat.parameter = 'nai';
+  % has only one or two datasets
+  
+else
+  cfg.powstat.parameter = 'pow';
+  ndat = 2; % has always two datasets
+  
+end
+%---------------------------%
+
 %-------------------------------------%
 %-loop over statistics conditions
 for t = 1:numel(cfg.powstat.comp)
@@ -82,9 +99,19 @@ for t = 1:numel(cfg.powstat.comp)
     if isempty(data); continue; end
     %-------%
     
-    sousubj1 = squeeze(data(:,2,:)); % period of interest
-    sousubj2 = squeeze(data(:,1,:)); % baseline
-    param = 'pow';
+    switch cfg.powstat.parameter
+      case 'pow'
+        sousubj1 = squeeze(data(:,2,:)); % period of interest
+        sousubj2 = squeeze(data(:,1,:)); % baseline
+        
+      case 'nai'
+        sousubj1 = calc_nai(data);
+        ndat = 1;
+        
+      case 'coh'
+        sousubj1 = calc_zcoh(data(:,2,:), data(:,1,:));
+        
+    end
     %-----------------%
     
   else
@@ -110,35 +137,25 @@ for t = 1:numel(cfg.powstat.comp)
     if isempty(data2); continue; end
     %-------%
     
-    if isfield(cfg.powstat, 'nai') && cfg.powstat.nai
-      for i1 = 1:size(data1,1)
-        for i3 = 1:size(data1,3)
-          data1{i1,2,i3}.avg.nai = data1{i1,2,i3}.avg.pow ./ data1{i1,1,i3}.avg.pow;
-          data1{i1,2,i3}.avg = rmfield(data1{i1,2,i3}.avg, 'pow');
-          
-          data2{i1,2,i3}.avg.nai = data2{i1,2,i3}.avg.pow ./ data2{i1,1,i3}.avg.pow;
-          data2{i1,2,i3}.avg = rmfield(data2{i1,2,i3}.avg, 'pow');
-        end
-      end
+    switch cfg.powstat.parameter
+      case 'pow'
+        sousubj1 = squeeze(data1(:,2,:)); % cond1
+        sousubj2 = squeeze(data2(:,2,:)); % cond2
+        
+      case 'nai'
+        sousubj1 = calc_nai(data1);
+        sousubj2 = calc_nai(data2);
+        ndat = 2;
+        
+      case 'coh'
+        sousubj1 = calc_zcoh(data1(:,2,:), data2(:,2,:));
+        %TODO: use baseline for coh, but it's pretty difficult to interpret
+        
     end
-    
-    sousubj1 = squeeze(data1(:,2,:)); % cond1
-    sousubj2 = squeeze(data2(:,2,:)); % cond2
     %-----------------%
     
   end
   clear data*
-  %---------------------------%
-  
-  %---------------------------%
-  %-pow, coh or nai
-  if isfield(sousubj1{1}.avg, 'coh') % coh wins
-    cfg.powstat.parameter = 'coh'; 
-  elseif isfield(cfg.powstat, 'nai') && cfg.powstat.nai
-    cfg.powstat.parameter = 'nai';
-  else
-    cfg.powstat.parameter = 'pow';
-  end
   %---------------------------%
   
   %---------------------------%
@@ -153,13 +170,19 @@ for t = 1:numel(cfg.powstat.comp)
     cfg1.keepindividual = 'yes';
     cfg1.parameter = cfg.powstat.parameter;
     soustat1 = ft_sourcegrandaverage(cfg1, sousubj1{:,p});
-    soustat2 = ft_sourcegrandaverage(cfg1, sousubj2{:,p});
+    if ndat == 2
+      soustat2 = ft_sourcegrandaverage(cfg1, sousubj2{:,p});
+    end
     %-----------------%    
     
     %-----------------%
     %-do stats and figure
     h = figure;
-    [soupos powstat{p} outtmp] = reportsource(cfg.powstat, soustat1, soustat2); % DOC: cfg.powstat
+    if ndat == 1
+      [soupos powstat{p} outtmp] = reportsource(cfg.powstat, soustat1);
+    elseif ndat == 2
+      [soupos powstat{p} outtmp] = reportsource(cfg.powstat, soustat1, soustat2);
+    end
     powstat_peak(p).pos = soupos;
     powstat_peak(p).center = mean(soupos,1);
     powstat_peak(p).name = pow_peak(p).name;
@@ -206,3 +229,30 @@ fwrite(fid, output);
 fclose(fid);
 %-----------------%
 %---------------------------%
+
+%-------------------------------------%
+%-Transform coherence to Z
+%-------------------------------------%
+function data1 = calc_zcoh(data1, data2)
+% see Schoffelen et al. 2011 J. Neurosci. p. 6752
+zcoh = @(x1, nt1, x2, nt2)((atanh(x1) - 1/(2*nt1-2)) - (atanh(x2) - 1/(2*nt2-2))) / sqrt(1/(2*nt1-2) + 1/(2*nt2-2));
+
+for i1 = 1:size(data1,1)
+  for i3 = 1:size(data1,3)
+    data1{i1,i3}.avg.coh = zcoh(data1{i1,1,i3}.avg.coh, sum(data1{i1,1,i3}.cumtapcnt), data2{i1,1,i3}.avg.coh, sum(data2{i1,1,i3}.cumtapcnt));
+  end
+end
+%-------------------------------------%
+
+%-------------------------------------%
+%-convert to NAI
+%-------------------------------------%
+function data1 = calc_nai(data1)
+
+for i1 = 1:size(data1,1)
+  for i3 = 1:size(data1,3)
+    data1{i1,2,i3}.avg.nai = data1{i1,2,i3}.avg.pow ./ data1{i1,1,i3}.avg.pow;
+    data1{i1,2,i3}.avg = rmfield(data1{i1,2,i3}.avg, 'pow');
+  end
+end
+%-------------------------------------%

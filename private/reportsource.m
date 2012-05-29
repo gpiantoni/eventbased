@@ -39,6 +39,13 @@ if ~isfield(cfg, 'clusterthr'); cfg.clusterthr = .5; end
 %-check data
 nsubj = numel(gdat1.trial);
 output = sprintf('on field %s, with %d subjects\n', cfg.parameter, nsubj);
+
+if nargin == 2
+  gdat2 = gdat1;
+  for i = 1:numel(gdat2.trial)
+    gdat2.trial(i).(cfg.parameter) = zeros(size(gdat2.trial(i).(cfg.parameter)));
+  end
+end
 %-----------------%
 %---------------------------%
 %-------------------------------------%
@@ -48,7 +55,8 @@ output = sprintf('on field %s, with %d subjects\n', cfg.parameter, nsubj);
 cfg3 = [];
 cfg3.method      = 'montecarlo';
 if strcmp(cfg.parameter, 'coh')
-  cfg3.statistic   = 'depsamplesregrT';
+  cfg3.statistic   = 'diff';
+  cfg3.clusterthreshold = 'nonparametric_common';
 else
   cfg3.statistic   = 'depsamplesT';
 end

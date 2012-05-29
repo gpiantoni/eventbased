@@ -174,6 +174,7 @@ for k = 1:numel(cfg.powstat.cond)
     
     powstat_s_B{p} = ft_sourceanalysis(cfg1, freq);
     powstat_s_B{p}.cfg = [];
+    powstat_s_B{p}.cfg.ntapers = sum(freq.cumtapcnt);
     %-----------------%
     
     %-----------------%
@@ -200,6 +201,7 @@ for k = 1:numel(cfg.powstat.cond)
     chan = powstat_s_A{p}.cfg.channel;
     powstat_s_A{p}.cfg = [];
     powstat_s_A{p}.cfg.channel = chan;
+    powstat_s_A{p}.cfg.ntapers = sum(freq.cumtapcnt);
     %-----------------%
     
     %-----------------%
