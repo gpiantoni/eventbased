@@ -143,6 +143,9 @@ for k = 1:numel(cfg.powsource.cond)
     if cfg.powsource.keepfilter
       cfg1.dics.keepfilter   = 'yes';
       cfg1.dics.realfilter   = 'yes';
+      if isfield(cfg1.dics, 'refdip')
+        cfg1.dics = rmfield(cfg1.dics, 'refdip');
+      end
     end
     
     powsource_s_B{p} = ft_sourceanalysis(cfg1, freq);
