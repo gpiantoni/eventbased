@@ -30,8 +30,8 @@ function powstat_subj(cfg, subj)
 %      .powsource.pow_peak(1).name: string ('name_of_the_time_window')
 %      .powsource.pow_peak(1).time: scalar (center of the time window in s)
 %      .powsource.pow_peak(1).wndw: scalar (length of the time window in s)
-%      .powsource.pow_peak(1).freq = 10; % center of the frequency
-%      .powsource.pow_peak(1).band = 4; % width of the frequency band
+%      .powsource.pow_peak(1).freq: scalar (center of the frequency)
+%      .powsource.pow_peak(1).band: scalar (total width of the frequency band)
 %    if 'pow_peak' or 'powcorr_peak'
 %      .powsource.refcomp: cell of string(s) of the comparison whose peaks
 %                     will be localized (one of the cells of cfg.gpow.comp or cfg.gpowcorr.comp)

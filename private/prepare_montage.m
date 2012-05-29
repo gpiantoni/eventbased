@@ -18,6 +18,8 @@ function [mont output] = prepare_montage(cfg, data, peak)
 %   source: subject-specific source, you should have kept the real filters
 %   soupeak: peaks for the condition of interest
 %
+% This function returns "mont" which can be used with ft_apply_montage
+%
 % TODO: ICA to create spatial filters
 
 switch cfg.conn.areas

@@ -63,7 +63,7 @@ pow_peak = getpeak(cfg, 'pow');
 
 %-------------------------------------%
 %-loop over statistics conditions
-for t = 1:numel(cfg.powstat.comp) % DOC: cfg.powstat.comp
+for t = 1:numel(cfg.powstat.comp)
   
   %---------------------------%
   %-statistics for effects of interest

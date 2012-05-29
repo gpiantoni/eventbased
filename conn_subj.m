@@ -15,8 +15,14 @@ function conn_subj(cfg, subj)
 %-ROI parameters
 %  .conn.areas: 'channel' or 'erp' or 'erppeak' or 'powpeak'
 %    if 'channel'
+%      .conn.chan: a struct with
+%        .name: 'name of group elec'
+%        .chan: cell with electrode labels for each group
 %
 %    if 'erp'
+%      .conn.dip: a struct with
+%        .name: 'name of dipole'
+%        .time: time window of the ERP activity of interest (two scalars)
 %      .derp: directory with ERP data
 %      .conn.refcond: condition with ERP used for reference topography (string)
 %
@@ -76,26 +82,6 @@ function conn_subj(cfg, subj)
 % POW_SUBJ, POW_GRAND, POWCORR_SUBJ, POWCORR_GRAND,
 % POWSOURCE_SUBJ, POWSOURCE_GRAND, POWSTAT_SUBJ, POWSTAT_GRAND,
 % CONN_SUBJ, CONN_GRAND, CONN_STAT
-
-
-% 
-%  .conn.areas: 'channel' or 'dipole' or 'erppeak' or 'powpeak'
-%    if 'channel' (take average over groups of channels)
-%      .conn.chan: a struct with: 
-%                               .name: 'name of group elec'
-%                               .chan: {'elec1' 'elec2' 'elec3'};
-%      .seldata.label: names of the channels to match with cfg.conn.chan
-%      (not very robust, might require more testing)
-%   
-%    if 'dipole' (use weights from erp at specific time window):
-%      .derp: directory with ERP data
-%      .erpeffect: vector of condition whose ERP is used here
-%      .conn.dip: a struct with:
-%                              .name: 'name of dipole'
-%                              .time: one or two scalars, time of the ERP of interest
-%   
-    
-
 
 %---------------------------%
 %-start log
