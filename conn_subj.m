@@ -13,14 +13,21 @@ function conn_subj(cfg, subj)
 %  .conn.cond: cell with conditions (e.g. {'*cond1' '*cond2'})'
 %
 %-ROI parameters
-%  .conn.areas: 'channel' or 'dipole' or 'erppeak' or 'powpeak'
+%  .conn.areas: 'channel' or 'erp' or 'erppeak' or 'powpeak'
+%    if 'channel'
+%
+%    if 'erp'
+%      .derp: directory with ERP data
+%      .conn.refcond: condition with ERP used for reference topography (string)
+%
 %    if 'erppeak' (use beamformer to construct virtual electrode):
 %      .derp: directory with ERP data
-%      .erpsource.refcond: string of the condition used for source location
+%      .conn.refcond: string of the condition used for source location
 %      .conn.fixedmom: logical (use the same moment for source or change it every time)
+%
 %    if 'powpeak' (use beamformer to construct virtual electrode):
 %      .dpow: directory with POW data
-%      .powsource.refcond: string of the condition used for source location
+%      .conn.refcond: string of the condition used for source location
 %      .conn.fixedmom: logical (use the same moment for source or change it every time)
 %
 %-Connectivity parameters
@@ -98,65 +105,34 @@ tic_t = tic;
 %---------------------------%
 
 %---------------------------%
-%-dir and files
-
-%-----------------%
 %-prepare montage
-if strcmp(cfg.conn.areas, 'channel')
-  % TODO
-  %   if ischar(cfg.seldata.label)
-  %     error('You need to specify all the channels in cfg.seldata.label');
-  %   else
-  %     mont = prepare_montage(cfg.conn.chan, cfg.seldata.label');
-  %   end
+switch cfg.conn.areas
   
-elseif strcmp(cfg.conn.areas, 'dipole')
-  % TODO
-  %   %-------%
-  %   %-read data
-  %   if ~exist([cfg.derp cfg.cond '_granderp.mat'], 'file')
-  %     error([cfg.derp cfg.cond '_granderp.mat does not exist'])
-  %   end
-  %
-  %   load([cfg.derp cfg.cond '_granderp'], 'gerp')
-  %   %-------%
-  %
-  %   mont = topodipole(cfg.conn.dip, gerp{cfg.erpeffect(1)});
-  
-elseif strcmp(cfg.conn.areas, 'erppeak') || strcmp(cfg.conn.areas, 'powpeak')
-  
-  if strcmp(cfg.conn.areas, 'erppeak')
+  case 'channel'
+    [mont outtmp] = prepare_montage(cfg);
     
-    %-------%
-    %-load source of pow
-    condname = regexprep(cfg.erpsource.refcond, '*', ''); % DOC: cfg.erpsource.refcond
-    inputfile = sprintf('erpsource_%04d_%s', subj, condname);
-
-    load([cfg.derp inputfile], 'source')
-    load([cfg.derp cfg.nick '_' condname '_soupeak'], 'soupeak')
-    %-------%
+  case 'erp'
+    condname = regexprep(cfg.conn.refcond, '*', '');
+    load([cfg.derp 'erp_' condname], 'erp')
     
-  elseif strcmp(cfg.conn.areas, 'powpeak')
+    [mont outtmp] = prepare_montage(cfg, erp);
     
-    %-------%
-    %-load source of pow
-    condname = regexprep(cfg.powsource.refcond, '*', ''); % DOC: cfg.powsource.refcond
-    inputfile = sprintf('powsource_%04d_%s', subj, condname);
-
-    load([cfg.dpow inputfile], 'source') 
-    load([cfg.dpow cfg.nick '_' condname '_soupeak'], 'soupeak') % DOC: in
-    %-------%
+  case 'erppeak'
+    condname = regexprep(cfg.conn.refcond, '*', '');
+    load(sprintf('%serpsource_%04d_%s', cfg.derp, subj, condname), 'erpsource_s_A') % source of interest
+    load(sprintf('%serpsource_peak_%s', cfg.derp, condname), 'erpsource_peak') % peaks in ERP
     
-  end
-  
-  %-------%
-  %-calculate montage
-  [mont outtmp] = source2mont(source, soupeak);
-  output = [output outtmp];
-  %-------%
+    [mont outtmp] = prepare_montage(cfg, erpsource_s_A, erpsource_peak);
+ 
+  case 'powpeak'
+    condname = regexprep(cfg.conn.refcond, '*', '');
+    load(sprintf('%spowsource_%04d_%s', cfg.dpow, subj, condname), 'powsource_s_A') % source of interest
+    load(sprintf('%spowsource_peak_%s', cfg.dpow, condname), 'powsource_peak') % peaks in POW
+    
+    [mont outtmp] = prepare_montage(cfg, powsource_s_A, powsource_peak);
   
 end
-%-----------------%
+output = [output outtmp];
 %---------------------------%
 
 %-------------------------------------%
