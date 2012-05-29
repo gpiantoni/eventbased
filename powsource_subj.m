@@ -167,8 +167,8 @@ for k = 1:numel(cfg.powsource.cond)
     %---------------------------%
     %-main analysis
     %-----------------%
-    cfg1.latency    = freqparam.time;
-    powsource_s_A{p}       = ft_sourceanalysis(cfg1, freq);
+    cfg1.latency = freqparam.time;
+    powsource_s_A{p} = ft_sourceanalysis(cfg1, freq);
     chan = powsource_s_A{p}.cfg.channel;
     powsource_s_A{p}.cfg = [];
     powsource_s_A{p}.cfg.channel = chan;
