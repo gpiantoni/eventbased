@@ -143,8 +143,11 @@ for k = 1:numel(cfg.conn.cond)
   %-apply montage
   data = ft_apply_montage(data, mont, 'feedback', 'none');
   
-  if strcmp(cfg.conn.areas, 'erppeak') || strcmp(cfg.conn.areas, 'powpeak')
-    data = pcadata(data, soupeak, cfg.conn.fixedmom);
+  if strcmp(cfg.conn.areas, 'erppeak')
+      data = pcadata(data, erpsource_peak, cfg.conn.fixedmom);
+  end
+  if strcmp(cfg.conn.areas, 'powpeak')
+    data = pcadata(data, powsource_peak, cfg.conn.fixedmom);
   end
   
   data = ft_checkdata(data, 'hassampleinfo', 'yes'); % recreate sampleinfo which got lost (necessary for selfromraw)

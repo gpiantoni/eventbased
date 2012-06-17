@@ -61,6 +61,14 @@ tic_t = tic;
 %---------------------------%
 
 %---------------------------%
+%-default cfg
+if ~isfield(cfg.erpsource, 'lmcv'); cfg.erpsource.lmcv = []; end
+if ~isfield(cfg.erpsource, 'keepfilter')
+  cfg.erpsource.keepfilter = false;
+end
+%---------------------------%
+
+%---------------------------%
 %-dir and files
 [vol, lead, sens] = load_headshape(cfg, subj);
 %---------------------------%

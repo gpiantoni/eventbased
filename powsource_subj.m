@@ -63,6 +63,14 @@ tic_t = tic;
 %---------------------------%
 
 %---------------------------%
+%-default cfg
+if ~isfield(cfg.powsource, 'lmcv'); cfg.powsource.dics = []; end
+if ~isfield(cfg.powsource, 'keepfilter')
+  cfg.powsource.keepfilter = false;
+end
+%---------------------------%
+
+%---------------------------%
 %-dir and files
 [vol, lead, sens] = load_headshape(cfg, subj);
 %---------------------------%
