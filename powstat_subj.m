@@ -81,23 +81,81 @@ pow_peak = getpeak(cfg, 'pow');
 %---------------------------%
 
 %-------------------------------------%
-%-loop over conditions
-for k = 1:numel(cfg.powstat.cond)
-  cond     = cfg.powstat.cond{k};
-  condname = regexprep(cond, '*', '');
+%-loop over statistics conditions
+for t = 1:numel(cfg.powstat.comp)
   
   %---------------------------%
-  %-read data
-  [data badchan] = load_data(cfg, subj, cond);
-  if isempty(data)
-    output = sprintf('%sCould not find any file for test %s\n', ...
-      output, cond);
-    continue
+  %-statistics for effects of interest
+  if numel(cfg.powstat.comp{t}) == 1
+    
+    %-----------------%
+    %-compare against baseline
+    cond = cfg.powstat.comp{t}{1};
+    comp = regexprep(cond, '*', '');
+    output = sprintf('%s\n   COMPARISON %s\n', output, cond);
+    
+    %-------%
+    %-load data
+    [outtmp data] = load_data(cfg, subj, cond);
+    output = [output outtmp];
+    if isempty(data); continue; end
+    %-------%
+    
+    design = ones(numel(data.trial),1);
+    %-----------------%
+    
+  else
+    
+    %-----------------%
+    %-compare two conditions (cond1 - cond2)
+    cond1 = cfg.powstat.comp{t}{1};
+    cond2 = cfg.powstat.comp{t}{2};
+    comp = [regexprep(cond1, '*', '') '_' regexprep(cond2, '*', '')];
+    output = sprintf('%s\n   COMPARISON %s vs %s\n', output, cond1, cond2);
+    
+    %-------%
+    %-load data
+    [outtmp data1] = load_data(cfg, subj, cond1);
+    output = [output outtmp];
+    if isempty(data1); continue; end
+    %-------%
+    
+    %-------%
+    %-load data
+    [outtmp data2] = load_data(cfg, subj, cond2);
+    output = [output outtmp];
+    if isempty(data2); continue; end
+    %-------%
+    
+    data = ft_appenddata([], data1, data2);
+    
+    design = [ones(numel(data1.trial),1); 2 * ones(numel(data2.trial),1)];
+    %-----------------%
+    
   end
   
-  outputfile = sprintf('powstat_%04d_%s', subj, condname);
+  outputfile = sprintf('powstat_%04d_%s', subj, comp)
+  clear data1 data2
   %---------------------------%
   
+  %-------------------------------------%
+  %-loop over conditions
+  for k = 1:numel(cfg.powstat.cond)
+    cond     = cfg.powstat.cond{k};
+    condname = regexprep(cond, '*', '');
+    
+    %---------------------------%
+    %-read data
+    [data badchan] = load_data(cfg, subj, cond);
+    if isempty(data)
+      output = sprintf('%sCould not find any file for test %s\n', ...
+        output, cond);
+      continue
+    end
+    
+    ;
+    %---------------------------%
+    
   %---------------------------%
   %-remove bad channels from leadfield
   datachan = ft_channelselection([{'all'}; cellfun(@(x) ['-' x], badchan, 'uni', false)], data.label);
