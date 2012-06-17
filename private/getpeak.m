@@ -4,7 +4,7 @@ function peaks = getpeak(cfg, type)
 %  peaks = getpeak(cfg, type)
 %
 %  CFG
-%  .powsource.peaks: how to speficy peaks to analyze, 'manual' or 'pow_peak'
+%  .powsource.areas: how to speficy peaks to analyze, 'manual' or 'pow_peak'
 %          (peaks from grandpow) or 'powcorrpeak' (peaks from grandpowcorr)
 %    if 'manual'
 %      .powsource.pow_peak(1).name: string ('name_of_the_time_window')
@@ -30,7 +30,7 @@ switch type
   case 'erp'
     %---------------------------%
     %-use predefined or ERP-peaks for areas of interest
-    switch cfg.erpsource.peaks
+    switch cfg.erpsource.areas
       case 'manual'
         erp_peak = cfg.erpsource.erp_peak;
         
@@ -49,7 +49,7 @@ switch type
   case 'pow'
     %---------------------------%
     %-use predefined or power-peaks for areas of interest
-    if strcmp(cfg.powsource.peaks, 'manual')
+    if strcmp(cfg.powsource.areas, 'manual')
       pow_peak = cfg.powsource.pow_peak;
       
     elseif strcmp(cfg.powsource.areas, 'pow_peak')

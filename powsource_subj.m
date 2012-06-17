@@ -19,7 +19,7 @@ function powsource_subj(cfg, subj)
 %      .bnd2lead.mni.warp: logical (optional. Instead of transforming the
 %      brain into MNI coordinates, you can wrap the grid onto it)
 %
-%  .powsource.peaks: how to speficy peaks to analyze, 'manual' or 'pow_peak'
+%  .powsource.areas: how to specify peaks to analyze, 'manual' or 'pow_peak'
 %          (peaks from grandpow) or 'powcorr_peak' (peaks from grandpowcorr)
 %    if 'manual'
 %      .powsource.pow_peak(1).name: string ('name_of_the_time_window')

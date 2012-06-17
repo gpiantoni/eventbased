@@ -60,15 +60,7 @@ output = sprintf('%s began at %s on %s\n', ...
 tic_t = tic;
 %---------------------------%
 
-%---------------------------%
-%-use predefined or erp_peaks for areas of interest
-if strcmp(cfg.erpsource.areas, 'manual')
-  erp_peak = cfg.erpsource.erp_peak;
-elseif strcmp(cfg.erpsource.areas, 'erp_peak')
-  peakname = regexprep(cfg.erp.refcond, '*', '');
-  load([cfg.derp 'erp_peak_' peakname], 'erp_peak')
-end
-%---------------------------%
+erp_peak = getpeak(cfg, 'erp');
 
 %---------------------------------------------------------%
 %-statistics for main effects

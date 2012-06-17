@@ -19,7 +19,7 @@ function erpsource_subj(cfg, subj)
 %      .bnd2lead.mni.warp: logical (optional. Instead of transforming the
 %      brain into MNI coordinates, you can wrap the grid onto it)
 %
-%  .erpsource.peaks: how to speficy peaks to analyze, 'manual' or 'erp_peak' (peaks from granderp)
+%  .erpsource.areas: how to speficy peaks to analyze, 'manual' or 'erp_peak' (peaks from granderp)
 %    if 'manual'
 %      .erpsource.erp_peak(1).name: string ('name_of_the_time_window')
 %      .erpsource.erp_peak(1).time: scalar (center of the time window in s)
