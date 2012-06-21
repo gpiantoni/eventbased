@@ -82,7 +82,7 @@ dip = cfg.conn.dip;
 %-----------------%
 %-prepare TRA
 nnew = numel(dip);
-nold = numel(gerp.label);
+nold = numel(erp.label);
 tra = zeros(nnew, nold);
 
 output = sprintf('%d sensor groups:', nnew);
@@ -95,7 +95,7 @@ end
 
 %-----------------%
 %-prepare MONT
-mont.labelorg = gerp.label;
+mont.labelorg = erp.label;
 mont.labelnew = {dip.name}';
 mont.tra = tra;
 %-----------------%
