@@ -48,8 +48,8 @@ if ischar(cond)
   
   %-----------------%
   %-check if datasets are missing
-  nodata = any(cellfun(@isempty, data1),2);
-  if any(nodata)
+  nodata = cellfun(@isempty, data1);
+  if any(nodata,2)
     output = sprintf('%s!!! WARNING: in condition %s, no data for subjects: %s !!!\n', ...
       output, cond, sprintf(' %d', cfg.subjall(nodata)));
     data1 = data1(~nodata);
