@@ -1,4 +1,4 @@
-function [clpeak output] = reportcluster(cfg, gdat, gdat2)
+function [clpeak stat output] = reportcluster(cfg, gdat, gdat2, paired)
 %REPORTCLUSTER report which clusters are significant
 % It compares against zero or two conditions. The significant
 % time-(freq)-sensor points are clustered and then statistics is run on
@@ -8,7 +8,7 @@ function [clpeak output] = reportcluster(cfg, gdat, gdat2)
 % Not to called directly, but this function is called by ERP_GRAND,
 % POW_GRAND and POWCORR_GRAND.
 % Use as:
-%   [clpeak output] = reportcluster(cfg, gdat, gdat2)
+%   [clpeak output] = reportcluster(cfg, gdat, gdat2, unpaired)
 %
 % CFG
 %  .sens.file: file with EEG sensors. It can be sfp or mat.
@@ -32,8 +32,11 @@ function [clpeak output] = reportcluster(cfg, gdat, gdat2)
 %  ft_freqgrandaverage.
 %  If one dataset, the dataset is compared against zero
 %  If two datasets, the two datasets are compared against each other in a
-%  PAIRED t-test.
+%  PAIRED or UNPAIRED t-test.
 %  More complicated designs are not possible.
+%
+% PAIRED
+%  Flag for PAIRED (true) or UNPAIRED (false) design. Default is true
 %
 % CLPEAK
 %  which is the cluster peak, with fields:
@@ -58,6 +61,9 @@ function [clpeak output] = reportcluster(cfg, gdat, gdat2)
 if ~isfield(cfg, 'cluster') || ~isfield(cfg.cluster, 'thr')
   cfg.cluster.thr = 0.05;
 end
+if nargin < 4
+  paired = true;
+end
 %-----------------%
 
 %-----------------%
@@ -71,7 +77,13 @@ else
 end
 
 output = '';
-nsubj = size(gdat.(param),1);
+nsubj1 = size(gdat.(param),1);
+
+if paired
+  nsubj2 = nsubj1;
+else
+  nsubj2 = size(gdat2.(param),1);
+end
 
 if nargin == 2
   gdat2 = gdat;
@@ -113,17 +125,27 @@ end
 %-calc clusters
 cfg3 = [];
 cfg3.method      = 'montecarlo';
-cfg3.statistic   = 'depsamplesT';
+if paired
+  cfg3.statistic   = 'depsamplesT';
+else
+  cfg3.statistic   = 'indepsamplesT';
+end
 cfg3.alpha       = 0.05;
 cfg3.correctm    = 'cluster';
 cfg3.numrandomization = 1000; 
-cfg3.design = [ones(1,nsubj) ones(1,nsubj).*2; 1:nsubj 1:nsubj];
-cfg3.ivar   = 1;
-cfg3.uvar   = 2;
 
-if iserp && isfield(cfg.gerp, 'stat') && isfield(cfg.gerp.stat, 'time')&& ~isempty(cfg.gerp.stat.time)
+if paired
+  cfg3.design = [ones(1,nsubj1) ones(1,nsubj2)*2; 1:nsubj1 1:nsubj2];
+  cfg3.ivar   = 1;
+  cfg3.uvar   = 2;
+else
+  cfg3.design = [ones(1,nsubj1) ones(1,nsubj2)*2];
+  cfg3.ivar   = 1;
+end
+
+if iserp && isfield(cfg.gerp, 'stat') && isfield(cfg.gerp.stat, 'time') && ~isempty(cfg.gerp.stat.time)
   cfg3.latency = cfg.gerp.stat.time;
-elseif ~iserp && isfield(cfg.gpow, 'stat') && isfield(cfg.gpow.stat, 'time')&& ~isempty(cfg.gpow.stat.time)
+elseif ~iserp && isfield(cfg.gpow, 'stat') && isfield(cfg.gpow.stat, 'time') && ~isempty(cfg.gpow.stat.time)
   cfg3.latency = cfg.gpow.stat.time;
 else
   cfg3.latency = gdat.time([1 end]);
@@ -146,7 +168,7 @@ end
 
 %-----------------%
 %-if there are no clusters at all
-if ~isfield(stat, 'posclusters') 
+if ~isfield(stat, 'posclusters') || ~isfield(stat, 'negclusters') 
   clpeak = [];
   output = sprintf('no clusters at all in the data\n');
   return

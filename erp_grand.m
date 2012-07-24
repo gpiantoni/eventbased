@@ -123,7 +123,7 @@ if isfield(cfg.gerp, 'comp')
       gplot = gerp{1};
       %-------%
       
-      [erp_peak outtmp] = reportcluster(cfg, gerpall1);
+      [erp_peak stat outtmp] = reportcluster(cfg, gerpall1);
       %-----------------%
       
     else
@@ -156,12 +156,12 @@ if isfield(cfg.gerp, 'comp')
       gplot.avg = gerp{2}.avg - gerp{1}.avg;
       %-------%
       
-      [erp_peak outtmp] = reportcluster(cfg, gerpall1, gerpall2);
+      [erp_peak stat outtmp] = reportcluster(cfg, gerpall1, gerpall2);
       %-----------------%
       
     end
     
-    save([cfg.derp 'erp_peak_' comp], 'erp_peak')
+    save([cfg.derp 'erp_peak_' comp], 'erp_peak', 'stat')
     output = [output outtmp];
     %---------------------------%
     

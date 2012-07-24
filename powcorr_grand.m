@@ -154,7 +154,7 @@ if isfield(cfg.gpowcorr, 'comp')
       gplot = powcorr{1};
       %-------%
       
-      [powcorr_peak outtmp] = reportcluster(cfg, gpowcorrall1);
+      [powcorr_peak stat outtmp] = reportcluster(cfg, gpowcorrall1);
       %-----------------%
       
     else
@@ -194,12 +194,12 @@ if isfield(cfg.gpowcorr, 'comp')
       gplot.tscore = powcorr{2}.tscore - powcorr{1}.tscore;
       %-------%
       
-      [powcorr_peak outtmp] = reportcluster(cfg, gpowcorrall1, gpowcorrall2);
+      [powcorr_peak stat outtmp] = reportcluster(cfg, gpowcorrall1, gpowcorrall2);
       %-----------------%
       
     end
     
-    save([cfg.dpow 'powcorr_peak_' comp], 'powcorr_peak')
+    save([cfg.dpow 'powcorr_peak_' comp], 'powcorr_peak', 'stat')
     output = [output outtmp];
     %---------------------------%
     
