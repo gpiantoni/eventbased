@@ -10,7 +10,8 @@ function seldata(cfg, subj)
 %  .nick: NICK in /data1/projects/PROJ/subjects/SUBJ/MOD/NICK/
 %  .log: name of the file and directory to save log
 % 
-%  .sens.file: file with EEG sensors. It can be sfp or mat.
+%  .sens.file: file with EEG sensors. It can be sfp or mat. It's included
+%              in data struct. If empty, it does not read the sensors.
 % 
 %  .seldata.trialfun: name of the trialfun used to read the data, see below.
 %                     The function should be in NICK_private/ 
@@ -55,8 +56,12 @@ mkdir(ddir)
 
 %-----------------%
 %-read sensors (can be sfp or mat)
-sens = ft_read_sens(cfg.sens.file);
-sens.label = upper(sens.label); % <- EGI labels are uppercase, but the elec file is lowercase
+hassens = false;
+if isfield(cfg.sens, 'file') && ~isempty(cfg.sens.file)
+  hassens = true;
+  sens = ft_read_sens(cfg.sens.file);
+  sens.label = upper(sens.label); % <- EGI labels are uppercase, but the elec file is lowercase
+end
 %-----------------%
 %---------------------------%
 
@@ -93,6 +98,7 @@ for i = 1:numel(allfile)
     cfg2.channel = cfg.seldata.selchan;
   end
   
+  cfg2.continuous = 'yes'; % necessary for MEG data over trials
   data = ft_preprocessing(cfg2);
   event = ft_findcfg(data.cfg, 'event');
   
@@ -107,7 +113,10 @@ for i = 1:numel(allfile)
   if ~isempty(cfg.seldata.label)
     data.label = cfg.seldata.label;
   end
-  data.elec = sens;
+  
+  if hassens
+    data.elec = sens;
+  end
   %-----------------%
   
   %-----------------%

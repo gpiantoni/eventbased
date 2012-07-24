@@ -1,7 +1,7 @@
-function [output data1 data2] = load_s(cfg, type, cond)
+function [output data1 data2] = load_subj(cfg, type, cond)
 %LOAD_SUBJ load single-subject data
 % Use as:
-%   [data] = load_s(cfg, type, cond)
+%   [data] = load_subj(cfg, type, cond)
 %
 % CFG
 %  .data: path of /data1/projects/PROJ/subjects/
