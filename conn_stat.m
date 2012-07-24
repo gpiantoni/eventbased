@@ -31,10 +31,65 @@ function conn_stat(cfg)
 
 %---------------------------%
 %-start log
-output = sprintf('%s started at %s on %s\n', ...
+output = sprintf('%s began at %s on %s\n', ...
   mfilename,  datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
 tic_t = tic;
 %---------------------------%
+
+if isfield(cfg.gconn, 'comp')
+  
+  %-------------------------------------%
+  %-loop over statistics conditions
+  for t = 1:numel(cfg.gconn.comp)
+    
+    %---------------------------%
+    %-statistics for effects of interest
+    if numel(cfg.gpow.comp{t}) == 1
+      % TODO
+      
+    else
+      
+      %-----------------%
+      %-compare two conditions
+      cond1 = cfg.gconn.comp{t}{1};
+      cond2 = cfg.gconn.comp{t}{2};
+      comp = [regexprep(cond1, '*', '') '_' regexprep(cond2, '*', '')];
+      output = sprintf('%s\n   COMPARISON %s vs %s\n', output, cond1, cond2);
+      
+      %-------%
+      %-conn over subj
+      [outtmp data1 data2] = load_subj(cfg, 'conn', cfg.gconn.comp{t});
+      output = [output outtmp];
+      if isempty(data1) || isempty(data2); continue; end
+      
+      cfg1 = [];
+      pow{1} = ft_freqgrandaverage(cfg1, data1{:});
+      pow{2} = ft_freqgrandaverage(cfg1, data2{:});
+      cfg1.keepindividual = 'yes';
+      gpowall1 = ft_freqgrandaverage(cfg1, data1{:});
+      gpowall2 = ft_freqgrandaverage(cfg1, data2{:});
+      %-------%
+      
+      %-------%
+      %-data for plot
+      gplot = pow{2};
+      if isempty(cfg.pow.bl)
+        gplot.powspctrm = log(pow{2}.powspctrm ./ pow{1}.powspctrm);
+      else % with baseline correction, take the difference
+        gplot.powspctrm = pow{2}.powspctrm - pow{1}.powspctrm;
+      end
+      %-------%
+      
+      [pow_peak outtmp] = reportcluster(cfg, gpowall1, gpowall2);
+      %-----------------%
+      
+    end
+    
+    save([cfg.dpow 'pow_peak_' comp], 'pow_peak')
+    output = [output outtmp];
+    %---------------------------%
+  end
+end
 
 %---------------------------%
 %-load data
@@ -151,7 +206,6 @@ for chan1 = 1:numel(gconn.label)
   end
 end
 
-save([cfg.log filesep 'connsum'], 'connsum')
 %-------------------------------------%
 
 %---------------------------%
@@ -169,24 +223,3 @@ fwrite(fid, output);
 fclose(fid);
 %-----------------%
 %---------------------------%
-
-%-------------------------------------%
-%-performNormalization (copied from ft_freqbaseline)
-function data = performNormalization(timeVec, data, baseline, baselinetype)
-
-baselineTimes = (timeVec + eps(10) >= baseline(1) & timeVec - eps(10) <= baseline(2));
-
-% compute mean of time/frequency quantity in the baseline interval,
-% ignoring NaNs, and replicate this over time dimension
-meanVals = repmat(nanmean(data(baselineTimes,:,:), 1), [size(data, 1) 1 1]);
-
-if (strcmp(baselinetype, 'absolute'))
-  data = data - meanVals;
-elseif (strcmp(baselinetype, 'relative'))
-  data = data ./ meanVals;
-elseif (strcmp(baselinetype, 'relchange'))
-  data = (data - meanVals) ./ meanVals;
-else
-  error('unsupported method for baseline normalization: %s', baselinetype);
-end
-%-------------------------------------%

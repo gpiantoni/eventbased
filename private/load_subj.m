@@ -123,6 +123,7 @@ function [dataout output] = readdata(cfg, type, cond)
 %---------------------------%
 %-file for each cond
 output = '';
+dataout = [];
 typedir = ['d' type(1:3)]; % derp, dpow or dcon
 groupdir = cfg.(typedir);
 condname = regexprep(cond, '*', '');
@@ -149,6 +150,9 @@ for i = 1:numel(cfg.subjall)
 
     case 'powcorr'
       dataout{i} = powcorr_s;
+      
+    case 'conn'
+      dataout{i} = stat;
       
     case 'erpsource'
       for p = 1:numel(erpsource_s_A) % n of peaks

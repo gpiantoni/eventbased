@@ -36,6 +36,8 @@ function conn_subj(cfg, subj)
 %      .conn.refcond: string of the condition used for source location
 %      .conn.fixedmom: logical (use the same moment for source or change it every time)
 %
+%   TODO: dip pos
+%
 %-Connectivity parameters
 %  .conn.toi: vector with time points to run connectivity on
 %  .conn.t_ftimwin: scalar with duration of time window
@@ -91,6 +93,13 @@ tic_t = tic;
 %---------------------------%
 
 %---------------------------%
+%-fix cfg and prepare for statespace
+if strcmp(cfg.conn.type, 'statespace')
+  [vol, lead, sens] = load_headshape(cfg, subj);
+end
+%---------------------------%
+
+%---------------------------%
 %-prepare montage
 switch cfg.conn.areas
   
@@ -129,49 +138,93 @@ for k = 1:numel(cfg.conn.cond)
   
   %---------------------------%
   %-read data
-  [data] = load_data(cfg, subj, cond);
+  [data badchan] = load_data(cfg, subj, cond); 
   if isempty(data)
     output = sprintf('%sCould not find any file for condition %s\n', ...
       output, cond);
     continue
   end
   
-  outputfile = sprintf('conn_%s_%04d_%s', cfg.conn.method, subj, condname);
+  outputfile = sprintf('conn_%04d_%s', subj, condname);
   %---------------------------%
   
-  %-----------------%
-  %-apply montage
-  data = ft_apply_montage(data, mont, 'feedback', 'none');
-  
-  if strcmp(cfg.conn.areas, 'erppeak')
+  %---------------------------%
+  %-apply montage (if using two-step procedure)
+  if ~strcmp(cfg.conn.type, 'statespace') % DOC
+    
+    data = ft_apply_montage(data, mont, 'feedback', 'none');
+    
+    if strcmp(cfg.conn.areas, 'erppeak')
       data = pcadata(data, erpsource_peak, cfg.conn.fixedmom);
-  end
-  if strcmp(cfg.conn.areas, 'powpeak')
-    data = pcadata(data, powsource_peak, cfg.conn.fixedmom);
+    end
+    if strcmp(cfg.conn.areas, 'powpeak')
+      data = pcadata(data, powsource_peak, cfg.conn.fixedmom);
+    end
+    
   end
   
   data = ft_checkdata(data, 'hassampleinfo', 'yes'); % recreate sampleinfo which got lost (necessary for selfromraw)
-  %-----------------%
+  %---------------------------%
   
   switch cfg.conn.type
-    case 'ft'
-      %---------------------------%
-      %-FIELDTRIP calculate model
-      %-----------------%
-      %-mvar
-      if cfg.conn.mvar
-        cfg2 = [];
-        cfg2.order = cfg.conn.order;
-        cfg2.toolbox = cfg.conn.toolbox;
-        cfg2.feedback = 'none';
-        
-        cfg2.toi = cfg.conn.toi;
-        cfg2.t_ftimwin = cfg.conn.t_ftimwin;
-        
-        data = ft_mvaranalysis(cfg2, data); % ft_mvaranalysis can do it on multiple time points, but freqanalysis does not handle it anymore
-      end
-      %-----------------%
+    
+    case {'ft' 'statespace'}
       
+      if strcmp(cfg.conn.type, 'ft')
+        
+        %---------------------------%
+        %-Fieltrip
+        %-----------------%
+        %-mvar
+        if cfg.conn.mvar
+          cfg2 = [];
+          cfg2.order = cfg.conn.order;
+          cfg2.toolbox = cfg.conn.toolbox;
+          cfg2.feedback = 'none';
+          
+          cfg2.toi = cfg.conn.toi;
+          cfg2.t_ftimwin = cfg.conn.t_ftimwin;
+          
+          data = ft_mvaranalysis(cfg2, data); % ft_mvaranalysis can do it on multiple time points, but freqanalysis does not handle it anymore
+        end
+        %-----------------%
+        %---------------------------%
+        
+      elseif strcmp(cfg.conn.type, 'statespace')
+        
+        %---------------------------%
+        %-Use State-Space (connectivity at source-level)
+        cfg2 = cfg.conn; % DOC
+        cfg2.vol = vol;
+        
+        %-----------------%
+        %-prepare montage
+        if ~strcmp(cfg.conn.areas, 'erp');
+          error('state-space montage with montages other than ''erp'' is not implemented'); % TODO
+        end
+        
+        cfg2.dip = cfg.conn.dippos;
+        
+%         %-------%
+%         %-remove channels that were interpolated
+         [~, mont_badchan] = intersect(mont.labelorg, badchan);
+         mont.labelorg(mont_badchan) = []; % it's crucial that channels are not interpolated!!!
+%         mont.tra(:,mont_badchan) = [];
+%         %-------%
+%         
+%         cfg2.dip = mont2dip(mont);
+         cfg2.channel = mont.labelorg;
+%         %-----------------%
+        
+        data = connectivityanalysis_statespace(cfg2, data);
+        data.time = cfg.conn.toi;
+        data.cfg = [];
+        %---------------------------%
+        
+      end
+      
+      %---------------------------%
+      %-fieldtrip way or use fieldtrip function on mvar of space-state
       %-----------------%
       %-freq on mvar
       if cfg.conn.freq
@@ -183,7 +236,7 @@ for k = 1:numel(cfg.conn.cond)
           cfg3 = [];
           cfg3.method    = 'mvar';
           
-          data = ft_freqanalysis_mvar(cfg3, data);
+          data = ft_freqanalysis(cfg3, data);
           %--------%
           
         else
@@ -405,4 +458,17 @@ end
 
 data.trial = trial;
 data.label = label;
+%---------------------------------------------------------%
+
+%---------------------------------------------------------%
+%-SUBFUNCTION: mont2dip
+%---------------------------------------------------------%
+function [dip] = mont2dip(mont)
+%MONT2DIP transform mont so that it can be used by connectivityanalysis_statespace
+
+dip = [];
+for i = 1:numel(mont.labelnew)
+  dip(i).label = mont.labelnew{i};
+  dip(i).mont = mont.tra(i,:)';
+end
 %---------------------------------------------------------%
