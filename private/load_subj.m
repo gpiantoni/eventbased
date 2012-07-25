@@ -194,6 +194,10 @@ for i = 1:numel(data)
   cfg3.baseline = cfg.pow.bl.baseline;
   cfg3.baselinetype = cfg.pow.bl.baselinetype;
   data{i} = ft_freqbaseline(cfg3, data{i});
+  
+  if strcmp(cfg.pow.bl.baselinetype, 'relative')
+    data{i}.powspctrm = 10*log10(data{i}.powspctrm);
+  end
   %-------%
   
 end
