@@ -103,6 +103,9 @@ end
 %-prepare montage
 switch cfg.conn.areas
   
+  case 'all'
+    outtmp = sprintf('using all the channels, it might crash\n');
+  
   case 'channel'
     [mont outtmp] = prepare_montage(cfg);
     
@@ -150,7 +153,8 @@ for k = 1:numel(cfg.conn.cond)
   
   %---------------------------%
   %-apply montage (if using two-step procedure)
-  if ~strcmp(cfg.conn.type, 'statespace') % DOC
+  if ~strcmp(cfg.conn.areas, 'all') && ...
+      ~strcmp(cfg.conn.type, 'statespace') % DOC
     
     data = ft_apply_montage(data, mont, 'feedback', 'none');
     
