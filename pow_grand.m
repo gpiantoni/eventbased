@@ -65,6 +65,12 @@ output = sprintf('%s began at %s on %s\n', ...
 tic_t = tic;
 %---------------------------%
 
+%---------------------------%
+%-check CFG
+if ~isfield(cfg.gpow, 'chan'); cfg.gpow.chan = []; end
+if ~isfield(cfg.gpow, 'freq'); cfg.gpow.freq = []; end
+%---------------------------%
+
 %-----------------------------------------------%
 %-read the data
 %---------------------------%
@@ -172,7 +178,7 @@ if isfield(cfg.gpow, 'comp')
       %-------%
       %-data for plot
       gplot = pow{2};
-      if isempty(cfg.pow.bl)
+      if ~isfield(cfg.pow, 'bl') || isempty(cfg.pow.bl)
         gplot.powspctrm = log(pow{2}.powspctrm ./ pow{1}.powspctrm);
       else % with baseline correction, take the difference
         gplot.powspctrm = pow{2}.powspctrm - pow{1}.powspctrm;
