@@ -63,8 +63,8 @@ switch cfg.conn.method
   case 'pdc'
     spctrm = 'pdcspctrm';
     
-    %-cca toolbox
   case 'gc'
+    %-cca toolbox
     spctrm = 'gc';
 end
 %-----------------%
@@ -185,7 +185,7 @@ if isfield(cfg.gconn, 'comp')
     %---------------------------%
     %-load data
     gshort = mean(mean(mean(mean(conn1.mat,3),4),5),6);
-    symm = all(all(gshort - gshort' > eps(10))); % check if matrix is symmetric
+    symm = all(all(gshort - gshort' < eps(10))); % check if matrix is symmetric
     
     if symm
       output = sprintf('%s%s should be symmetric\n', output, cfg.conn.method);
