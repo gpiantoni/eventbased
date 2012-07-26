@@ -13,7 +13,10 @@ function conn_subj(cfg, subj)
 %  .conn.cond: cell with conditions (e.g. {'*cond1' '*cond2'})'
 %
 %-ROI parameters
-%  .conn.areas: 'channel' or 'erp' or 'erppeak' or 'powpeak'
+%  .conn.areas: 'all' or 'channel' or 'erp' or 'erppeak' or 'powpeak'
+%    if 'all'
+%       Use all the channels
+%
 %    if 'channel'
 %      .conn.chan: a struct with
 %        .name: 'name of group elec'
@@ -39,26 +42,39 @@ function conn_subj(cfg, subj)
 %   TODO: dip pos
 %
 %-Connectivity parameters
-%  .conn.toi: vector with time points to run connectivity on
-%  .conn.t_ftimwin: scalar with duration of time window
 %  .conn.type: 'cca' or 'ft'
 %    if 'cca' (use Anil Seth's implementation):
-%      .conn.method: 'gc' (only this method is available, it's time-domain based) 
+%      .conn.method: 'gc' (only this method is available, it's time-domain based)
 %      .conn.order: scalar indicating model order or 'aic' or 'bic'
 %                   If 'aic' or 'bic', it estimates the model order and
 %                   writes it down estimated model order in csv in log dir.
+%      .conn.toi: vector with time points to run connectivity on
+%      .conn.t_ftimwin: scalar with duration of time window
 %
 %    if 'ft' (use Fieldtrip implementation):
 %      .conn.method: can be symmetric or asymmetric (a string of one of the below)
 %SYM:  'coh', 'csd', 'plv', 'powcorr', 'amplcorr', 'ppc', 'psi'
 %ASYM: 'granger', 'dtf', 'pdc'
-%      .conn.freq: logical, needs to be TRUE (in future, Fieldtrip might implement time-domain connectivity measures)
 %      .conn.mvar: logical, estimate coefficients or not
 %        if TRUE:
 %          .conn.toolbox: 'biosig' or 'bsmart'
 %          .conn.order: scalar indicating model order
+%          .conn.toi: vector with time points to run connectivity on
+%          .conn.t_ftimwin: scalar with duration of time window
 %        if FALSE:
 %          .conn.foi: frequency of interest (best if identical to .pow.foi)
+%      .conn.freq: 'mtmconvol' or 'mtmfft'
+%        in either case, 
+%          .conn.avgoverfreq: average power spectrum
+%          .conn.planar for MEG if you want to run planar
+%          (but does it make sense to do planar on fourier data?)
+%        if 'mtmconvol':
+%          .conn.foi: frequency of interest
+%          .conn.toi: vector with time points to run connectivity on
+%          .conn.t_ftimwin: scalar with duration of time window (same length as .conn.foi)
+%        if 'mtmfft':
+%          .conn.foilim: two values for the frequency of interest
+
 %
 % IN:
 %  data in /PROJ/subjects/SUBJ/MOD/NICK/
@@ -73,13 +89,13 @@ function conn_subj(cfg, subj)
 %  [cfg.dcon 'conn_CONNMETHOD_SUBJ_COND']: connectivty analysis for each subject
 %  If .conn.type is 'cca', it also returns the model check. The file has
 %    subj, condition, toi, ADF, KPSS, residuals, consistency
-%  where 
+%  where
 %    ADF, KPSS check the covariance stationary (should be 0, can give different results)
 %    residuals tells you if the residuals, after fitting GC, are not white
 %    consistency gives you how much variance the model explains (better if > 80)
 %
 % Part of EVENTBASED single-subject
-% see also ERP_SUBJ, ERP_GRAND, 
+% see also ERP_SUBJ, ERP_GRAND,
 % ERPSOURCE_SUBJ, ERPSOURCE_GRAND, ERPSTAT_SUBJ, ERPSTAT_GRAND,
 % POW_SUBJ, POW_GRAND, POWCORR_SUBJ, POWCORR_GRAND,
 % POWSOURCE_SUBJ, POWSOURCE_GRAND, POWSTAT_SUBJ, POWSTAT_GRAND,
@@ -105,7 +121,7 @@ switch cfg.conn.areas
   
   case 'all'
     outtmp = sprintf('using all the channels, it might crash\n');
-  
+    
   case 'channel'
     [mont outtmp] = prepare_montage(cfg);
     
@@ -121,14 +137,14 @@ switch cfg.conn.areas
     load(sprintf('%serpsource_peak_%s', cfg.derp, condname), 'erpsource_peak') % peaks in ERP
     
     [mont outtmp] = prepare_montage(cfg, erpsource_s_A, erpsource_peak);
- 
+    
   case 'powpeak'
     condname = regexprep(cfg.conn.refcond, '*', '');
     load(sprintf('%spowsource_%04d_%s', cfg.dpow, subj, condname), 'powsource_s_A') % source of interest
     load(sprintf('%spowsource_peak_%s', cfg.dpow, condname), 'powsource_peak') % peaks in POW
     
     [mont outtmp] = prepare_montage(cfg, powsource_s_A, powsource_peak);
-  
+    
 end
 output = [output outtmp];
 %---------------------------%
@@ -141,7 +157,7 @@ for k = 1:numel(cfg.conn.cond)
   
   %---------------------------%
   %-read data
-  [data badchan] = load_data(cfg, subj, cond); 
+  [data badchan] = load_data(cfg, subj, cond);
   if isempty(data)
     output = sprintf('%sCould not find any file for condition %s\n', ...
       output, cond);
@@ -209,16 +225,16 @@ for k = 1:numel(cfg.conn.cond)
         
         cfg2.dip = cfg.conn.dippos;
         
-%         %-------%
-%         %-remove channels that were interpolated
-         [~, mont_badchan] = intersect(mont.labelorg, badchan);
-         mont.labelorg(mont_badchan) = []; % it's crucial that channels are not interpolated!!!
-%         mont.tra(:,mont_badchan) = [];
-%         %-------%
-%         
-%         cfg2.dip = mont2dip(mont);
-         cfg2.channel = mont.labelorg;
-%         %-----------------%
+        %         %-------%
+        %         %-remove channels that were interpolated
+        [~, mont_badchan] = intersect(mont.labelorg, badchan);
+        mont.labelorg(mont_badchan) = []; % it's crucial that channels are not interpolated!!!
+        %         mont.tra(:,mont_badchan) = [];
+        %         %-------%
+        %
+        %         cfg2.dip = mont2dip(mont);
+        cfg2.channel = mont.labelorg;
+        %         %-----------------%
         
         data = connectivityanalysis_statespace(cfg2, data);
         data.time = cfg.conn.toi;
@@ -229,40 +245,82 @@ for k = 1:numel(cfg.conn.cond)
       
       %---------------------------%
       %-fieldtrip way or use fieldtrip function on mvar of space-state
-      %-----------------%
-      %-freq on mvar
-      if cfg.conn.freq
+      if cfg.conn.mvar
         
-        if cfg.conn.mvar
+        %-----------------%
+        %-freq on mvar
+        %--------%
+        %-use special freq analysis for mvar data
+        tmpcfg = [];
+        tmpcfg.method    = 'mvar';
+        
+        data = ft_freqanalysis(tmpcfg, data);
+        %--------%
+        %-----------------%
+        
+      else
+        
+        %-----------------%
+        %-freq on raw data
+        
+        %-------%
+        %-planar
+        if isfield(data, 'grad') && cfg.conn.planar
           
-          %--------%
-          %-use special freq analysis for mvar data
-          cfg3 = [];
-          cfg3.method    = 'mvar';
+          tmpcfg = [];
+          tmpcfg.grad = data.grad;
+          tmpcfg.method = 'distance';
+          tmpcfg.neighbourdist = cfg.sens.dist;
+          nbor = ft_prepare_neighbours(tmpcfg);
           
-          data = ft_freqanalysis(cfg3, data);
-          %--------%
+          tmpcfg = [];
+          tmpcfg.neighbours = nbor;
+          data = ft_megplanar(tmpcfg, data);
           
-        else
+        end
+        %-------%
+        
+        %-------%
+        %-no mvar
+        tmpcfg = [];
+        
+        tmpcfg.taper = 'hanning';
+        tmpcfg.feedback = 'none';
+        tmpcfg.keeptrials = 'yes';
+        
+        if strcmp(cfg.conn.freq, 'mtmconvol')
+          tmpcfg.method = 'mtmconvol';
+          tmpcfg.output = 'fourier';
+          tmpcfg.toi = cfg.conn.toi;
+          tmpcfg.foi = cfg.conn.foi;
+          tmpcfg.t_ftimwin = cfg.conn.t_ftimwin .* ones(numel(tmpcfg.foi));
           
-          %--------%
-          %-no mvar
-          cfg3 = [];
-          cfg3.method = 'mtmconvol';
-          cfg3.taper = 'hanning';
-          cfg3.foi  = cfg.conn.foi;
-          cfg3.output = 'fourier';
-          cfg3.feedback = 'none';
-          cfg3.toi = cfg.conn.toi;
-          cfg3.t_ftimwin = cfg.conn.t_ftimwin .* ones(numel(cfg3.foi));
-          
-          data = ft_freqanalysis(cfg3, data);
-          %--------%
+        elseif strcmp(cfg.conn.freq, 'mtmfft')
+          tmpcfg.method = 'mtmfft';
+          tmpcfg.foilim = cfg.conn.foilim;
           
         end
         
+        data = ft_freqanalysis(tmpcfg, data);
+        %-------%
+        
+        %-------%
+        %-planar
+        if isfield(data, 'grad') && cfg.conn.planar
+          tmpcfg = [];
+          data = ft_combineplanar(tmpcfg, data);
+        end
+        %-------%
+        
+        %-------%
+        %-average over frequency
+        if isfield(cfg.conn, 'avgoverfreq') && cfg.conn.avgoverfreq
+          data = ft_selectdata(data, 'avgoverfreq', 'yes');
+        end
+        %-------%
+        %-----------------%
+        
       end
-      %-----------------%
       
       %-----------------%
       %-connectivity
