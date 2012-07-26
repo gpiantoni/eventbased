@@ -57,12 +57,20 @@ for k = 1:numel(cfg.pow.cond)
   %---------------------------%
   %-calculate power
   cfg2 = cfg.pow;
-  cfg2.feedback = 'etf';  
+  cfg2.feedback = 'etf';
   pow_s = ft_freqanalysis(cfg2, data);
   
   if isfield(cfg.pow, 'toi')
     pow_s.time = cfg.pow.toi;
   end
+  
+  %-------%
+  %-when no time info (mtmfft), create empty time
+  if ~isfield(pow_s, 'time')
+    pow_s.time = 0;
+    pow_s.dimord = [pow_s.dimord '_time'];
+  end
+  %-------%
   %---------------------------%
   
   save([cfg.dpow outputfile], 'pow_s')
