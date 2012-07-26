@@ -14,6 +14,8 @@ function pow_subj(cfg, subj)
 %
 %  .pow: a structure with cfg to pass to ft_freqanalysis
 %
+%  .pow.planar: planar transformation, MEG-only (logical)
+%
 % Baseline correction is applied in POW_GRAND
 %
 % IN:
@@ -56,6 +58,23 @@ for k = 1:numel(cfg.pow.cond)
   
   %---------------------------%
   %-calculate power
+  %-------%
+  %-planar
+  if isfield(data, 'grad') && cfg.pow.planar
+    
+    tmpcfg = [];
+    tmpcfg.grad = data.grad;
+    tmpcfg.method = 'distance';
+    tmpcfg.neighbourdist = cfg.sens.dist;
+    nbor = ft_prepare_neighbours(tmpcfg);
+    
+    tmpcfg = [];
+    tmpcfg.neighbours = nbor;
+    data = ft_megplanar(tmpcfg, data);
+    
+  end
+  %-------%
+  
   cfg2 = cfg.pow;
   cfg2.feedback = 'etf';
   pow_s = ft_freqanalysis(cfg2, data);
@@ -69,6 +88,14 @@ for k = 1:numel(cfg.pow.cond)
   if ~isfield(pow_s, 'time')
     pow_s.time = 0;
     pow_s.dimord = [pow_s.dimord '_time'];
+  end
+  %-------%
+  
+  %-------%
+  %-planar
+  if isfield(data, 'grad') && cfg.pow.planar
+    tmpcfg = [];
+    pow_s = ft_combineplanar(tmpcfg, pow_s);
   end
   %-------%
   %---------------------------%
