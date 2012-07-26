@@ -60,8 +60,10 @@ allfile = dir([ddir '*' cfg.endname '.mat']); % files matching a preprocessing
 
 %-------%
 %-for CSD
-sens = ft_read_sens(cfg.sens.file);
-sens.label = upper(sens.label);
+if isfield(cfg.sens, 'file') && ~isempty(cfg.sens.file)
+  sens = ft_read_sens(cfg.sens.file);
+  sens.label = upper(sens.label);
+end
 %-------%
 %---------------------------%
 
