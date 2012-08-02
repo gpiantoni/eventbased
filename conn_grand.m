@@ -10,7 +10,7 @@ function conn_grand(cfg)
 %              It can, but need not, be identical to cfg.test
 %  .conn.method: method used for connectivity
 %  .conn.toi: vector with time points to run connectivity on
-%  .conn.freq:
+%  .gconn.freq:
 %    if 'all': it takes all the frequency in the data (one value)
 %    if 'any': it takes each frequency in the data (can be alot alot)
 %    if two scalar: it takes each frequency between the extremes ([8 12], means each frequency between 8 and 12, so 8 9 10 11 12, five values)
@@ -255,8 +255,10 @@ if isfield(cfg.gconn, 'comp')
             %-------%
             title_freq  = sprintf('% 3.f-% 3.f', conn1.freq{f}(1), conn1.freq{f}(2));
             title([conn1.label{chan1} ' -> ' conn1.label{chan2} ' ' title_freq])
-            xlim(conn1.time([1 end]))
-            xlabel('time (s)')
+            if numel(conn1.time) > 1
+              xlim(conn1.time([1 end]))
+              xlabel('time (s)')
+            end
             ylabel(cfg.conn.method);
             legend(cond1, cond2, 'Location', 'NorthWest')
             %-------%

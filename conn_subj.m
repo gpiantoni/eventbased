@@ -85,10 +85,10 @@ function conn_subj(cfg, subj)
 %
 % IN:
 %  data in /PROJ/subjects/SUBJ/MOD/NICK/
-%  if .conn.areas == 'erppeak'
+%  if .conn.areas == 'erppeak' or ('dip' and .conn.beamformer == 'erp')
 %     [cfg.derp 'erpsource_SUBJ_COND']: source data for period of interest for each subject
 %     [cfg.derp 'NICK_COND_soupeak']: significant source peaks in the ERP
-%  if .conn.areas == 'powpeak'
+%  if .conn.areas == 'powpeak'  or ('dip' and .conn.beamformer == 'pow')
 %     [cfg.dpow 'powsource_SUBJ_COND']: source data for period of interest for each subject
 %     [cfg.dpow 'NICK_COND_soupeak']: significant source peaks in the POW
 %
@@ -136,7 +136,7 @@ switch cfg.conn.areas
     sourcename = sprintf('%ssource_s_A', cfg.conn.beamformer);
     load(sprintf('%s%ssource_%04d_%s', cfg.derp, cfg.conn.beamformer, subj, condname), sourcename) % source of interest
     
-    [mont outtmp] = prepare_montage(cfg, cfg.conn.dip);
+    [mont outtmp] = prepare_montage(cfg, eval(sourcename), cfg.conn.dip);
     
   case 'erppeak'
     condname = regexprep(cfg.conn.refcond, '*', '');
@@ -180,6 +180,9 @@ for k = 1:numel(cfg.conn.cond)
     
     data = ft_apply_montage(data, mont, 'feedback', 'none');
     
+    if strcmp(cfg.conn.areas, 'dip')
+      data = pcadata(data, cfg.conn.dip, cfg.conn.fixedmom);      
+    end
     if strcmp(cfg.conn.areas, 'erppeak')
       data = pcadata(data, erpsource_peak, cfg.conn.fixedmom);
     end
