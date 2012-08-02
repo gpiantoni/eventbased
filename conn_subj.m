@@ -13,7 +13,7 @@ function conn_subj(cfg, subj)
 %  .conn.cond: cell with conditions (e.g. {'*cond1' '*cond2'})'
 %
 %-ROI parameters
-%  .conn.areas: 'all' or 'channel' or 'erp' or 'erppeak' or 'powpeak'
+%  .conn.areas: 'all', 'channel', 'erp', 'dip', 'erppeak' or 'powpeak'
 %    if 'all'
 %       Use all the channels
 %
@@ -29,17 +29,25 @@ function conn_subj(cfg, subj)
 %      .derp: directory with ERP data
 %      .conn.refcond: condition with ERP used for reference topography (string)
 %
+%    if 'dip' (use dipoles of interest):
+%      .conn.beamformer: 'erp' or 'pow' (time-domain, lcmv, or freq-domain, dics)
+%                        you need to have run 'erpsource_subj' or 'powsource_subj' respectively 
+%                        don't forget to keepfilter
+%      .conn.refcond: string of the condition used for source location
+%      .conn.fixedmom: logical (use the same moment for source or change it every time)
+%      .conn.dip(1).name: name of the dipole
+%      .conn.dip(1).pos: position of the dipole (X x 3, it'll do PCA on it)
+%      (this function only works with beamforming, NOT with simple inversion of leadfield)
+%
 %    if 'erppeak' (use beamformer to construct virtual electrode):
-%      .derp: directory with ERP data
+%      .derp: directory with ERP data (you need 'erpsource_subj' with keepfilder)
 %      .conn.refcond: string of the condition used for source location
 %      .conn.fixedmom: logical (use the same moment for source or change it every time)
 %
 %    if 'powpeak' (use beamformer to construct virtual electrode):
-%      .dpow: directory with POW data
+%      .dpow: directory with POW data  (you need 'powsource_subj' with keepfilder)
 %      .conn.refcond: string of the condition used for source location
 %      .conn.fixedmom: logical (use the same moment for source or change it every time)
-%
-%   TODO: dip pos
 %
 %-Connectivity parameters
 %  .conn.type: 'cca' or 'ft'
@@ -122,6 +130,13 @@ switch cfg.conn.areas
     load([cfg.derp 'erp_' condname], 'erp')
     
     [mont outtmp] = prepare_montage(cfg, erp);
+    
+  case 'dip'
+    condname = regexprep(cfg.conn.refcond, '*', '');
+    sourcename = sprintf('%ssource_s_A', cfg.conn.beamformer);
+    load(sprintf('%s%ssource_%04d_%s', cfg.derp, cfg.conn.beamformer, subj, condname), sourcename) % source of interest
+    
+    [mont outtmp] = prepare_montage(cfg, cfg.conn.dip);
     
   case 'erppeak'
     condname = regexprep(cfg.conn.refcond, '*', '');
