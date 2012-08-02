@@ -64,7 +64,7 @@ function conn_subj(cfg, subj)
 %        if FALSE:
 %          .conn.foi: frequency of interest (best if identical to .pow.foi)
 %      .conn.freq: 'mtmconvol' or 'mtmfft'
-%        in either case, 
+%        in either case,
 %          .conn.avgoverfreq: average power spectrum
 %          .conn.planar for MEG if you want to run planar
 %          (but does it make sense to do planar on fourier data?)
@@ -74,7 +74,6 @@ function conn_subj(cfg, subj)
 %          .conn.t_ftimwin: scalar with duration of time window (same length as .conn.foi)
 %        if 'mtmfft':
 %          .conn.foilim: two values for the frequency of interest
-
 %
 % IN:
 %  data in /PROJ/subjects/SUBJ/MOD/NICK/
@@ -106,13 +105,6 @@ function conn_subj(cfg, subj)
 output = sprintf('%s (%04d) began at %s on %s\n', ...
   mfilename, subj, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
 tic_t = tic;
-%---------------------------%
-
-%---------------------------%
-%-fix cfg and prepare for statespace
-if strcmp(cfg.conn.type, 'statespace')
-  [vol, lead, sens] = load_headshape(cfg, subj);
-end
 %---------------------------%
 
 %---------------------------%
@@ -169,8 +161,7 @@ for k = 1:numel(cfg.conn.cond)
   
   %---------------------------%
   %-apply montage (if using two-step procedure)
-  if ~strcmp(cfg.conn.areas, 'all') && ...
-      ~strcmp(cfg.conn.type, 'statespace') % DOC
+  if ~strcmp(cfg.conn.areas, 'all')
     
     data = ft_apply_montage(data, mont, 'feedback', 'none');
     
@@ -188,60 +179,25 @@ for k = 1:numel(cfg.conn.cond)
   
   switch cfg.conn.type
     
-    case {'ft' 'statespace'}
+    case 'ft'
       
-      if strcmp(cfg.conn.type, 'ft')
+      %---------------------------%
+      %-Fieltrip
+      %-----------------%
+      %-mvar
+      if cfg.conn.mvar
+        cfg2 = [];
+        cfg2.order = cfg.conn.order;
+        cfg2.toolbox = cfg.conn.toolbox;
+        cfg2.feedback = 'none';
         
-        %---------------------------%
-        %-Fieltrip
-        %-----------------%
-        %-mvar
-        if cfg.conn.mvar
-          cfg2 = [];
-          cfg2.order = cfg.conn.order;
-          cfg2.toolbox = cfg.conn.toolbox;
-          cfg2.feedback = 'none';
-          
-          cfg2.toi = cfg.conn.toi;
-          cfg2.t_ftimwin = cfg.conn.t_ftimwin;
-          
-          data = ft_mvaranalysis(cfg2, data); % ft_mvaranalysis can do it on multiple time points, but freqanalysis does not handle it anymore
-        end
-        %-----------------%
-        %---------------------------%
+        cfg2.toi = cfg.conn.toi;
+        cfg2.t_ftimwin = cfg.conn.t_ftimwin;
         
-      elseif strcmp(cfg.conn.type, 'statespace')
-        
-        %---------------------------%
-        %-Use State-Space (connectivity at source-level)
-        cfg2 = cfg.conn; % DOC
-        cfg2.vol = vol;
-        
-        %-----------------%
-        %-prepare montage
-        if ~strcmp(cfg.conn.areas, 'erp');
-          error('state-space montage with montages other than ''erp'' is not implemented'); % TODO
-        end
-        
-        cfg2.dip = cfg.conn.dippos;
-        
-        %         %-------%
-        %         %-remove channels that were interpolated
-        [~, mont_badchan] = intersect(mont.labelorg, badchan);
-        mont.labelorg(mont_badchan) = []; % it's crucial that channels are not interpolated!!!
-        %         mont.tra(:,mont_badchan) = [];
-        %         %-------%
-        %
-        %         cfg2.dip = mont2dip(mont);
-        cfg2.channel = mont.labelorg;
-        %         %-----------------%
-        
-        data = connectivityanalysis_statespace(cfg2, data);
-        data.time = cfg.conn.toi;
-        data.cfg = [];
-        %---------------------------%
-        
+        data = ft_mvaranalysis(cfg2, data); % ft_mvaranalysis can do it on multiple time points, but freqanalysis does not handle it anymore
       end
+      %-----------------%
+      %---------------------------%
       
       %---------------------------%
       %-fieldtrip way or use fieldtrip function on mvar of space-state
@@ -520,17 +476,4 @@ end
 
 data.trial = trial;
 data.label = label;
-%---------------------------------------------------------%
-
-%---------------------------------------------------------%
-%-SUBFUNCTION: mont2dip
-%---------------------------------------------------------%
-function [dip] = mont2dip(mont)
-%MONT2DIP transform mont so that it can be used by connectivityanalysis_statespace
-
-dip = [];
-for i = 1:numel(mont.labelnew)
-  dip(i).label = mont.labelnew{i};
-  dip(i).mont = mont.tra(i,:)';
-end
 %---------------------------------------------------------%
