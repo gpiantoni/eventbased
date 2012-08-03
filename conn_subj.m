@@ -13,7 +13,7 @@ function conn_subj(cfg, subj)
 %  .conn.cond: cell with conditions (e.g. {'*cond1' '*cond2'})'
 %
 %-ROI parameters
-%  .conn.areas: 'all' or 'channel' or 'erp' or 'erppeak' or 'powpeak'
+%  .conn.areas: 'all', 'channel', 'erp', 'dip', 'erppeak' or 'powpeak'
 %    if 'all'
 %       Use all the channels
 %
@@ -29,17 +29,25 @@ function conn_subj(cfg, subj)
 %      .derp: directory with ERP data
 %      .conn.refcond: condition with ERP used for reference topography (string)
 %
+%    if 'dip' (use dipoles of interest):
+%      .conn.beamformer: 'erp' or 'pow' (time-domain, lcmv, or freq-domain, dics)
+%                        you need to have run 'erpsource_subj' or 'powsource_subj' respectively 
+%                        don't forget to keepfilter
+%      .conn.refcond: string of the condition used for source location
+%      .conn.fixedmom: logical (use the same moment for source or change it every time)
+%      .conn.dip(1).name: name of the dipole
+%      .conn.dip(1).pos: position of the dipole (X x 3, it'll do PCA on it)
+%      (this function only works with beamforming, NOT with simple inversion of leadfield)
+%
 %    if 'erppeak' (use beamformer to construct virtual electrode):
-%      .derp: directory with ERP data
+%      .derp: directory with ERP data (you need 'erpsource_subj' with keepfilder)
 %      .conn.refcond: string of the condition used for source location
 %      .conn.fixedmom: logical (use the same moment for source or change it every time)
 %
 %    if 'powpeak' (use beamformer to construct virtual electrode):
-%      .dpow: directory with POW data
+%      .dpow: directory with POW data  (you need 'powsource_subj' with keepfilder)
 %      .conn.refcond: string of the condition used for source location
 %      .conn.fixedmom: logical (use the same moment for source or change it every time)
-%
-%   TODO: dip pos
 %
 %-Connectivity parameters
 %  .conn.type: 'cca' or 'ft'
@@ -64,7 +72,7 @@ function conn_subj(cfg, subj)
 %        if FALSE:
 %          .conn.foi: frequency of interest (best if identical to .pow.foi)
 %      .conn.freq: 'mtmconvol' or 'mtmfft'
-%        in either case, 
+%        in either case,
 %          .conn.avgoverfreq: average power spectrum
 %          .conn.planar for MEG if you want to run planar
 %          (but does it make sense to do planar on fourier data?)
@@ -74,14 +82,13 @@ function conn_subj(cfg, subj)
 %          .conn.t_ftimwin: scalar with duration of time window (same length as .conn.foi)
 %        if 'mtmfft':
 %          .conn.foilim: two values for the frequency of interest
-
 %
 % IN:
 %  data in /PROJ/subjects/SUBJ/MOD/NICK/
-%  if .conn.areas == 'erppeak'
+%  if .conn.areas == 'erppeak' or ('dip' and .conn.beamformer == 'erp')
 %     [cfg.derp 'erpsource_SUBJ_COND']: source data for period of interest for each subject
 %     [cfg.derp 'NICK_COND_soupeak']: significant source peaks in the ERP
-%  if .conn.areas == 'powpeak'
+%  if .conn.areas == 'powpeak'  or ('dip' and .conn.beamformer == 'pow')
 %     [cfg.dpow 'powsource_SUBJ_COND']: source data for period of interest for each subject
 %     [cfg.dpow 'NICK_COND_soupeak']: significant source peaks in the POW
 %
@@ -109,13 +116,6 @@ tic_t = tic;
 %---------------------------%
 
 %---------------------------%
-%-fix cfg and prepare for statespace
-if strcmp(cfg.conn.type, 'statespace')
-  [vol, lead, sens] = load_headshape(cfg, subj);
-end
-%---------------------------%
-
-%---------------------------%
 %-prepare montage
 switch cfg.conn.areas
   
@@ -130,6 +130,13 @@ switch cfg.conn.areas
     load([cfg.derp 'erp_' condname], 'erp')
     
     [mont outtmp] = prepare_montage(cfg, erp);
+    
+  case 'dip'
+    condname = regexprep(cfg.conn.refcond, '*', '');
+    sourcename = sprintf('%ssource_s_A', cfg.conn.beamformer);
+    load(sprintf('%s%ssource_%04d_%s', cfg.derp, cfg.conn.beamformer, subj, condname), sourcename) % source of interest
+    
+    [mont outtmp] = prepare_montage(cfg, eval(sourcename), cfg.conn.dip);
     
   case 'erppeak'
     condname = regexprep(cfg.conn.refcond, '*', '');
@@ -169,11 +176,13 @@ for k = 1:numel(cfg.conn.cond)
   
   %---------------------------%
   %-apply montage (if using two-step procedure)
-  if ~strcmp(cfg.conn.areas, 'all') && ...
-      ~strcmp(cfg.conn.type, 'statespace') % DOC
+  if ~strcmp(cfg.conn.areas, 'all')
     
     data = ft_apply_montage(data, mont, 'feedback', 'none');
     
+    if strcmp(cfg.conn.areas, 'dip')
+      data = pcadata(data, cfg.conn.dip, cfg.conn.fixedmom);      
+    end
     if strcmp(cfg.conn.areas, 'erppeak')
       data = pcadata(data, erpsource_peak, cfg.conn.fixedmom);
     end
@@ -188,60 +197,25 @@ for k = 1:numel(cfg.conn.cond)
   
   switch cfg.conn.type
     
-    case {'ft' 'statespace'}
+    case 'ft'
       
-      if strcmp(cfg.conn.type, 'ft')
+      %---------------------------%
+      %-Fieltrip
+      %-----------------%
+      %-mvar
+      if cfg.conn.mvar
+        cfg2 = [];
+        cfg2.order = cfg.conn.order;
+        cfg2.toolbox = cfg.conn.toolbox;
+        cfg2.feedback = 'none';
         
-        %---------------------------%
-        %-Fieltrip
-        %-----------------%
-        %-mvar
-        if cfg.conn.mvar
-          cfg2 = [];
-          cfg2.order = cfg.conn.order;
-          cfg2.toolbox = cfg.conn.toolbox;
-          cfg2.feedback = 'none';
-          
-          cfg2.toi = cfg.conn.toi;
-          cfg2.t_ftimwin = cfg.conn.t_ftimwin;
-          
-          data = ft_mvaranalysis(cfg2, data); % ft_mvaranalysis can do it on multiple time points, but freqanalysis does not handle it anymore
-        end
-        %-----------------%
-        %---------------------------%
+        cfg2.toi = cfg.conn.toi;
+        cfg2.t_ftimwin = cfg.conn.t_ftimwin;
         
-      elseif strcmp(cfg.conn.type, 'statespace')
-        
-        %---------------------------%
-        %-Use State-Space (connectivity at source-level)
-        cfg2 = cfg.conn; % DOC
-        cfg2.vol = vol;
-        
-        %-----------------%
-        %-prepare montage
-        if ~strcmp(cfg.conn.areas, 'erp');
-          error('state-space montage with montages other than ''erp'' is not implemented'); % TODO
-        end
-        
-        cfg2.dip = cfg.conn.dippos;
-        
-        %         %-------%
-        %         %-remove channels that were interpolated
-        [~, mont_badchan] = intersect(mont.labelorg, badchan);
-        mont.labelorg(mont_badchan) = []; % it's crucial that channels are not interpolated!!!
-        %         mont.tra(:,mont_badchan) = [];
-        %         %-------%
-        %
-        %         cfg2.dip = mont2dip(mont);
-        cfg2.channel = mont.labelorg;
-        %         %-----------------%
-        
-        data = connectivityanalysis_statespace(cfg2, data);
-        data.time = cfg.conn.toi;
-        data.cfg = [];
-        %---------------------------%
-        
+        data = ft_mvaranalysis(cfg2, data); % ft_mvaranalysis can do it on multiple time points, but freqanalysis does not handle it anymore
       end
+      %-----------------%
+      %---------------------------%
       
       %---------------------------%
       %-fieldtrip way or use fieldtrip function on mvar of space-state
@@ -520,17 +494,4 @@ end
 
 data.trial = trial;
 data.label = label;
-%---------------------------------------------------------%
-
-%---------------------------------------------------------%
-%-SUBFUNCTION: mont2dip
-%---------------------------------------------------------%
-function [dip] = mont2dip(mont)
-%MONT2DIP transform mont so that it can be used by connectivityanalysis_statespace
-
-dip = [];
-for i = 1:numel(mont.labelnew)
-  dip(i).label = mont.labelnew{i};
-  dip(i).mont = mont.tra(i,:)';
-end
 %---------------------------------------------------------%

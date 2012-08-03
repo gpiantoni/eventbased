@@ -30,7 +30,7 @@ switch cfg.conn.areas
   case 'erp'
     [mont output] = prepare_montage_erp(cfg, data);
     
-  case {'erppeak' 'powpeak'}
+  case {'dip' 'erppeak' 'powpeak'}
     [mont output] = prepare_montage_peak(data, peak);
  
 end
@@ -107,6 +107,10 @@ function [mont output] = prepare_montage_peak(source, peak)
 
 %---------------------------%
 %-check input
+if numel(source) == 1 % called from cfg.conn.areas = 'dip'
+  source = repmat(source, size(peak));
+end
+
 if numel(source) ~= numel(peak)
   error(sprintf('the number of sources (%1.f) should be identical to the number of significant peaks (%1.f)', numel(source), numel(peak)))
 end
@@ -152,6 +156,11 @@ for i = 1:numel(source)
   %-----------------%
   
 end
+
+%-----------------%
+%-clean up the tra
+tra = tra(1:cnt-1,:);
+%-----------------%
 %-------------------------------------%
 
 mont.labelorg = source{1}.cfg.channel;
