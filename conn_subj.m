@@ -264,7 +264,6 @@ for k = 1:numel(cfg.conn.cond)
         
         if strcmp(cfg.conn.freq, 'mtmconvol')
           tmpcfg.method = 'mtmconvol';
-          tmpcfg.output = 'fourier';
           tmpcfg.toi = cfg.conn.toi;
           tmpcfg.foi = cfg.conn.foi;
           tmpcfg.t_ftimwin = cfg.conn.t_ftimwin .* ones(numel(tmpcfg.foi));
@@ -273,6 +272,13 @@ for k = 1:numel(cfg.conn.cond)
           tmpcfg.method = 'mtmfft';
           tmpcfg.foilim = cfg.conn.foilim;
           
+        end
+        
+        switch cfg.conn.method
+          case {'granger'}
+            tmpcfg.output = 'fourier';
+          case {'powcorr'}
+            tmpcfg.output = 'pow';
         end
         
         data = ft_freqanalysis(tmpcfg, data);
