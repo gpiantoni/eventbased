@@ -118,7 +118,7 @@ for k = 1:numel(cfg.conn.cond)
   %-prepare conn structure
   % MAT is chan X chan X time X freq X subj
   conn.label = stat.label;
-  conn.time = cfg.conn.toi;conn.time = data{1}.time;
+  conn.time = cfg.conn.toi;% conn.time = data{1}.time;
   conn.freq = mat2cell(connfreq, size(connfreq,1), [2]);
   conn.mat = nan(numel(conn.label), numel(conn.label), numel(conn.time), size(conn.freq,1), numel(cfg.subjall));
   %---------------------------%
