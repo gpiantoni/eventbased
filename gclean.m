@@ -27,6 +27,7 @@ function gclean(cfg, subj)
 %  .gtool.bad_channels.MADs = 8;
 %  .gtool.eog.correction = 50;
 %  .gtool.emg.correction = 30;
+%  .gtool.pwl.pca: if not empty, number of PC to work with in JADE
 %
 % IN
 %  data in /data1/projects/PROJ/subjects/SUBJ/MOD/NICK/
@@ -52,15 +53,28 @@ ddir = sprintf('%s%04d/%s/%s/', cfg.data, subj, cfg.mod, cfg.nick); % data dir
 allfile = dir([ddir '*' cfg.endname '.mat']); % files matching a preprocessing
 
 import aar.node.pipeline
+%---------------------------%
 
-sens = ft_read_sens(cfg.sens.file);
-sens.label = upper(sens.label);
+%---------------------------%
+%-elec or grad
+haselec = false;
+if isfield(cfg.sens, 'file') && ~isempty(cfg.sens.file)
+  haselec = true;
+  sens = ft_read_sens(cfg.sens.file);
+  sens.label = upper(sens.label);
+  
+  cfg1 = [];
+  cfg1.elec = sens;
+  cfg1.method = 'distance';
+  cfg1.neighbourdist = cfg.sens.dist;
+  neigh = ft_prepare_neighbours(cfg1);
+end
 
-cfg1 = [];
-cfg1.elec = sens;
-cfg1.method = 'distance';
-cfg1.neighbourdist = cfg.sens.dist;
-neigh = ft_prepare_neighbours(cfg1);
+if strcmp(cfg.mod, 'meg')
+  hasgrad = true;
+else
+  hasgrad = false;
+end
 %---------------------------%
 
 %------------------------------------%
@@ -75,6 +89,12 @@ for i = 1:numel(allfile)
   
   %--------------------------%
   %-gtoolbox parameters
+  
+  %------%
+  %-PCA
+  opt.pcapwl = spt.pca('MaxDimOut', cfg.gtool.pwl.pca);
+  %------%
+    
   %------%
   %-JADE
   opt.bsspwl          = spt.jade;
@@ -126,12 +146,8 @@ for i = 1:numel(allfile)
     'Verbose', cfg.gtool.verbose), ...
     ...
     aar.node.bss_regression.pwl(cfg.gtool.fsample, ...
+    'PCA', opt.pcapwl, ...
     'BSS', opt.bsspwl, ...
-    'Save', cfg.gtool.saveall, ...
-    'Verbose', cfg.gtool.verbose), ...
-    ...
-    aar.node.bss_regression.ecg(cfg.gtool.fsample, ...
-    'BSS', opt.bssecg, ...
     'Save', cfg.gtool.saveall, ...
     'Verbose', cfg.gtool.verbose), ...
     ...
@@ -141,14 +157,22 @@ for i = 1:numel(allfile)
     'Save', cfg.gtool.saveall, ...
     'Verbose', cfg.gtool.verbose), ...
     ...
-    aar.node.bss_regression.emg(cfg.gtool.fsample, ...
-    'BSS', opt.bssecg, ...
-    'Correction', cfg.gtool.emg.correction, ...
-    'Save', cfg.gtool.saveall, ...
-    'Verbose', cfg.gtool.verbose), ...
     }, ...
     'OGE', false, ...
     'Save', false);
+
+  %     aar.node.bss_regression.ecg(cfg.gtool.fsample, ...
+  %     'BSS', opt.bssecg, ...
+  %     'Save', cfg.gtool.saveall, ...
+  %     'Verbose', cfg.gtool.verbose), ...
+  %     ...
+
+  %     aar.node.bss_regression.emg(cfg.gtool.fsample, ...
+  %     'BSS', opt.bssecg, ...
+  %     'Correction', cfg.gtool.emg.correction, ...
+  %     'Save', cfg.gtool.saveall, ...
+  %     'Verbose', cfg.gtool.verbose), ...
+  
   %--------------------------%
   
   %--------------------------%
@@ -158,7 +182,19 @@ for i = 1:numel(allfile)
   
   %--------------------------%
   %-convert and prepare cfg
+  %GRAD was removed by eegcore, now we put it back
+  if hasgrad
+    load([ddir allfile(i).name], 'data')
+    grad = data.grad;
+    clear data
+  end
+  
   data = fieldtrip(gdata);
+  
+  if hasgrad
+    data = rmfield(data, 'elec');
+    data.grad = grad;
+  end
   %--------------------------%
   
   %--------------------------%
@@ -185,7 +221,16 @@ for i = 1:numel(allfile)
   %-repair channels
   cfg2 = [];
   cfg2.badchannel = data.label(gdata.BadChanIdx);
-  cfg2.neighbours = neigh;
+  if haselec
+    cfg2.neighbours = neigh;
+  elseif hasgrad
+    cfg1 = [];
+    cfg1.grad = grad;
+    cfg1.method = 'distance';
+    cfg1.neighbourdist = cfg.sens.dist;
+    neigh = ft_prepare_neighbours(cfg1);
+    cfg2.neighbours = neigh;
+  end
   cfg2.feedback = 'none';
   
   [~, filename] = fileparts(allfile(i).name);
