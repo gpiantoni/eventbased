@@ -11,11 +11,14 @@ function erp_subj(cfg, subj)
 %  .log: name of the file and directory to save log
 %  .derp: directory with ERP data
 %  .erp.cond: cell with conditions (e.g. {'*cond1' '*cond2'})'
+%  .erp.source: read virtual electrode data (logical)
 %
 %  .erp: a structure with cfg to pass to ft_timelockanalysis
 %
 % IN:
 %  data in /PROJ/subjects/SUBJ/MOD/NICK/
+% OR if cfg.erp.source
+%  source in cfg.dsou from SOURCE_SUBJ
 % 
 % OUT
 %  [cfg.derp 'erp_SUBJ_COND'] 'erp_s': timelock analysis for single-subject
@@ -25,7 +28,7 @@ function erp_subj(cfg, subj)
 % ERPSOURCE_SUBJ, ERPSOURCE_GRAND, ERPSTAT_SUBJ, ERPSTAT_GRAND,
 % POW_SUBJ, POW_GRAND, POWCORR_SUBJ, POWCORR_GRAND,
 % POWSOURCE_SUBJ, POWSOURCE_GRAND, POWSTAT_SUBJ, POWSTAT_GRAND,
-% CONN_SUBJ, CONN_GRAND, CONN_STAT
+% SOURCE_SUBJ, CONN_SUBJ, CONN_GRAND, CONN_STAT
 
 %---------------------------%
 %-start log
@@ -42,7 +45,11 @@ for k = 1:numel(cfg.erp.cond)
   
   %---------------------------%
   %-read data
-  [data] = load_data(cfg, subj, cond);
+  if ~isfield(cfg.erp, 'source') || cfg.erp.source
+    [data] = load_data(cfg, subj, cond);
+  else
+    [data] = load_source(cfg, subj, cond);
+  end
   if isempty(data)
     output = sprintf('%sCould not find any file for condition %s\n', ...
       output, cond);

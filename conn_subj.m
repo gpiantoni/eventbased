@@ -10,44 +10,8 @@ function conn_subj(cfg, subj)
 %
 %  .log: name of the file and directory to save log
 %  .dconn: directory for connectivity data
-%  .conn.cond: cell with conditions (e.g. {'*cond1' '*cond2'})'
-%
-%-ROI parameters
-%  .conn.areas: 'all', 'channel', 'erp', 'dip', 'erppeak' or 'powpeak'
-%    if 'all'
-%       Use all the channels
-%
-%    if 'channel'
-%      .conn.chan: a struct with
-%        .name: 'name of group elec'
-%        .chan: cell with electrode labels for each group
-%
-%    if 'erp'
-%      .conn.dip: a struct with
-%        .name: 'name of dipole'
-%        .time: time window of the ERP activity of interest (two scalars)
-%      .derp: directory with ERP data
-%      .conn.refcond: condition with ERP used for reference topography (string)
-%
-%    if 'dip' (use dipoles of interest):
-%      .conn.beamformer: 'erp' or 'pow' (time-domain, lcmv, or freq-domain, dics)
-%                        you need to have run 'erpsource_subj' or 'powsource_subj' respectively 
-%                        don't forget to keepfilter
-%      .conn.refcond: string of the condition used for source location
-%      .conn.fixedmom: logical (use the same moment for source or change it every time)
-%      .conn.dip(1).name: name of the dipole
-%      .conn.dip(1).pos: position of the dipole (X x 3, it'll do PCA on it)
-%      (this function only works with beamforming, NOT with simple inversion of leadfield)
-%
-%    if 'erppeak' (use beamformer to construct virtual electrode):
-%      .derp: directory with ERP data (you need 'erpsource_subj' with keepfilder)
-%      .conn.refcond: string of the condition used for source location
-%      .conn.fixedmom: logical (use the same moment for source or change it every time)
-%
-%    if 'powpeak' (use beamformer to construct virtual electrode):
-%      .dpow: directory with POW data  (you need 'powsource_subj' with keepfilder)
-%      .conn.refcond: string of the condition used for source location
-%      .conn.fixedmom: logical (use the same moment for source or change it every time)
+%  .conn.cond: cell with conditions (e.g. {'*cond1' '*cond2'})
+%  .conn.source: read virtual electrode data (logical)
 %
 %-Connectivity parameters
 %  .conn.type: 'cca' or 'ft'
@@ -102,58 +66,17 @@ function conn_subj(cfg, subj)
 %    consistency gives you how much variance the model explains (better if > 80)
 %
 % Part of EVENTBASED single-subject
-% see also ERP_SUBJ, ERP_GRAND,
+% see also ERP_SUBJ, ERP_GRAND, 
 % ERPSOURCE_SUBJ, ERPSOURCE_GRAND, ERPSTAT_SUBJ, ERPSTAT_GRAND,
 % POW_SUBJ, POW_GRAND, POWCORR_SUBJ, POWCORR_GRAND,
 % POWSOURCE_SUBJ, POWSOURCE_GRAND, POWSTAT_SUBJ, POWSTAT_GRAND,
-% CONN_SUBJ, CONN_GRAND, CONN_STAT
+% SOURCE_SUBJ, CONN_SUBJ, CONN_GRAND, CONN_STAT
 
 %---------------------------%
 %-start log
 output = sprintf('%s (%04d) began at %s on %s\n', ...
   mfilename, subj, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
 tic_t = tic;
-%---------------------------%
-
-%---------------------------%
-%-prepare montage
-switch cfg.conn.areas
-  
-  case 'all'
-    outtmp = sprintf('using all the channels, it might crash\n');
-    
-  case 'channel'
-    [mont outtmp] = prepare_montage(cfg);
-    
-  case 'erp'
-    condname = regexprep(cfg.conn.refcond, '*', '');
-    load([cfg.derp 'erp_' condname], 'erp')
-    
-    [mont outtmp] = prepare_montage(cfg, erp);
-    
-  case 'dip'
-    condname = regexprep(cfg.conn.refcond, '*', '');
-    sourcename = sprintf('%ssource_s_A', cfg.conn.beamformer);
-    load(sprintf('%s%ssource_%04d_%s', cfg.derp, cfg.conn.beamformer, subj, condname), sourcename) % source of interest
-    
-    [mont outtmp] = prepare_montage(cfg, eval(sourcename), cfg.conn.dip);
-    
-  case 'erppeak'
-    condname = regexprep(cfg.conn.refcond, '*', '');
-    load(sprintf('%serpsource_%04d_%s', cfg.derp, subj, condname), 'erpsource_s_A') % source of interest
-    load(sprintf('%serpsource_peak_%s', cfg.derp, condname), 'erpsource_peak') % peaks in ERP
-    
-    [mont outtmp] = prepare_montage(cfg, erpsource_s_A, erpsource_peak);
-    
-  case 'powpeak'
-    condname = regexprep(cfg.conn.refcond, '*', '');
-    load(sprintf('%spowsource_%04d_%s', cfg.dpow, subj, condname), 'powsource_s_A') % source of interest
-    load(sprintf('%spowsource_peak_%s', cfg.dpow, condname), 'powsource_peak') % peaks in POW
-    
-    [mont outtmp] = prepare_montage(cfg, powsource_s_A, powsource_peak);
-    
-end
-output = [output outtmp];
 %---------------------------%
 
 %-------------------------------------%
@@ -164,7 +87,11 @@ for k = 1:numel(cfg.conn.cond)
   
   %---------------------------%
   %-read data
-  [data badchan] = load_data(cfg, subj, cond);
+  if ~isfield(cfg.conn, 'source') || ~cfg.conn.source
+    [data] = load_data(cfg, subj, cond);
+  else
+    [data] = load_source(cfg, subj, cond);
+  end
   if isempty(data)
     output = sprintf('%sCould not find any file for condition %s\n', ...
       output, cond);
@@ -172,27 +99,6 @@ for k = 1:numel(cfg.conn.cond)
   end
   
   outputfile = sprintf('conn_%04d_%s', subj, condname);
-  %---------------------------%
-  
-  %---------------------------%
-  %-apply montage (if using two-step procedure)
-  if ~strcmp(cfg.conn.areas, 'all')
-    
-    data = ft_apply_montage(data, mont, 'feedback', 'none');
-    
-    if strcmp(cfg.conn.areas, 'dip')
-      data = pcadata(data, cfg.conn.dip, cfg.conn.fixedmom);      
-    end
-    if strcmp(cfg.conn.areas, 'erppeak')
-      data = pcadata(data, erpsource_peak, cfg.conn.fixedmom);
-    end
-    if strcmp(cfg.conn.areas, 'powpeak')
-      data = pcadata(data, powsource_peak, cfg.conn.fixedmom);
-    end
-    
-  end
-  
-  data = ft_checkdata(data, 'hassampleinfo', 'yes'); % recreate sampleinfo which got lost (necessary for selfromraw)
   %---------------------------%
   
   switch cfg.conn.type
@@ -452,52 +358,3 @@ fwrite(fid, output);
 fclose(fid);
 %-----------------%
 %---------------------------%
-
-%---------------------------------------------------------%
-%-SUBFUNCTION: pcadata
-%---------------------------------------------------------%
-function [data] = pcadata(data, soupeak, fixedmom)
-%PCADATA simplify data using pca on each region of interest
-% keep only the first component
-
-%-------------------------------------%
-%-loop over regions of interest
-trial = [];
-for i1 = 1:numel(soupeak)
-  
-  %-----------------%
-  %-find channels belonging to region of interest
-  newname = sprintf('%s', soupeak(i1).name);
-  label{i1,1} = newname;
-  ivox = ~cellfun(@isempty, strfind(data.label, newname));
-  %-----------------%
-  
-  if ~fixedmom
-    %-----------------%
-    %-the moment is different in each trial
-    for t = 1:numel(data.trial)
-      [~, pcatrl] = princomp(data.trial{t}(ivox,:)');
-      trial{t}(i1,:) = pcatrl(:,1)';
-    end
-    %-----------------%
-    
-  else
-    
-    %-----------------%
-    %-get coefficient for all the trials, then apply it to the data
-    alltrl = [data.trial{:}];
-    [coef] = princomp(alltrl(ivox,:)');
-    
-    for t = 1:numel(data.trial)
-      [pcatrl] = data.trial{t}(ivox,:)' * coef;
-      trial{t}(i1,:) = pcatrl(:,1)';
-    end
-    %-----------------%
-  end
-  
-end
-%-------------------------------------%
-
-data.trial = trial;
-data.label = label;
-%---------------------------------------------------------%

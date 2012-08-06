@@ -11,6 +11,7 @@ function powcorr_subj(cfg, subj)
 %  .log: name of the file and directory to save log
 %  .dpow: directory for POW data
 %  .powcorr.cond: cell with conditions (e.g. {'*cond1' '*cond2'})'
+%  .powcorr.source: read virtual electrode data (logical)
 %
 %  .powcorr: a structure with cfg to pass to ft_freqanalysis
 %  .powcorr.bl.baseline: two scalars with baseline windows (if empty, no baseline)
@@ -19,7 +20,9 @@ function powcorr_subj(cfg, subj)
 %  .powcorr.log: logical (take the log of power, strongly advised)
 %
 % IN:
-%  data in /PROJ/subjects/SUBJCODE/MOD/NICK/
+%  data in /PROJ/subjects/SUBJ/MOD/NICK/
+% OR if cfg.erp.source
+%  source in cfg.dsou from SOURCE_SUBJ
 %
 % OUT
 %  [cfg.dpow 'powcorr_SUBJ_COND'] 'powcorr_s': power correlation for single-subject
@@ -29,7 +32,7 @@ function powcorr_subj(cfg, subj)
 % ERPSOURCE_SUBJ, ERPSOURCE_GRAND, ERPSTAT_SUBJ, ERPSTAT_GRAND,
 % POW_SUBJ, POW_GRAND, POWCORR_SUBJ, POWCORR_GRAND,
 % POWSOURCE_SUBJ, POWSOURCE_GRAND, POWSTAT_SUBJ, POWSTAT_GRAND,
-% CONN_SUBJ, CONN_GRAND, CONN_STAT
+% SOURCE_SUBJ, CONN_SUBJ, CONN_GRAND, CONN_STAT
 
 %---------------------------%
 %-start log
@@ -46,7 +49,11 @@ for k = 1:numel(cfg.powcorr.cond)
   
   %---------------------------%
   %-read data
-  [data] = load_data(cfg, subj, cond);
+  if ~isfield(cfg.powcorr, 'source') || cfg.powcorr.source
+    [data] = load_data(cfg, subj, cond);
+  else
+    [data] = load_source(cfg, subj, cond);
+  end
   if isempty(data)
     output = sprintf('%sCould not find any file for condition %s\n', ...
       output, cond);

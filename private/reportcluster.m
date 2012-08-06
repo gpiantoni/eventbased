@@ -132,7 +132,7 @@ else
 end
 cfg3.alpha       = 0.05;
 cfg3.correctm    = 'cluster';
-cfg3.numrandomization = 1000; 
+cfg3.numrandomization = 100; 
 
 if paired
   cfg3.design = [ones(1,nsubj1) ones(1,nsubj2)*2; 1:nsubj1 1:nsubj2];

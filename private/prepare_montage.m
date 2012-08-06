@@ -129,7 +129,14 @@ tra = NaN(nvox, nchan);
 
 cnt = 1;
 for i = 1:numel(source)
-  [~, isou, ipeak] = intersect(source{i}.pos, peak(i).pos, 'rows');
+  %-----------------%
+  %-only inside dipole
+  sou = source{i};
+  sou.pos = source{i}.pos(source{i}.inside,:);
+  sou.avg.filter = source{i}.avg.filter(source{i}.inside);
+  %-----------------%
+  
+  [~, isou, ipeak] = intersect(sou.pos, peak(i).pos, 'rows');
   
   %-----------------%
   %-output
@@ -159,7 +166,7 @@ for i = 1:numel(source)
   %-----------------%
   %-per voxel
   for v = 1:numel(isou)
-    tra(cnt + (0:2),:) = source{i}.avg.filter{isou(v)};
+    tra(cnt + (0:2),:) = sou.avg.filter{isou(v)};
     
     %-------%
     %-per moment
