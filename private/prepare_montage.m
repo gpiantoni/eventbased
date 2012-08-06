@@ -132,6 +132,23 @@ for i = 1:numel(source)
   [~, isou, ipeak] = intersect(source{i}.pos, peak(i).pos, 'rows');
   
   %-----------------%
+  %-output
+  maxpos = max(peak(i).pos(ipeak,:));
+  meanpos = mean(peak(i).pos(ipeak,:));
+  minpos = min(peak(i).pos(ipeak,:));
+  
+  outtmp = sprintf(['%s (defined at% 5d locations) has% 5d dipoles:\n' ...
+  '                         x = [% 6.1f % 6.1f % 6.1f]\n', ...
+  '                         y = [% 6.1f % 6.1f % 6.1f]\n', ...
+  '                         z = [% 6.1f % 6.1f % 6.1f]\n'], ...
+  peak(i).name, size(peak(i).pos,1), size(ipeak,1), ...
+  maxpos(1), meanpos(1), minpos(1), ...
+  maxpos(2), meanpos(2), minpos(2), ...
+  maxpos(3), meanpos(3), minpos(3));
+  output = [output outtmp];
+  %-----------------%
+  
+  %-----------------%
   %-are all the voxels in the brain
   if size(ipeak,1) ~= size(peak(i).pos,1)
     outtmp = sprintf('warning: source %1.f has % 3.f voxels in the brain out of % 3.f\n', i, size(ipeak,1), size(peak(i).pos,1));
