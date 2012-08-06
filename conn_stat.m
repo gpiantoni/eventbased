@@ -22,12 +22,12 @@ function conn_stat(cfg)
 % FIGURES
 %  gtrs_LABEL1_LABEL2_CONNMETHOD: connectivity over time, with one subplot per frequency
 %
-% Part of EVENTBASED group-analysis
+% Part of EVENTBASED single-subject
 % see also ERP_SUBJ, ERP_GRAND, 
 % ERPSOURCE_SUBJ, ERPSOURCE_GRAND, ERPSTAT_SUBJ, ERPSTAT_GRAND,
 % POW_SUBJ, POW_GRAND, POWCORR_SUBJ, POWCORR_GRAND,
 % POWSOURCE_SUBJ, POWSOURCE_GRAND, POWSTAT_SUBJ, POWSTAT_GRAND,
-% CONN_SUBJ, CONN_GRAND, CONN_STAT
+% SOURCE_SUBJ, CONN_SUBJ, CONN_GRAND, CONN_STAT
 
 %---------------------------%
 %-start log

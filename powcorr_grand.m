@@ -12,6 +12,7 @@ function powcorr_grand(cfg)
 %
 %  .dpow: directory with ERP data
 %  .powcorr.cond: conditions to make averages
+%  .powcorr.source: read virtual electrode data (logical)
 %
 %-Statistics
 %  .gpowcorr.comp: cells within cell (e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}})
@@ -50,7 +51,7 @@ function powcorr_grand(cfg)
 % ERPSOURCE_SUBJ, ERPSOURCE_GRAND, ERPSTAT_SUBJ, ERPSTAT_GRAND,
 % POW_SUBJ, POW_GRAND, POWCORR_SUBJ, POWCORR_GRAND,
 % POWSOURCE_SUBJ, POWSOURCE_GRAND, POWSTAT_SUBJ, POWSTAT_GRAND,
-% CONN_SUBJ, CONN_GRAND, CONN_STAT
+% SOURCE_SUBJ, CONN_SUBJ, CONN_GRAND, CONN_STAT
 
 %---------------------------%
 %-start log
@@ -98,8 +99,14 @@ clear gpowcorr gpowcorrall
 
 %-----------------------------------------------%
 %-stats and plots
-if ~isempty(cfg.sens.layout)
+if ~isempty(cfg.sens.layout) && ...
+    ~(isfield(cfg.pow, 'source') && cfg.pow.source)
+  haslay = true;
   load(cfg.sens.layout, 'layout');
+  
+else
+  haslay = false;
+  
 end
 
 if isfield(cfg.gpowcorr, 'comp')
@@ -240,7 +247,7 @@ if isfield(cfg.gpowcorr, 'comp')
     
     %---------------------------%
     %-topoplotTFR (loop over tests)
-    if ~isempty(cfg.sens.layout)
+    if haslay
       
       %-loop over freq
       for f = 1:numel(cfg.gpowcorr.freq)

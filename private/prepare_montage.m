@@ -1,15 +1,15 @@
 function [mont output] = prepare_montage(cfg, data, peak)
 %PREPARE_MONTAGE create montage as spatial filters to be used for sources
 %
-% .conn.areas
+% .source.areas
 %-CHANNEL: average over channels
-%   .conn.chan: a struct with
+%   .source.chan: a struct with
 %      .name: 'name of group elec'
 %      .chan: cell with electrode labels for each group
 %   .seldata.label: labels of electrodes in the data
 %
 %-ERP: use averaged topography
-%   .conn.dip: a struct with
+%   .source.dip: a struct with
 %      .name: 'name of dipole'
 %      .time: time window of the ERP activity of interest (two scalars)
 %   erp: data with erp for condition of interest
@@ -22,7 +22,7 @@ function [mont output] = prepare_montage(cfg, data, peak)
 %
 % TODO: ICA to create spatial filters
 
-switch cfg.conn.areas
+switch cfg.source.areas
   
   case 'channel'
     [mont output] = prepare_montage_channel(cfg);
@@ -42,7 +42,7 @@ function [mont output] = prepare_montage_channel(cfg)
 
 %-----------------%
 %-rename
-grpchan = cfg.conn.chan;
+grpchan = cfg.source.chan;
 label = cfg.seldata.label;
 %-----------------%
 
@@ -76,7 +76,7 @@ function [mont output] = prepare_montage_erp(cfg, erp)
 
 %-----------------%
 %-rename
-dip = cfg.conn.dip;
+dip = cfg.source.dip;
 %-----------------%
 
 %-----------------%
@@ -107,7 +107,7 @@ function [mont output] = prepare_montage_peak(source, peak)
 
 %---------------------------%
 %-check input
-if numel(source) == 1 % called from cfg.conn.areas = 'dip'
+if numel(source) == 1 % called from cfg.source.areas = 'dip'
   source = repmat(source, size(peak));
 end
 
@@ -129,7 +129,31 @@ tra = NaN(nvox, nchan);
 
 cnt = 1;
 for i = 1:numel(source)
-  [~, isou, ipeak] = intersect(source{i}.pos, peak(i).pos, 'rows');
+  %-----------------%
+  %-only inside dipole
+  sou = source{i};
+  sou.pos = source{i}.pos(source{i}.inside,:);
+  sou.avg.filter = source{i}.avg.filter(source{i}.inside);
+  %-----------------%
+  
+  [~, isou, ipeak] = intersect(sou.pos, peak(i).pos, 'rows');
+  
+  %-----------------%
+  %-output
+  maxpos = max(peak(i).pos(ipeak,:));
+  meanpos = mean(peak(i).pos(ipeak,:));
+  minpos = min(peak(i).pos(ipeak,:));
+  
+  outtmp = sprintf(['%s (defined at% 5d locations) has% 5d dipoles:\n' ...
+  '                         x = [% 6.1f % 6.1f % 6.1f]\n', ...
+  '                         y = [% 6.1f % 6.1f % 6.1f]\n', ...
+  '                         z = [% 6.1f % 6.1f % 6.1f]\n'], ...
+  peak(i).name, size(peak(i).pos,1), size(ipeak,1), ...
+  maxpos(1), meanpos(1), minpos(1), ...
+  maxpos(2), meanpos(2), minpos(2), ...
+  maxpos(3), meanpos(3), minpos(3));
+  output = [output outtmp];
+  %-----------------%
   
   %-----------------%
   %-are all the voxels in the brain
@@ -142,7 +166,7 @@ for i = 1:numel(source)
   %-----------------%
   %-per voxel
   for v = 1:numel(isou)
-    tra(cnt + (0:2),:) = source{i}.avg.filter{isou(v)};
+    tra(cnt + (0:2),:) = sou.avg.filter{isou(v)};
     
     %-------%
     %-per moment

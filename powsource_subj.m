@@ -53,7 +53,7 @@ function powsource_subj(cfg, subj)
 % ERPSOURCE_SUBJ, ERPSOURCE_GRAND, ERPSTAT_SUBJ, ERPSTAT_GRAND,
 % POW_SUBJ, POW_GRAND, POWCORR_SUBJ, POWCORR_GRAND,
 % POWSOURCE_SUBJ, POWSOURCE_GRAND, POWSTAT_SUBJ, POWSTAT_GRAND,
-% CONN_SUBJ, CONN_GRAND, CONN_STAT
+% SOURCE_SUBJ, CONN_SUBJ, CONN_GRAND, CONN_STAT
 
 %---------------------------%
 %-start log
@@ -64,7 +64,7 @@ tic_t = tic;
 
 %---------------------------%
 %-default cfg
-if ~isfield(cfg.powsource, 'lmcv'); cfg.powsource.dics = []; end
+if ~isfield(cfg.powsource, 'dics'); cfg.powsource.dics = []; end
 if ~isfield(cfg.powsource, 'keepfilter')
   cfg.powsource.keepfilter = false;
 end

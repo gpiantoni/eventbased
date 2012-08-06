@@ -1,6 +1,5 @@
 function conn_grand(cfg)
 %CONN_GRAND connectivity analysis across subjects
-% TODO: help
 %
 % CFG
 %  .cond: name to be used in projects/PROJNAME/subjects/0001/MOD/CONDNAME/
@@ -20,11 +19,11 @@ function conn_grand(cfg)
 %  [cfg.dcon COND_CONNMETHOD_GRANDCONN]: a matrix with all connectivity measures (chan X chan X time X freq X test X subj)
 %
 % Part of EVENTBASED group-analysis
-% see also ERP_SUBJ, ERP_GRAND,
+% see also ERP_SUBJ, ERP_GRAND, 
 % ERPSOURCE_SUBJ, ERPSOURCE_GRAND, ERPSTAT_SUBJ, ERPSTAT_GRAND,
 % POW_SUBJ, POW_GRAND, POWCORR_SUBJ, POWCORR_GRAND,
 % POWSOURCE_SUBJ, POWSOURCE_GRAND, POWSTAT_SUBJ, POWSTAT_GRAND,
-% CONN_SUBJ, CONN_GRAND
+% SOURCE_SUBJ, CONN_SUBJ, CONN_GRAND, CONN_STAT
 
 %---------------------------%
 %-start log

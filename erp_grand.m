@@ -48,7 +48,7 @@ function erp_grand(cfg)
 % ERPSOURCE_SUBJ, ERPSOURCE_GRAND, ERPSTAT_SUBJ, ERPSTAT_GRAND,
 % POW_SUBJ, POW_GRAND, POWCORR_SUBJ, POWCORR_GRAND,
 % POWSOURCE_SUBJ, POWSOURCE_GRAND, POWSTAT_SUBJ, POWSTAT_GRAND,
-% CONN_SUBJ, CONN_GRAND, CONN_STAT
+% SOURCE_SUBJ, CONN_SUBJ, CONN_GRAND, CONN_STAT
 
 %---------------------------%
 %-start log
@@ -85,8 +85,14 @@ clear erp
 
 %-----------------------------------------------%
 %-stats and plots
-if ~isempty(cfg.sens.layout)
+if ~isempty(cfg.sens.layout) && ...
+    ~(isfield(cfg.pow, 'source') && cfg.pow.source)
+  haslay = true;
   load(cfg.sens.layout, 'layout');
+  
+else
+  haslay = false;
+  
 end
 
 if isfield(cfg.gerp, 'comp')
@@ -203,7 +209,7 @@ if isfield(cfg.gerp, 'comp')
     
     %---------------------------%
     %-topoplotTFR (loop over tests)
-    if ~isempty(cfg.sens.layout)
+    if haslay
       
       %-----------------%
       %-figure

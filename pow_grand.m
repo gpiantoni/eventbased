@@ -10,8 +10,9 @@ function pow_grand(cfg)
 %  .log: name of the file and directory with analysis log
 %  .subjall: index of the number of subjects
 %
-%  .dpow: directory with ERP data
+%  .dpow: directory with POW data
 %  .pow.cond: conditions to make averages
+%  .pow.source: read virtual electrode data (logical)
 %
 %  Baseline correction at the single-subject level:
 %  .pow.bl: if empty, no baseline. Otherwise:
@@ -56,7 +57,7 @@ function pow_grand(cfg)
 % ERPSOURCE_SUBJ, ERPSOURCE_GRAND, ERPSTAT_SUBJ, ERPSTAT_GRAND,
 % POW_SUBJ, POW_GRAND, POWCORR_SUBJ, POWCORR_GRAND,
 % POWSOURCE_SUBJ, POWSOURCE_GRAND, POWSTAT_SUBJ, POWSTAT_GRAND,
-% CONN_SUBJ, CONN_GRAND, CONN_STAT
+% SOURCE_SUBJ, CONN_SUBJ, CONN_GRAND, CONN_STAT
 
 %---------------------------%
 %-start log
@@ -111,8 +112,14 @@ clear pow powall
 
 %-----------------------------------------------%
 %-stats and plots
-if ~isempty(cfg.sens.layout)
+if ~isempty(cfg.sens.layout) && ...
+    ~(isfield(cfg.pow, 'source') && cfg.pow.source)
+  haslay = true;
   load(cfg.sens.layout, 'layout');
+  
+else
+  haslay = false;
+  
 end
 
 if isfield(cfg.gpow, 'comp')
@@ -231,7 +238,7 @@ if isfield(cfg.gpow, 'comp')
     
     %---------------------------%
     %-topoplotTFR (loop over tests)
-    if ~isempty(cfg.sens.layout)
+    if haslay
       
       %-loop over freq
       for f = 1:numel(cfg.gpow.freq)
