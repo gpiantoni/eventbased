@@ -104,12 +104,11 @@ for k = 1:numel(cfg.conn.cond)
   switch cfg.conn.type
     
     case 'ft'
-      
-      %---------------------------%
-      %-Fieltrip
-      %-----------------%
-      %-mvar
+
       if cfg.conn.mvar
+        
+        %-----------------%
+        %-mvar
         cfg2 = [];
         cfg2.order = cfg.conn.order;
         cfg2.toolbox = cfg.conn.toolbox;
@@ -119,23 +118,14 @@ for k = 1:numel(cfg.conn.cond)
         cfg2.t_ftimwin = cfg.conn.t_ftimwin;
         
         data = ft_mvaranalysis(cfg2, data); % ft_mvaranalysis can do it on multiple time points, but freqanalysis does not handle it anymore
-      end
-      %-----------------%
-      %---------------------------%
-      
-      %---------------------------%
-      %-fieldtrip way or use fieldtrip function on mvar of space-state
-      if cfg.conn.mvar
+        %-----------------%
         
         %-----------------%
         %-freq on mvar
-        %--------%
-        %-use special freq analysis for mvar data
         tmpcfg = [];
         tmpcfg.method    = 'mvar';
         
         data = ft_freqanalysis(tmpcfg, data);
-        %--------%
         %-----------------%
         
       else
