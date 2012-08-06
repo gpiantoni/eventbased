@@ -29,7 +29,9 @@ function erpsource_subj(cfg, subj)
 %                     will be localized (one of the cells of cfg.gerp.comp)
 %
 %  .erpsource.erp: a structure with cfg to pass to ft_timelockanalysis
-%  .erpsource.bline: one number in s, the center of the covariance window of the baseline (the window length depends on erp_peak)
+%  .erpsource.bline: one number in s, the center of the covariance window
+%                    of the baseline (the window length depends on erp_peak) 
+%                    If empty, no baseline.
 %
 %  .erpsource.lcmv: options that will be passed to beamformer. Examples:
 %     .lambda: regularization parameter of beamformer ('25%')
@@ -62,7 +64,9 @@ tic_t = tic;
 
 %---------------------------%
 %-default cfg
-if ~isfield(cfg.erpsource, 'lmcv'); cfg.erpsource.lmcv = []; end
+if ~isfield(cfg.erpsource, 'lmcv'); 
+  cfg.erpsource.lmcv = []; 
+end
 if ~isfield(cfg.erpsource, 'keepfilter')
   cfg.erpsource.keepfilter = false;
 end
@@ -90,6 +94,8 @@ for k = 1:numel(cfg.erpsource.cond)
     continue
   end
 
+  erpsource_s_A = [];
+  erpsource_s_B = [];
   outputfile = sprintf('erpsource_%04d_%s', subj, condname);
   %---------------------------%
   
@@ -104,23 +110,20 @@ for k = 1:numel(cfg.erpsource.cond)
     fprintf('\n   ->->-> Running % 2d erp_peak (%s) <-<-<-\n', p, erp_peak(p).name);
     
     %---------------------------%
-    %-baseline
+    %-parameters
     %-----------------%
     %-covariance window
     cfg2 = cfg.erpsource.erp;
     cfg2.covariance = 'yes';
-    cfg2.covariancewindow = cfg.erpsource.bline  + erp_peak(p).wndw * [-.5 .5];
     cfg2.feedback = 'none';
     cfg2.channel = datachan;
-    
-    avgPre = ft_timelockanalysis(cfg2, data);
     %-----------------%
     
     %-----------------%
     %-source analysis
-    cfg3              = [];
+    cfg3 = [];
     
-    cfg3.method   = 'lcmv';
+    cfg3.method = 'lcmv';
     cfg3.lcmv = cfg.erpsource.lcmv;
     cfg3.lcmv.feedback = 'none';
     
@@ -133,24 +136,40 @@ for k = 1:numel(cfg.erpsource.cond)
       cfg3.lcmv.keepfilter   = 'yes';
       cfg3.lcmv.realfilter   = 'yes';
     end
-    
-    erpsource_s_B{p} = ft_sourceanalysis(cfg3, avgPre);
-    erpsource_s_B{p}.cfg = [];
     %-----------------%
+    %---------------------------%
     
-    %-----------------%
-    %-load MNI grid
-    if ~strcmp(cfg.vol.type, 'template') ...
-        && isfield(cfg, 'bnd2lead') && isfield(cfg.bnd2lead, 'mni') ...
-        && isfield(cfg.bnd2lead.mni, 'warp') && cfg.bnd2lead.mni.warp
+    %---------------------------%
+    %-baseline
+    if isfield(cfg.erpsource, 'bline') && ~isempty(cfg.erpsource.bline)
       
-      load(sprintf('%s/template/sourcemodel/standard_grid3d%dmm.mat', ...
-        fileparts(which('ft_defaults')), cfg.bnd2lead.mni.resolution), 'grid');
-      grid = ft_convert_units(grid, 'mm');
+      %-----------------%
+      %-covariance window
+      cfg2.covariancewindow = cfg.erpsource.bline  + erp_peak(p).wndw * [-.5 .5];
+      avgPre = ft_timelockanalysis(cfg2, data);
+      %-----------------%
       
-      erpsource_s_B{p}.pos = grid.pos;
+      %-----------------%
+      %-source analysis
+      erpsource_s_B{p} = ft_sourceanalysis(cfg3, avgPre);
+      erpsource_s_B{p}.cfg = [];
+      %-----------------%
+      
+      %-----------------%
+      %-load MNI grid
+      if ~strcmp(cfg.vol.type, 'template') ...
+          && isfield(cfg, 'bnd2lead') && isfield(cfg.bnd2lead, 'mni') ...
+          && isfield(cfg.bnd2lead.mni, 'warp') && cfg.bnd2lead.mni.warp
+        
+        load(sprintf('%s/template/sourcemodel/standard_grid3d%dmm.mat', ...
+          fileparts(which('ft_defaults')), cfg.bnd2lead.mni.resolution), 'grid');
+        grid = ft_convert_units(grid, 'mm');
+        
+        erpsource_s_B{p}.pos = grid.pos;
+      end
+      %-----------------%
+      
     end
-    %-----------------%
     %---------------------------%
     
     %---------------------------%
