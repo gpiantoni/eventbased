@@ -31,7 +31,9 @@ function powsource_subj(cfg, subj)
 %      .powsource.refcomp: cell of string(s) of the comparison whose peaks
 %                     will be localized (one of the cells of cfg.gpow.comp or cfg.gpowcorr.comp))
 %
-%  .powsource.bline: one number in s, the center of the covariance window of the baseline (the window length depends on pow_peak)
+%  .powsource.bline: one number in s, the center of the covariance window
+%                    of the baseline (the window length depends on pow_peak)
+%                    If empty, no baseline.
 %
 %  .powsource.dics: options that will be passed to beamformer. Examples:
 %     .lambda: regularization parameter of beamformer ('25%')
@@ -92,6 +94,8 @@ for k = 1:numel(cfg.powsource.cond)
     continue
   end
   
+  powsource_s_A = [];
+  powsource_s_B = [];
   outputfile = sprintf('powsource_%04d_%s', subj, condname);
   %---------------------------%
 
@@ -107,18 +111,19 @@ for k = 1:numel(cfg.powsource.cond)
     
     %---------------------------%
     %-more precise freq analysis reconstruction
-    freqparam = prepare_freqpeak(cfg, pow_peak(p), data.time{1}(1));
+    [freqparam outtmp] = prepare_freqpeak(cfg, pow_peak(p), data.time{1}(1));
+    output = [output outtmp];
     %---------------------------%
     
     %---------------------------%
-    %-freq analysis
+    %-parameters
+    %-----------------%
+    %-covariance window
     cfg1 = [];
     cfg1.method = 'mtmconvol';
     cfg1.output = 'fourier';
-    
-    cfg1.toi = [cfg.powsource.bline freqparam.time];
     cfg1.t_ftimwin = freqparam.wndw;
-
+    
     cfg1.foi = freqparam.freq;
     if freqparam.dpss
       cfg1.taper = 'dpss';
@@ -129,57 +134,71 @@ for k = 1:numel(cfg.powsource.cond)
     
     cfg1.feedback = 'none';
     cfg1.channel = datachan;
+    
+    cfg1.toi = [cfg.powsource.bline freqparam.time];
+    %-----------------%
+    
+    %-----------------%
+    %-source analysis
+    cfg2 = [];
+    
+    cfg2.frequency = freqparam.freq;
+    
+    cfg2.method = 'dics';
+    cfg2.dics.feedback = 'none';
+    cfg2.dics = cfg.powsource.dics;
+    
+    cfg2.vol = vol;
+    cfg2.grid = leadchan;
+    cfg2.elec = sens;
+    
+    if cfg.powsource.keepfilter
+      cfg2.dics.keepfilter = 'yes';
+      cfg2.dics.realfilter = 'yes';
+      if isfield(cfg1.dics, 'refdip')
+        cfg2.dics = rmfield(cfg2.dics, 'refdip');
+      end
+    end
+    %-----------------%
+    %---------------------------%
+    
+    %---------------------------%
+    %-freq analysis (for baseline and main together)
     freq = ft_freqanalysis(cfg1, data);
     %---------------------------%
     
     %---------------------------%
     %-baseline
-    %-----------------%
-    %-source analysis
-    cfg1 = [];
-    cfg1.latency = cfg.powsource.bline;
-    cfg1.frequency = freqparam.freq;
-    
-    cfg1.method = 'dics';
-    cfg1.dics.feedback = 'none';
-    cfg1.dics = cfg.powsource.dics;
-    
-    cfg1.vol = vol;
-    cfg1.grid = leadchan;
-    cfg1.elec = sens;
-    
-    if cfg.powsource.keepfilter
-      cfg1.dics.keepfilter   = 'yes';
-      cfg1.dics.realfilter   = 'yes';
-      if isfield(cfg1.dics, 'refdip')
-        cfg1.dics = rmfield(cfg1.dics, 'refdip');
+    if ~isempty(cfg.powsource.bline)
+      
+      %-----------------%
+      cfg2.latency = cfg.powsource.bline;
+      powsource_s_B{p} = ft_sourceanalysis(cfg2, freq);
+      powsource_s_B{p}.cfg = [];
+      %-----------------%
+      
+      %-----------------%
+      %-load MNI grid
+      if ~strcmp(cfg.vol.type, 'template') ...
+          && isfield(cfg, 'bnd2lead') && isfield(cfg.bnd2lead, 'mni') ...
+          && isfield(cfg.bnd2lead.mni, 'warp') && cfg.bnd2lead.mni.warp
+        
+        load(sprintf('%s/template/sourcemodel/standard_grid3d%dmm.mat', ...
+          fileparts(which('ft_defaults')), cfg.bnd2lead.mni.resolution), 'grid');
+        
+        grid = ft_convert_units(grid, 'mm');
+        powsource_s_B{p}.pos = grid.pos;
       end
-    end
-    
-    powsource_s_B{p} = ft_sourceanalysis(cfg1, freq);
-    powsource_s_B{p}.cfg = [];
-    %-----------------%
-    
-    %-----------------%
-    %-load MNI grid
-    if ~strcmp(cfg.vol.type, 'template') ...
-        && isfield(cfg, 'bnd2lead') && isfield(cfg.bnd2lead, 'mni') ...
-        && isfield(cfg.bnd2lead.mni, 'warp') && cfg.bnd2lead.mni.warp
+      %-----------------%
       
-      load(sprintf('%s/template/sourcemodel/standard_grid3d%dmm.mat', ...
-        fileparts(which('ft_defaults')), cfg.bnd2lead.mni.resolution), 'grid'); 
-      
-      grid = ft_convert_units(grid, 'mm');
-      powsource_s_B{p}.pos = grid.pos;
     end
-    %-----------------%
     %---------------------------%
 
     %---------------------------%
     %-main analysis
     %-----------------%
-    cfg1.latency = freqparam.time;
-    powsource_s_A{p} = ft_sourceanalysis(cfg1, freq);
+    cfg2.latency = freqparam.time;
+    powsource_s_A{p} = ft_sourceanalysis(cfg2, freq);
     chan = powsource_s_A{p}.cfg.channel;
     powsource_s_A{p}.cfg = [];
     powsource_s_A{p}.cfg.channel = chan;

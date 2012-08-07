@@ -43,7 +43,10 @@ function source_subj(cfg, subj)
 %      .source.fixedmom: logical (use the same moment for source or change it every time)
 %
 %    if 'powpeak' (use beamformer to construct virtual electrode):
-%      .dpow: directory with POW data  (you need 'powsource_subj' with keepfilder)
+%      Because this function returns the activity at the source in
+%      time-domain, we need to use the beamformer in time-domain, i.e. LCMV
+%      .dpow: directory with POW data
+%      .derp: you need 'erpsource_subj' with keepfilder
 %      .source.refcond: string of the condition used for source location
 %      .source.fixedmom: logical (use the same moment for source or change it every time)
 %
@@ -53,7 +56,7 @@ function source_subj(cfg, subj)
 %     [cfg.derp 'erpsource_SUBJ_COND']: source data for period of interest for each subject
 %     [cfg.derp 'NICK_COND_soupeak']: significant source peaks in the ERP
 %  if .source.areas == 'powpeak'  or ('dip' and .source.beamformer == 'pow')
-%     [cfg.dpow 'powsource_SUBJ_COND']: source data for period of interest for each subject
+%     [cfg.derp 'erpsource_SUBJ_COND']: source data for period of interest for each subject
 %     [cfg.dpow 'NICK_COND_soupeak']: significant source peaks in the POW
 %
 % OUT
@@ -102,10 +105,10 @@ switch cfg.source.areas
     
   case 'powpeak'
     condname = regexprep(cfg.source.refcond, '*', '');
-    load(sprintf('%spowsource_%04d_%s', cfg.dpow, subj, condname), 'powsource_s_A') % source of interest
+    load(sprintf('%serpsource_%04d_%s', cfg.derp, subj, condname), 'erpsource_s_A') % source of interest
     load(sprintf('%spowsource_peak_%s', cfg.dpow, condname), 'powsource_peak') % peaks in POW
     
-    [mont outtmp] = prepare_montage(cfg, powsource_s_A, powsource_peak);
+    [mont outtmp] = prepare_montage(cfg, erpsource_s_A, powsource_peak);
     
 end
 output = [output outtmp];

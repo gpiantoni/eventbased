@@ -33,7 +33,7 @@ function erpsource_grand(cfg)
 %
 % Options if you want to create significance mask
 %  .erpsource.nifti: directory and initial part of the name where you want to save the masks
-%  .dti.ref: template for mask ('/usr/share/data/fsl-mni152-templates/MNI152_T1_1mm_brain.nii.gz')
+%  .mriref: template for mask ('/usr/share/data/fsl-mni152-templates/MNI152_T1_1mm_brain.nii.gz')
 %
 % IN
 %  [cfg.derp 'erpsource_SUBJ_COND'] 'erpsource_subj_A': source data for period of interest for each subject
@@ -126,7 +126,7 @@ for k = 1:numel(cfg.erpsource.cond)
     %-prepare nifti image
     if isfield(cfg.erpsource, 'nifti') && ~isempty(cfg.erpsource.nifti)
       
-      dtimri = ft_read_mri(cfg.dti.ref);
+      dtimri = ft_read_mri(cfg.mriref);
       
       cfg1 = [];
       cfg1.parameter = 'image';

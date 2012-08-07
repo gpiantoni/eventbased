@@ -24,14 +24,21 @@ param.time = powpeak.time;
 
 %---------------------------%
 %-WNDW: time window
-% check that baseline contains always data, otherwise shrink the time window
 param.wndw = powpeak.wndw;
 
-begbline = cfg.powsource.bline - param.wndw/2; % beginning of baseline
-if begbline < begtrl
-  output = sprintf('%sPowpeak %s: window length was too long (% 3.2fs)\n', ...
-    output, powpeak.name, param.wndw);
-  param.timelim = (begtrl - cfg.powsource.bline) * -2;
+% if there is baseline at all
+if ~isempty(cfg.powsource.bline)
+  
+  %-----------------%
+  %-check that baseline contains always data, otherwise shrink the time window
+  begbline = cfg.powsource.bline - powpeak.wndw/2; % beginning of baseline
+  if begbline < begtrl
+    output = sprintf('%sPowpeak %s: window length was too long (% 3.2fs)\n', ...
+      output, powpeak.name, powpeak.wndw);
+    param.wndw = (begtrl - cfg.powsource.bline) * -2;
+  end
+  %-----------------%
+  
 end
 %---------------------------%
 
