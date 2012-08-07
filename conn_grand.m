@@ -15,11 +15,16 @@ function conn_grand(cfg)
 %    if two scalar: it takes each frequency between the extremes ([8 12], means each frequency between 8 and 12, so 8 9 10 11 12, five values)
 %    if a cell with scalar: it takes the average between the two limits ({[8 12]}, means average of all the frequencies between 8 and 12, one value)
 %
+%  Baseline correction at the single-subject level:
+%  .conn.bl: if empty, no baseline. Otherwise:
+%  .conn.bl.baseline: two scalars with baseline windows
+%  .conn.bl.baselinetype: type of baseline ('relchange')
+%
 % OUT
 %  [cfg.dcon COND_CONNMETHOD_GRANDCONN]: a matrix with all connectivity measures (chan X chan X time X freq X test X subj)
 %
 % Part of EVENTBASED group-analysis
-% see also ERP_SUBJ, ERP_GRAND, 
+% see also ERP_SUBJ, ERP_GRAND,
 % ERPSOURCE_SUBJ, ERPSOURCE_GRAND, ERPSTAT_SUBJ, ERPSTAT_GRAND,
 % POW_SUBJ, POW_GRAND, POWCORR_SUBJ, POWCORR_GRAND,
 % POWSOURCE_SUBJ, POWSOURCE_GRAND, POWSTAT_SUBJ, POWSTAT_GRAND,
@@ -117,8 +122,8 @@ for k = 1:numel(cfg.conn.cond)
   %-prepare conn structure
   % MAT is chan X chan X time X freq X subj
   conn.label = stat.label;
-  conn.time = cfg.conn.toi;% conn.time = data{1}.time;
-  conn.freq = mat2cell(connfreq, size(connfreq,1), [2]);
+  conn.time = cfg.conn.toi;
+  conn.freq = mat2cell(connfreq, ones(size(connfreq,1),1), [2]);
   conn.mat = nan(numel(conn.label), numel(conn.label), numel(conn.time), size(conn.freq,1), numel(cfg.subjall));
   %---------------------------%
   
@@ -157,6 +162,8 @@ end
 
 %-----------------------------------------------%
 %-compare conditions
+sem = @(x) std(x,[],3) / sqrt(size(x,3));
+
 if isfield(cfg.gconn, 'comp')
   
   %-------------------------------------%
@@ -164,26 +171,41 @@ if isfield(cfg.gconn, 'comp')
   for t = 1:numel(cfg.gconn.comp)
     
     %---------------------------%
-    %-compare two conditions
-    %-----------------%
-    %-load data
-    cond1 = regexprep(cfg.gconn.comp{t}{1}, '*', '');
-    cond2 = regexprep(cfg.gconn.comp{t}{2}, '*', '');
-    comp = [cond1 '_' cond2];
-    output = sprintf('%s\n   COMPARISON %s vs %s\n', output, cond1, cond2);
-    
-    load([cfg.dcon 'conn_' cond1], 'conn')
-    conn1 = conn;
-    load([cfg.dcon 'conn_' cond2], 'conn')
-    conn2 = conn;
-    
-    clear conn
-    %-----------------%
+    %-load the data
+    if numel(cfg.gpow.comp{t}) == 1
+      
+      %-----------------%
+      %-one condition
+      cond = regexprep(cfg.gconn.comp{t}{1}, '*', '');
+      comp = cond;
+      output = sprintf('%s\n   COMPARISON %s\n', output, cond);
+      load([cfg.dcon 'conn_' cond], 'conn')
+      %-----------------%
+      
+    else
+      
+      %-----------------%
+      %-two conditions
+      cond1 = regexprep(cfg.gconn.comp{t}{1}, '*', '');
+      cond2 = regexprep(cfg.gconn.comp{t}{2}, '*', '');
+      comp = [cond1 '_' cond2];
+      output = sprintf('%s\n   COMPARISON %s vs %s\n', output, cond1, cond2);
+      
+      load([cfg.dcon 'conn_' cond1], 'conn')
+      conn1 = conn;
+      load([cfg.dcon 'conn_' cond2], 'conn')
+      conn2 = conn;
+      
+      conn.mat = log(conn1.mat ./ conn2.mat);
+      clear conn1 conn2
+      %-----------------%
+      
+    end
     %---------------------------%
     
     %---------------------------%
     %-load data
-    gshort = mean(mean(mean(mean(conn1.mat,3),4),5),6);
+    gshort = mean(mean(mean(mean(conn.mat,3),4),5),6);
     symm = all(all(gshort - gshort' < eps(10))); % check if matrix is symmetric
     
     if symm
@@ -195,90 +217,84 @@ if isfield(cfg.gconn, 'comp')
     
     %-------------------------------------%
     %-loop over labels
-    sem = @(x) std(x,[],2) / sqrt(size(x,2));
-    cnt = 0;
+    nchan = numel(conn.label);
     
-    for chan1 = 1:numel(conn1.label)
+    figure
+    for chan1 = 1:nchan
       
-      %-------%
+      %-----------------%
       %-look in both directions if asymmetrical
       if symm
         nextchan = chan1 + 1;
       else
         nextchan = 1;
       end
-      %-------%
+      %-----------------%
       
-      for chan2 = nextchan:numel(conn1.label)
+      for chan2 = nextchan:nchan
         if chan1 ~= chan2 % for asymm, use all but this combination
           
-          h = figure;
-          nplot = numel(conn1.freq);
-          nyplot = ceil(sqrt(nplot));
-          nxplot = ceil(nplot./nyplot);
+          subplot(nchan, nchan, (chan1 - 1) * nchan + chan2)
+          dat = shiftdim(conn.mat(chan1, chan2, :, :, :), 2);
+          
+          if isfield(cfg.gconn, 'bl') && isfield(cfg.gconn.bl, 'baseline') ...
+              && ~isempty(cfg.gconn.bl.baseline)
+            dat = performNormalization(cfg.conn.toi, dat, cfg.gconn.bl.baseline, cfg.gconn.bl.baselinetype);
+          end
+          
+          if size(dat, 2) == 1
+
+            %-----------------%
+            %-only one frequency, plot line with error bar
+            errorbar(conn.time, mean(dat, 3), sem(dat));
+            ylabel(cfg.conn.method);
+            %-----------------%
+            
+          else
+            
+            %-----------------%
+            %-plot image
+            dat = mean(dat,3);
+            if find(dat(:) < 0)
+              clim = [-1 1] * max(abs(dat(:)));
+            else
+              clim = [ 0 1] * max(abs(dat(:)));
+            end
+            
+            imagesc(cfg.conn.toi, 1:numel(conn.freq), dat', clim)
+            
+            axis xy
+            colorbar
+            a=@(x)sprintf('%d-%d', x(1), x(2));
+            set(gca, 'ytick', 1:numel(conn.freq), 'yticklabel', cellfun(a, conn.freq, 'uni', 0))
+            ylabel('frequency bands')
+            %-----------------%
+            
+          end
           
           %-----------------%
-          %-subplot for frequency
-          for f = 1:numel(conn1.freq)
-            
-            %-------%
-            %-plot
-            subplot(nxplot,nyplot,f)
-            hold on
-            
-            x1 = permute(conn1.mat(chan1, chan2, :, f, :), [3 5 1 2 4]); % 1 2 4 are singleton dim
-            x2 = permute(conn2.mat(chan1, chan2, :, f, :), [3 5 1 2 4]); % 1 2 4 are singleton dim
-            
-            if isfield(cfg.gconn, 'log') && cfg.gconn.log % DOC
-              % the log can be justified. GC follows an F-distribution, which is the ratio of two chi-square
-              % If you deal with ratios, it's better to take the log
-              x1 = log(x1);
-              x2 = log(x2);
-            end
-            
-            if isfield(cfg.gconn, 'bl') && isfield(cfg.gconn.bl, 'baseline') ...
-                && ~isempty(cfg.gconn.bl.baseline)
-              x1 = performNormalization(cfg.conn.toi, x1, cfg.gconn.bl.baseline, cfg.gconn.bl.baselinetype);
-              x2 = performNormalization(cfg.conn.toi, x2, cfg.gconn.bl.baseline, cfg.gconn.bl.baselinetype);
-            end
-            
-            errorbar(conn1.time, mean(x1, 2), sem(x1)); hold on
-            errorbar(conn2.time, mean(x2, 2), sem(x2), 'r')
-            %-------%
-            
-            %-------%
-            %-info summary
-            %-TODO: useful for export2csv, see conn_stat old revisions
-            %-------%
-            
-            %-------%
-            title_freq  = sprintf('% 3.f-% 3.f', conn1.freq{f}(1), conn1.freq{f}(2));
-            title([conn1.label{chan1} ' -> ' conn1.label{chan2} ' ' title_freq])
-            if numel(conn1.time) > 1
-              xlim(conn1.time([1 end]))
-              xlabel('time (s)')
-            end
-            ylabel(cfg.conn.method);
-            legend(cond1, cond2, 'Location', 'NorthWest')
-            %-------%
-            
+          %-title
+          title([conn.label{chan1} ' -> ' conn.label{chan2}])
+          if numel(conn.time) > 1
+            xlim(conn.time([1 end]))
+            xlabel('time (s)')
           end
           %-----------------%
           
-          %--------%
-          %-save and link
-          pngname = sprintf('gtrs_%s_%s_%s', conn1.label{chan1}, conn1.label{chan2}, cfg.conn.method);
-          saveas(gcf, [cfg.log filesep pngname '.png'])
-          close(gcf); drawnow
-          
-          [~, logfile] = fileparts(cfg.log);
-          system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
-          %--------%
-          
         end % chan1 ~= chan2
       end % chan2
-    end % chan1 
+    end % chan1
     %-------------------------------------%
+    
+    %-----------------%
+    %-save and link
+    pngname = sprintf('gtrs_%s_%s', cfg.conn.method, comp);
+    saveas(gcf, [cfg.log filesep pngname '.png'])
+    close(gcf); drawnow
+    
+    [~, logfile] = fileparts(cfg.log);
+    system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
+    %-----------------%
     
   end % numel(gcomp)
   %-------------------------------------%
