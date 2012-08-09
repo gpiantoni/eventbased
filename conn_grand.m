@@ -265,8 +265,8 @@ if isfield(cfg.gconn, 'comp')
             
             axis xy
             colorbar
-            a=@(x)sprintf('%d-%d', x(1), x(2));
-            set(gca, 'ytick', 1:numel(conn.freq), 'yticklabel', cellfun(a, conn.freq, 'uni', 0))
+            freq2str = @(x)sprintf('%1.f-%1.f', x(1), x(2));
+            set(gca, 'ytick', 1:numel(conn.freq), 'yticklabel', cellfun(freq2str, conn.freq, 'uni', 0))
             ylabel('frequency bands')
             %-----------------%
             

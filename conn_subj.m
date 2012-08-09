@@ -177,7 +177,7 @@ for k = 1:numel(cfg.conn.cond)
             tmpcfg.output = 'pow';
         end
         
-        data = ft_freqanalysis_old(tmpcfg, data);
+        data = ft_freqanalysis(tmpcfg, data);
         %-------%
         
         %-------%
