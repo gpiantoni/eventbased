@@ -158,15 +158,15 @@ for k = 1:numel(cfg.conn.cond)
         tmpcfg.feedback = 'none';
         tmpcfg.keeptrials = 'yes';
         
-        if strcmp(cfg.conn.freq, 'mtmconvol')
+        if strcmp(cfg.conn.freq, 'mtmconvol') % multiple time window, but slow
           tmpcfg.method = 'mtmconvol';
           tmpcfg.toi = cfg.conn.toi;
           tmpcfg.foi = cfg.conn.foi;
-          tmpcfg.t_ftimwin = cfg.conn.t_ftimwin .* ones(numel(tmpcfg.foi));
+          tmpcfg.t_ftimwin = cfg.conn.t_ftimwin .* ones(size(tmpcfg.foi));
           
-        elseif strcmp(cfg.conn.freq, 'mtmfft')
+        elseif strcmp(cfg.conn.freq, 'mtmfft') % one time window, faster
           tmpcfg.method = 'mtmfft';
-          tmpcfg.foilim = cfg.conn.foilim;
+          tmpcfg.foilim = [min(cfg.conn.foilim(:,1)) max(cfg.conn.foilim(:,2))]; % doc
           
         end
         
@@ -177,7 +177,7 @@ for k = 1:numel(cfg.conn.cond)
             tmpcfg.output = 'pow';
         end
         
-        data = ft_freqanalysis(tmpcfg, data);
+        data = ft_freqanalysis_old(tmpcfg, data);
         %-------%
         
         %-------%
@@ -190,8 +190,23 @@ for k = 1:numel(cfg.conn.cond)
         
         %-------%
         %-average over frequency
+        % it doesn't average for mvar
         if isfield(cfg.conn, 'avgoverfreq') && cfg.conn.avgoverfreq
-          data = ft_selectdata(data, 'avgoverfreq', 'yes');
+
+          if isfield(cfg.conn, 'foilim') && size(cfg.conn.foilim,1) > 1
+            clear dat
+            for i = 1:size(cfg.conn.foilim,1)
+              dat(i) = ft_selectdata(data, 'avgoverfreq', 'yes', 'foilim', cfg.conn.foilim(i,:));
+            end
+            
+            data = dat(1);
+            data.freq = cat(2, dat.freq);
+            data.powspctrm = cat(3, dat.powspctrm);
+            
+          else
+            data = ft_selectdata(data, 'avgoverfreq', 'yes');
+          end
+          
         end
         %-------%
         %-----------------%
