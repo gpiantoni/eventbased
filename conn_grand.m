@@ -172,7 +172,7 @@ if isfield(cfg.gconn, 'comp')
     
     %---------------------------%
     %-load the data
-    if numel(cfg.gpow.comp{t}) == 1
+    if numel(cfg.gconn.comp{t}) == 1
       
       %-----------------%
       %-one condition
