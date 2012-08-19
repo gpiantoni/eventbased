@@ -92,9 +92,14 @@ for i = 1:numel(allfile)
   
   %------%
   %-PCA
-  opt.pcapwl = spt.pca('MaxDimOut', cfg.gtool.pwl.pca);
+  if isfield(cfg.gtool, 'pwl') && ...
+      isfield(cfg.gtool.pwl, 'pca')
+    opt.pcapwl = spt.pca('MaxDimOut', cfg.gtool.pwl.pca);
+  else
+    opt.pcapwl = [];
+  end
   %------%
-    
+  
   %------%
   %-JADE
   opt.bsspwl          = spt.jade;
