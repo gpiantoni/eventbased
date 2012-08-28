@@ -60,7 +60,7 @@ function source_subj(cfg, subj)
 %     [cfg.dpow 'NICK_COND_soupeak']: significant source peaks in the POW
 %
 % OUT
-%  [cfg.dcon 'conn_CONNMETHOD_SUBJ_COND']: connectivty analysis for each subject
+%  [cfg.dsou 'conn_SUBJ_COND']: virtual electrode for each channel
 %
 % Part of EVENTBASED single-subject
 % see also ERP_SUBJ, ERP_GRAND,
