@@ -59,7 +59,7 @@ if ischar(cond)
   %-----------------%
   %-baseline correction
   if strcmp(type, 'pow') && ...
-      isfield(cfg, 'pow') && isfield(cfg.pow, 'bl') && ~isempty(cfg.pow.bl)
+      isfield(cfg, 'gpow') && isfield(cfg.gpow, 'bl') && ~isempty(cfg.gpow.bl)
     data1 = baseline(cfg, data1);
   end
   %-----------------%

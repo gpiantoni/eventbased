@@ -81,6 +81,8 @@ for k = 1:numel(cfg.pow.cond)
   end
   %-------%
   
+  %-------%
+  %-power
   cfg2 = cfg.pow;
   cfg2.feedback = 'etf';
   pow_s = ft_freqanalysis(cfg2, data);
@@ -88,6 +90,7 @@ for k = 1:numel(cfg.pow.cond)
   if isfield(cfg.pow, 'toi')
     pow_s.time = cfg.pow.toi;
   end
+  %-------%
   
   %-------%
   %-when no time info (mtmfft), create empty time
@@ -95,6 +98,20 @@ for k = 1:numel(cfg.pow.cond)
     pow_s.time = 0;
     pow_s.dimord = [pow_s.dimord '_time'];
   end
+  %-------%
+  
+  %-------%
+  %-baseline
+  if isfield(cfg.pow, 'bl') && ~isempty(cfg.pow.bl)
+    tmpcfg = cfg.pow.bl;
+    pow_s = ft_freqbaseline(tmpcfg, pow_s);
+  end
+  %-------%
+  
+  %-------%
+  %-average
+  tmpcfg = [];
+  pow_s = ft_freqdescriptives(tmpcfg, pow_s);
   %-------%
   
   %-------%

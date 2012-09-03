@@ -15,9 +15,9 @@ function pow_grand(cfg)
 %  .pow.source: read virtual electrode data (logical)
 %
 %  Baseline correction at the single-subject level:
-%  .pow.bl: if empty, no baseline. Otherwise:
-%  .pow.bl.baseline: two scalars with baseline windows
-%  .pow.bl.baselinetype: type of baseline ('relchange')
+%  .gpow.bl: if empty, no baseline. Otherwise:
+%  .gpow.bl.baseline: two scalars with baseline windows
+%  .gpow.bl.baselinetype: type of baseline ('relchange')
 %
 %-Statistics
 %  .gpow.comp: cells within cell (e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}})
