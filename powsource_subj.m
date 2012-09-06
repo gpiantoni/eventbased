@@ -18,6 +18,7 @@ function powsource_subj(cfg, subj)
 %    if ~ 'template'
 %      .bnd2lead.mni.warp: logical (optional. Instead of transforming the
 %      brain into MNI coordinates, you can wrap the grid onto it)
+%      .SUBJECTS_DIR: where the Freesurfer data is stored (like the environmental variable)
 %
 %  .powsource.areas: how to specify peaks to analyze, 'manual' or 'pow_peak'
 %          (peaks from grandpow) or 'powcorr_peak' (peaks from grandpowcorr)
@@ -94,8 +95,7 @@ for k = 1:numel(cfg.powsource.cond)
     continue
   end
   
-  powsource_s_A = [];
-  powsource_s_B = [];
+  clear powsource_s_A powsource_s_B
   outputfile = sprintf('powsource_%04d_%s', subj, condname);
   %---------------------------%
 
@@ -173,22 +173,13 @@ for k = 1:numel(cfg.powsource.cond)
       
       %-----------------%
       cfg2.latency = cfg.powsource.bline;
-      powsource_s_B{p} = ft_sourceanalysis(cfg2, freq);
-      powsource_s_B{p}.cfg = [];
+      source = ft_sourceanalysis(cfg2, freq);
+      source.cfg = [];
       %-----------------%
       
       %-----------------%
-      %-load MNI grid
-      if ~strcmp(cfg.vol.type, 'template') ...
-          && isfield(cfg, 'bnd2lead') && isfield(cfg.bnd2lead, 'mni') ...
-          && isfield(cfg.bnd2lead.mni, 'warp') && cfg.bnd2lead.mni.warp
-        
-        load(sprintf('%s/template/sourcemodel/standard_grid3d%dmm.mat', ...
-          fileparts(which('ft_defaults')), cfg.bnd2lead.mni.resolution), 'grid');
-        
-        grid = ft_convert_units(grid, 'mm');
-        powsource_s_B{p}.pos = grid.pos;
-      end
+      %-realign source
+      powsource_s_B(p,:) = realign_source(cfg, subj, source);
       %-----------------%
       
     end
@@ -198,19 +189,15 @@ for k = 1:numel(cfg.powsource.cond)
     %-main analysis
     %-----------------%
     cfg2.latency = freqparam.time;
-    powsource_s_A{p} = ft_sourceanalysis(cfg2, freq);
-    chan = powsource_s_A{p}.cfg.channel;
-    powsource_s_A{p}.cfg = [];
-    powsource_s_A{p}.cfg.channel = chan;
+    source = ft_sourceanalysis(cfg2, freq);
+    chan = source.cfg.channel;
+    source.cfg = [];
+    source.cfg.channel = chan;
     %-----------------%
     
     %-----------------%
     %-load MNI grid
-    if ~strcmp(cfg.vol.type, 'template') ...
-        && isfield(cfg, 'bnd2lead') && isfield(cfg.bnd2lead, 'mni') ...
-        && isfield(cfg.bnd2lead.mni, 'warp') && cfg.bnd2lead.mni.warp
-      powsource_s_A{p}.pos = grid.pos;
-    end
+    powsource_s_A(p,:) = realign_source(cfg, subj, source);
     %-----------------%
     %---------------------------%
     
