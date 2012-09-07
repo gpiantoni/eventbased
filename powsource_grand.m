@@ -10,10 +10,14 @@ function powsource_grand(cfg)
 %  .dpow: directory with POW data
 %  .powsource.cond: cell to make averages
 %
+%  .sourcespace: 'surface' 'volume' 'volume_warp'
+%  (if cfg.sourcespace == 'surface')
+%  .SUBJECTS_DIR: where the Freesurfer data is stored (like the environmental variable)
+%
 %-Statistics
 %  The comparison is always against baseline. If you want to compare
 %  conditions, use powstats_subj.
-% 
+%
 %  .powsource.peaks: how to speficy peaks to analyze, 'manual' or 'pow_peak'
 %          (peaks from grandpow) or 'powcorrpeak' (peaks from grandpowcorr)
 %    if 'manual'
@@ -33,12 +37,12 @@ function powsource_grand(cfg)
 %                           it can be a string in format '5%' to take top 5 voxels and put them in a cluster.
 %  .powsource.maxvox: max number of significant voxels to be used in soupeak
 %  .powsource.clusterthr: threshold to report clusters in output
-%
+% 
+%-Plot
 %  .rslt: directory images are saved into
 %
-% Options if you want to create significance mask
-%  .powsource.nifti: directory and initial part of the name where you want to save the masks
-%  .mriref: template for mask ('/usr/share/data/fsl-mni152-templates/MNI152_T1_1mm_brain.nii.gz')
+%  (if cfg.sourcespace == 'volume')
+%  .template.volume: absolute path to the reference mri 
 %
 % IN
 %  [cfg.dpow 'powsource_SUBJ_COND'] 'powsource_subj_A': source data for period of interest for each subject
@@ -52,7 +56,7 @@ function powsource_grand(cfg)
 %  gpow_peak_COND_POWPEAK: 3d plot of the source for one peak
 %
 % Part of EVENTBASED group-analysis
-% see also ERP_SUBJ, ERP_GRAND, 
+% see also ERP_SUBJ, ERP_GRAND,
 % ERPSOURCE_SUBJ, ERPSOURCE_GRAND, ERPSTAT_SUBJ, ERPSTAT_GRAND,
 % POW_SUBJ, POW_GRAND, POWCORR_SUBJ, POWCORR_GRAND,
 % POWSOURCE_SUBJ, POWSOURCE_GRAND, POWSTAT_SUBJ, POWSTAT_GRAND,
@@ -65,11 +69,38 @@ output = sprintf('%s began at %s on %s\n', ...
 tic_t = tic;
 %---------------------------%
 
-pow_peak = getpeak(cfg, 'pow');
+pow_peak = get_peak(cfg, 'pow');
+
+%---------------------------%
+%-prepare two hemisphere if surface
+if strcmp(cfg.sourcespace, 'surface')
+  hemi = {'lh' 'rh'};
+  
+  %-----------------%
+  %-average sphere info
+  sdir = sprintf('%s%s/%s', cfg.SUBJECTS_DIR, 'fsaverage', 'surf/');
+  for h = 1:numel(hemi)
+    avgsphere{h} = ft_read_headshape([sdir hemi{h} '.' 'sphere.reg']);
+    avgsphere{h}.inside = true(size(avgsphere{h}.pnt,1),1);
+    
+    template{h} = ft_read_headshape([sdir hemi{h} '.' 'pial']);
+  end
+  %-----------------%
+  
+else
+  hemi = {''}; % no hemisphere
+  
+  %-----------------%
+  %-load template
+  template = ft_read_mri(cfg.template.volume);
+  %-----------------%
+  
+end
+%---------------------------%
 
 %---------------------------------------------------------%
 %-statistics for main effects
-%---------------------------%
+%-----------------------------------------------%
 %-loop over conditions
 for k = 1:numel(cfg.powsource.cond)
   cond     = cfg.powsource.cond{k};
@@ -91,62 +122,76 @@ for k = 1:numel(cfg.powsource.cond)
   end
   %-----------------%
   
-  %-----------------%
+  %-------------------------------------%
   %-loop over peaks
   powsource_peak = [];
   powsource = [];
   for p = 1:numel(pow_peak)
     output = sprintf('%s\n%s:\n', output, pow_peak(p).name);
     
-    %--------%
-    %-grand average
-    cfg1 = [];
-    cfg1.keepindividual = 'yes';
-    cfg1.parameter = cfg.powsource.parameter;
-    gpowsouPre = ft_sourcegrandaverage(cfg1, data{:,1,p});
-    gpowsource = ft_sourcegrandaverage(cfg1, data{:,2,p});
-    %--------%
+    %---------------------------%
+    %-loop over hemisphere
+    for h = 1:numel(hemi)
+      
+      %-----------------%
+      %-interpolate to average sphere
+      if strcmp(cfg.sourcespace, 'surface')
+        tmpcfg = [];
+        %tmpcfg.method = TODO: it's possible to specify other interpolation methods
+        tmpcfg.parameter = ['avg.' cfg.powsource.parameter];
+        
+        for i1 = 1:size(data,1)
+          for i2 = 1:size(data,2)
+            data{i1,i2, p, h} = ft_sourceinterpolate(tmpcfg, data{i1,i2,p,h}, avgsphere{h});
+          end
+        end
+      end
+      %-----------------%
+      
+      %-----------------%
+      %-grand average
+      cfg1 = [];
+      cfg1.keepindividual = 'yes';
+      cfg1.parameter = cfg.powsource.parameter;
+      gpowsouPre = ft_sourcegrandaverage(cfg1, data{:,1,p,h});
+      gpowsource = ft_sourcegrandaverage(cfg1, data{:,2,p,h});
+      %-----------------%
+      
+      %-----------------%
+      %-do stats
+      [soupos powsource{p,h} outtmp] = report_source(cfg.powsource, gpowsource, gpowsouPre);
+      powsource_peak(p,h).pos = soupos;
+      powsource_peak(p,h).center = mean(soupos,1);
+      powsource_peak(p,h).name = pow_peak(p).name;
+      output = [output outtmp];
+      %-----------------%
+      
+    end
     
-    %--------%
-    %-do stats and figure
+    %-----------------%
+    %-plot source
     h = figure;
-    [soupos powsource{p} outtmp] = reportsource(cfg.powsource, gpowsource, gpowsouPre);
-    powsource_peak(p).pos = soupos;
-    powsource_peak(p).center = mean(soupos,1);
-    powsource_peak(p).name = pow_peak(p).name;
-    output = [output outtmp];
+    if strcmp(cfg.sourcespace, 'surface')
+      plot_surface(powsource(p,:), template)
+      
+    else
+      plot_volume(powsource(p, :), template)
+      
+    end
     
     %--------%
     pngname = sprintf('gpow_peak_%s_%s', condname, pow_peak(p).name);
-    saveas(gcf, [cfg.log filesep pngname '.png'])
-    close(gcf); drawnow
+    saveas(h, [cfg.log filesep pngname '.png'])
+    close(h); drawnow
     
     [~, logfile] = fileparts(cfg.log);
     system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
     %--------%
-    
-    %--------%
-    %-prepare nifti image
-    if isfield(cfg.powsource, 'nifti') && ~isempty(cfg.powsource.nifti)
-      
-      dtimri = ft_read_mri(cfg.mriref);
-      
-      cfg1 = [];
-      cfg1.parameter = 'image';
-      souinterp = ft_sourceinterpolate(cfg1, powsource{p}, dtimri);
-      
-      mriname = [cfg.powsource.nifti '_' condname '_' powsource_peak(p).name];
-      cfg1 = [];
-      cfg1.parameter = 'image';
-      cfg1.filename = mriname;
-      ft_sourcewrite(cfg1, souinterp);
-      gzip([mriname '.nii'])
-      delete([mriname '.nii'])
-    end
-    %--------%
+    %-----------------%
+    %---------------------------%
     
   end
-  %-----------------%
+  %-------------------------------------%
   
   %-----------------%
   %-save

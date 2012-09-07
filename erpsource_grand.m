@@ -62,6 +62,28 @@ tic_t = tic;
 
 erp_peak = getpeak(cfg, 'erp');
 
+%---------------------------%
+%-prepare two hemisphere if surface
+if strcmp(cfg.sourcespace, 'surface')
+  hemi = {'lh' 'rh'};
+  
+  %-----------------%
+  %-average sphere info
+  sdir = sprintf('%s%s/%s', cfg.SUBJECTS_DIR, 'fsaverage', 'surf/');
+  for h = 1:numel(hemi)
+    avgsphere{h} = ft_read_headshape([sdir hemi{h} '.' 'sphere.reg']);
+    avgsphere{h}.inside = true(size(avgsphere{h}.pnt,1),1);
+    
+    surfplot{h} = ft_read_headshape([sdir hemi{h} '.' 'pial']);
+  end
+  %-----------------%
+  
+else
+  hemi = {''}; % no hemisphere
+  
+end
+%---------------------------%
+
 %---------------------------------------------------------%
 %-statistics for main effects
 %---------------------------%

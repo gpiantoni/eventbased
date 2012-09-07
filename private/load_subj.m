@@ -123,7 +123,7 @@ function [dataout output] = readdata(cfg, type, cond)
 %---------------------------%
 %-file for each cond
 output = '';
-dataout = [];
+clear dataout
 typedir = ['d' type(1:3)]; % derp, dpow or dcon
 groupdir = cfg.(typedir);
 condname = regexprep(cond, '*', '');
@@ -156,14 +156,14 @@ for i = 1:numel(cfg.subjall)
       
     case 'erpsource'
       for p = 1:numel(erpsource_s_A) % n of peaks
-        dataout{i,1,p} = erpsource_s_B{p}; % baseline
-        dataout{i,2,p} = erpsource_s_A{p}; % of interest
+        dataout{i,1,p,:} = erpsource_s_B{p,:}; % baseline
+        dataout{i,2,p,:} = erpsource_s_A{p,:}; % of interest
       end
       
     case 'powsource'
-      for p = 1:numel(powsource_s_A) % n of peaks
-        dataout{i,1,p} = powsource_s_B{p}; % baseline
-        dataout{i,2,p} = powsource_s_A{p}; % of interest
+      for p = 1:size(powsource_s_A,1) % n of peaks
+        dataout(i,1,:,:) = powsource_s_B; % baseline
+        dataout(i,2,:,:) = powsource_s_A; % of interest
       end
       
     case 'erpstat'
@@ -191,11 +191,11 @@ for i = 1:numel(data)
   %-------%
   %-baseline correction
   cfg3 = [];
-  cfg3.baseline = cfg.pow.bl.baseline;
-  cfg3.baselinetype = cfg.pow.bl.baselinetype;
+  cfg3.baseline = cfg.gpow.bl.baseline;
+  cfg3.baselinetype = cfg.gpow.bl.baselinetype;
   data{i} = ft_freqbaseline(cfg3, data{i});
   
-  if strcmp(cfg.pow.bl.baselinetype, 'relative')
+  if strcmp(cfg.gpow.bl.baselinetype, 'relative')
     data{i}.powspctrm = 10*log10(data{i}.powspctrm);
   end
   %-------%

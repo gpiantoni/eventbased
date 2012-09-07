@@ -61,10 +61,10 @@ for k = 1:numel(cfg.erp.cond)
   
   %---------------------------%
   %-timelock analysis
-  cfg2 = cfg.erp;
-  cfg2.feedback = 'none';
-  cfg2.preproc.feedback = 'none';
-  erp_s = ft_timelockanalysis(cfg2, data);
+  tmpcfg = cfg.erp;
+  tmpcfg.feedback = 'none';
+  tmpcfg.preproc.feedback = 'none';
+  erp_s = ft_timelockanalysis(tmpcfg, data);
   %---------------------------%
   
   save([cfg.derp outputfile], 'erp_s')

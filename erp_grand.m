@@ -69,8 +69,7 @@ for k = 1:numel(cfg.erp.cond)
   output = [output outtmp];
   if isempty(data); continue; end
   
-  cfg1 = [];
-  erp = ft_timelockgrandaverage(cfg1, data{:});
+  erp = ft_timelockgrandaverage([], data{:});
   erp.cfg = [];
   %-----------------%
   
@@ -104,6 +103,7 @@ if isfield(cfg.gerp, 'comp')
     %---------------------------%
     %-statistics for effects of interest
     clear gerp gerpall* erp_peak
+    
     if numel(cfg.gerp.comp{t}) == 1
       
       %-----------------%
@@ -118,10 +118,10 @@ if isfield(cfg.gerp, 'comp')
       output = [output outtmp];
       if isempty(data); continue; end
       
-      cfg1 = [];
-      gerp{1} = ft_timelockgrandaverage(cfg1, data{:});
-      cfg1.keepindividual = 'yes';
-      gerpall1 = ft_timelockgrandaverage(cfg1, data{:});
+      tmpcfg = [];
+      gerp{1} = ft_timelockgrandaverage([], data{:});
+      tmpcfg.keepindividual = 'yes';
+      gerpall1 = ft_timelockgrandaverage(tmpcfg, data{:});
       %-------%
       
       %-------%
@@ -129,7 +129,7 @@ if isfield(cfg.gerp, 'comp')
       gplot = gerp{1};
       %-------%
       
-      [erp_peak stat outtmp] = reportcluster(cfg, gerpall1);
+      [erp_peak stat outtmp] = report_cluster(cfg, gerpall1);
       %-----------------%
       
     else
@@ -147,13 +147,13 @@ if isfield(cfg.gerp, 'comp')
       output = [output outtmp];
       if isempty(data1); continue; end
       
-      cfg1 = [];
-      gerp{1} = ft_timelockgrandaverage(cfg1, data1{:});
-      gerp{2} = ft_timelockgrandaverage(cfg1, data2{:});
+      tmpcfg = [];
+      gerp{1} = ft_timelockgrandaverage(tmpcfg, data1{:});
+      gerp{2} = ft_timelockgrandaverage(tmpcfg, data2{:});
       
-      cfg1.keepindividual = 'yes';
-      gerpall1 = ft_timelockgrandaverage(cfg1, data1{:});
-      gerpall2 = ft_timelockgrandaverage(cfg1, data2{:});
+      tmpcfg.keepindividual = 'yes';
+      gerpall1 = ft_timelockgrandaverage(tmpcfg, data1{:});
+      gerpall2 = ft_timelockgrandaverage(tmpcfg, data2{:});
       %-------%
       
       %-------%
@@ -182,11 +182,11 @@ if isfield(cfg.gerp, 'comp')
       
       %--------%
       %-plot
-      cfg3 = [];
-      cfg3.channel = cfg.gerp.chan(c).chan;
-      cfg3.baseline = cfg.gerp.bline;
-      cfg3.ylim = 'maxabs';
-      ft_singleplotER(cfg3, gerp{:});
+      tmpcfg = [];
+      tmpcfg.channel = cfg.gerp.chan(c).chan;
+      tmpcfg.baseline = cfg.gerp.bline;
+      tmpcfg.ylim = 'maxabs';
+      ft_singleplotER(tmpcfg, gerp{:});
       
       legend('cond1', 'cond2')
       
@@ -218,20 +218,20 @@ if isfield(cfg.gerp, 'comp')
       
       %--------%
       %-plot
-      cfg4 = [];
+      tmpcfg = [];
       
       timelim = gplot.time([1 end]);
-      cfg4.xlim = timelim(1):.1:timelim(2); % one plot every 100 ms
+      tmpcfg.xlim = timelim(1):.1:timelim(2); % one plot every 100 ms
       
-      cfg4.zlim = [-1 1] * max(gplot.avg(:));
+      tmpcfg.zlim = [-1 1] * max(gplot.avg(:));
       
-      cfg4.layout = layout;
-      cfg4.style = 'straight';
-      cfg4.marker = 'off';
-      cfg4.comment = 'xlim';
-      cfg4.commentpos = 'title';
+      tmpcfg.layout = layout;
+      tmpcfg.style = 'straight';
+      tmpcfg.marker = 'off';
+      tmpcfg.comment = 'xlim';
+      tmpcfg.commentpos = 'title';
       
-      ft_topoplotER(cfg4, gplot);
+      ft_topoplotER(tmpcfg, gplot);
       %--------%
       
       %--------%

@@ -1,6 +1,9 @@
 function source_subj(cfg, subj)
 %SOURCE_SUBJ create virtual electrode, to be used for connectivity analysis
 %
+% Check that when you use freesurfer, you need to check which dipoles are
+% actually used
+% 
 % CFG
 %  .data: path of /data1/projects/PROJ/subjects/
 %  .rec: REC in /data1/projects/PROJ/recordings/REC/
@@ -134,7 +137,6 @@ for k = 1:numel(cfg.source.cond)
   
   %---------------------------%
   %-apply montage (if using two-step procedure)
-  
   data = ft_apply_montage(data, mont, 'feedback', 'none');
   
   if strcmp(cfg.source.areas, 'dip')

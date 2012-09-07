@@ -16,7 +16,10 @@ function pow_subj(cfg, subj)
 %  .pow: a structure with cfg to pass to ft_freqanalysis
 %  .pow.planar: planar transformation, MEG-only (logical)
 %
-% Baseline correction is applied in POW_GRAND
+%  Baseline correction at the single-trial level:
+%  .pow.bl: if empty, no baseline. Otherwise:
+%  .pow.bl.baseline: two scalars with baseline windows
+%  .pow.bl.baselinetype: type of baseline ('relchange')
 %
 % IN:
 %  data in /PROJ/subjects/SUBJ/MOD/NICK/
@@ -64,7 +67,7 @@ for k = 1:numel(cfg.pow.cond)
   
   %---------------------------%
   %-calculate power
-  %-------%
+  %-----------------%
   %-planar
   if isfield(data, 'grad') && cfg.pow.planar
     
@@ -79,48 +82,49 @@ for k = 1:numel(cfg.pow.cond)
     data = ft_megplanar(tmpcfg, data);
     
   end
-  %-------%
+  %-----------------%
   
-  %-------%
+  %-----------------%
   %-power
   cfg2 = cfg.pow;
   cfg2.feedback = 'etf';
+  cfg2.keeptrials = 'yes';
   pow_s = ft_freqanalysis(cfg2, data);
   
   if isfield(cfg.pow, 'toi')
     pow_s.time = cfg.pow.toi;
   end
-  %-------%
+  %-----------------%
   
-  %-------%
+  %-----------------%
   %-when no time info (mtmfft), create empty time
   if ~isfield(pow_s, 'time')
     pow_s.time = 0;
     pow_s.dimord = [pow_s.dimord '_time'];
   end
-  %-------%
+  %-----------------%
   
-  %-------%
+  %-----------------%
   %-baseline
   if isfield(cfg.pow, 'bl') && ~isempty(cfg.pow.bl)
     tmpcfg = cfg.pow.bl;
     pow_s = ft_freqbaseline(tmpcfg, pow_s);
   end
-  %-------%
+  %-----------------%
   
-  %-------%
+  %-----------------%
   %-average
   tmpcfg = [];
   pow_s = ft_freqdescriptives(tmpcfg, pow_s);
-  %-------%
+  %-----------------%
   
-  %-------%
+  %-----------------%
   %-planar
   if isfield(data, 'grad') && cfg.pow.planar
     tmpcfg = [];
     pow_s = ft_combineplanar(tmpcfg, pow_s);
   end
-  %-------%
+  %-----------------%
   %---------------------------%
   
   save([cfg.dpow outputfile], 'pow_s')

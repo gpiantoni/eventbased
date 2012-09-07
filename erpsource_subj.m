@@ -20,12 +20,13 @@ function erpsource_subj(cfg, subj)
 %      brain into MNI coordinates, you can wrap the grid onto it)
 %
 %  .erpsource.areas: how to speficy peaks to analyze, 'manual' or 'erp_peak' (peaks from granderp)
-%    if 'manual'
-%      .erpsource.erp_peak(1).name: string ('name_of_the_time_window')
-%      .erpsource.erp_peak(1).time: scalar (center of the time window in s)
-%      .erpsource.erp_peak(1).wndw: scalar (length of the time window in s)
-%    if 'erp_peak'
-%      .erpsource.refcomp: cell of string(s) of the comparison whose peaks
+%  (if .erpsource.areas == 'manual')
+%  .erpsource.erp_peak: struct with multiple elements 
+%              .name: string ('name_of_the_time_window')
+%              .time: scalar (center of the time window in s)
+%              .wndw: scalar (length of the time window in s)
+%  (if .erpsource.areas == 'erp_peak')
+%  .erpsource.refcomp: cell of string(s) of the comparison whose peaks
 %                     will be localized (one of the cells of cfg.gerp.comp)
 %
 %  .erpsource.erp: a structure with cfg to pass to ft_timelockanalysis
@@ -113,28 +114,28 @@ for k = 1:numel(cfg.erpsource.cond)
     %-parameters
     %-----------------%
     %-covariance window
-    cfg2 = cfg.erpsource.erp;
-    cfg2.covariance = 'yes';
-    cfg2.feedback = 'none';
-    cfg2.channel = datachan;
+    cfgerp = cfg.erpsource.erp;
+    cfgerp.covariance = 'yes';
+    cfgerp.feedback = 'none';
+    cfgerp.channel = datachan;
     %-----------------%
     
     %-----------------%
     %-source analysis
-    cfg3 = [];
+    cfgsou = [];
     
-    cfg3.method = 'lcmv';
-    cfg3.lcmv = cfg.erpsource.lcmv;
-    cfg3.lcmv.feedback = 'none';
+    cfgsou.method = 'lcmv';
+    cfgsou.lcmv = cfg.erpsource.lcmv;
+    cfgsou.lcmv.feedback = 'none';
     
-    cfg3.vol = vol;
-    cfg3.grid = leadchan;
-    cfg3.elec = sens;
-    cfg3.feedback = 'none';
-    cfg3.lcmv.keepmom = 'no';
+    cfgsou.vol = vol;
+    cfgsou.grid = leadchan;
+    cfgsou.elec = sens;
+    cfgsou.feedback = 'none';
+    cfgsou.lcmv.keepmom = 'no';
     if cfg.erpsource.keepfilter
-      cfg3.lcmv.keepfilter   = 'yes';
-      cfg3.lcmv.realfilter   = 'yes';
+      cfgsou.lcmv.keepfilter   = 'yes';
+      cfgsou.lcmv.realfilter   = 'yes';
     end
     %-----------------%
     %---------------------------%
@@ -145,28 +146,19 @@ for k = 1:numel(cfg.erpsource.cond)
       
       %-----------------%
       %-covariance window
-      cfg2.covariancewindow = cfg.erpsource.bline  + erp_peak(p).wndw * [-.5 .5];
-      avgPre = ft_timelockanalysis(cfg2, data);
+      cfgerp.covariancewindow = cfg.erpsource.bline  + erp_peak(p).wndw * [-.5 .5];
+      avgPre = ft_timelockanalysis(cfgerp, data);
       %-----------------%
       
       %-----------------%
       %-source analysis
-      erpsource_s_B{p} = ft_sourceanalysis(cfg3, avgPre);
-      erpsource_s_B{p}.cfg = [];
+      source = ft_sourceanalysis(cfgsou, avgPre);
+      source.cfg = [];
       %-----------------%
       
       %-----------------%
-      %-load MNI grid
-      if ~strcmp(cfg.vol.type, 'template') ...
-          && isfield(cfg, 'bnd2lead') && isfield(cfg.bnd2lead, 'mni') ...
-          && isfield(cfg.bnd2lead.mni, 'warp') && cfg.bnd2lead.mni.warp
-        
-        load(sprintf('%s/template/sourcemodel/standard_grid3d%dmm.mat', ...
-          fileparts(which('ft_defaults')), cfg.bnd2lead.mni.resolution), 'grid');
-        grid = ft_convert_units(grid, 'mm');
-        
-        erpsource_s_B{p}.pos = grid.pos;
-      end
+      %-realign source
+      erpsource_s_B(p,:) = realign_source(cfg, subj, source);
       %-----------------%
       
     end
@@ -176,27 +168,22 @@ for k = 1:numel(cfg.erpsource.cond)
     %-main effect
     %-----------------%
     %-covariance
-    cfg2.covariancewindow = erp_peak(p).time + erp_peak(p).wndw * [-.5 .5];
-    avgPost = ft_timelockanalysis(cfg2, data);
+    cfgerp.covariancewindow = erp_peak(p).time + erp_peak(p).wndw * [-.5 .5];
+    avgPost = ft_timelockanalysis(cfgerp, data);
     %-----------------%
     
     %-----------------%
     %-source
-    erpsource_s_A{p} = ft_sourceanalysis(cfg3, avgPost);
-
-    chan = erpsource_s_A{p}.cfg.channel;
-    erpsource_s_A{p}.cfg = [];
-    erpsource_s_A{p}.cfg.channel = chan;
+    source = ft_sourceanalysis(cfgsou, avgPost);
+    
+    chan = source.cfg.channel;
+    source.cfg = [];
+    source.cfg.channel = chan;
     %-----------------%
     
     %-----------------%
-    %-load MNI grid
-    if ~strcmp(cfg.vol.type, 'template') ...
-        && isfield(cfg, 'bnd2lead') && isfield(cfg.bnd2lead, 'mni') ...
-        && isfield(cfg.bnd2lead.mni, 'warp') && cfg.bnd2lead.mni.warp
-      
-      erpsource_s_A{p}.pos = grid.pos;
-    end
+    %-realign source
+    erpsource_s_A(p,:) = realign_source(cfg, subj, source);
     %-----------------%
     %---------------------------%
     

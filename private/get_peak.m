@@ -1,7 +1,7 @@
-function peaks = getpeak(cfg, type)
+function peaks = get_peak(cfg, type)
 %GETPEAK simply get the peaks for the analysis, similar for ERP and POW
 % Use as:
-%  peaks = getpeak(cfg, type)
+%  peaks = get_peak(cfg, type)
 %
 %  CFG
 %  .powsource.areas: how to speficy peaks to analyze, 'manual' or 'pow_peak'

@@ -5,8 +5,9 @@ function [clpeak stat output] = reportcluster(cfg, gdat, gdat2, paired)
 % these clusters. Significant clusters will be reported and can be used for
 % further analysis, for example, for source reconstruction.
 %
-% Not to called directly, but this function is called by ERP_GRAND,
+% Not to be called directly, this function is called by ERP_GRAND,
 % POW_GRAND and POWCORR_GRAND.
+%
 % Use as:
 %   [clpeak output] = reportcluster(cfg, gdat, gdat2, unpaired)
 %
@@ -100,11 +101,11 @@ if ~isempty(cfg.sens.file)
   sens = ft_read_sens(cfg.sens.file);
   sens.label = upper(sens.label);
   
-  cfg1 = [];
-  cfg1.elec = sens;
-  cfg1.method = 'distance';
-  cfg1.neighbourdist = cfg.sens.dist;
-  neigh = ft_prepare_neighbours(cfg1);
+  tmpcfg = [];
+  tmpcfg.elec = sens;
+  tmpcfg.method = 'distance';
+  tmpcfg.neighbourdist = cfg.sens.dist;
+  neigh = ft_prepare_neighbours(tmpcfg);
   %-------%
   
 else
@@ -123,46 +124,46 @@ end
 
 %-----------------%
 %-calc clusters
-cfg3 = [];
-cfg3.method      = 'montecarlo';
+tmpcfg = [];
+tmpcfg.method      = 'montecarlo';
 if paired
-  cfg3.statistic   = 'depsamplesT';
+  tmpcfg.statistic   = 'depsamplesT';
 else
-  cfg3.statistic   = 'indepsamplesT';
+  tmpcfg.statistic   = 'indepsamplesT';
 end
-cfg3.alpha       = 0.05;
-cfg3.correctm    = 'cluster';
-cfg3.numrandomization = 100; 
+tmpcfg.alpha       = 0.05;
+tmpcfg.correctm    = 'cluster';
+tmpcfg.numrandomization = 100; 
 
 if paired
-  cfg3.design = [ones(1,nsubj1) ones(1,nsubj2)*2; 1:nsubj1 1:nsubj2];
-  cfg3.ivar   = 1;
-  cfg3.uvar   = 2;
+  tmpcfg.design = [ones(1,nsubj1) ones(1,nsubj2)*2; 1:nsubj1 1:nsubj2];
+  tmpcfg.ivar   = 1;
+  tmpcfg.uvar   = 2;
 else
-  cfg3.design = [ones(1,nsubj1) ones(1,nsubj2)*2];
-  cfg3.ivar   = 1;
+  tmpcfg.design = [ones(1,nsubj1) ones(1,nsubj2)*2];
+  tmpcfg.ivar   = 1;
 end
 
 if iserp && isfield(cfg.gerp, 'stat') && isfield(cfg.gerp.stat, 'time') && ~isempty(cfg.gerp.stat.time)
-  cfg3.latency = cfg.gerp.stat.time;
+  tmpcfg.latency = cfg.gerp.stat.time;
 elseif ~iserp && isfield(cfg.gpow, 'stat') && isfield(cfg.gpow.stat, 'time') && ~isempty(cfg.gpow.stat.time)
-  cfg3.latency = cfg.gpow.stat.time;
+  tmpcfg.latency = cfg.gpow.stat.time;
 else
-  cfg3.latency = gdat.time([1 end]);
+  tmpcfg.latency = gdat.time([1 end]);
 end
 
 if ~iserp && isfield(cfg.gpow, 'stat') && isfield(cfg.gpow.stat, 'freq') && ~isempty(cfg.gpow.stat.freq)
-  cfg3.frequency = cfg.gpow.stat.freq;
+  tmpcfg.frequency = cfg.gpow.stat.freq;
 end
 
-cfg3.neighbours = neigh;
-cfg3.feedback = 'etf';
+tmpcfg.neighbours = neigh;
+tmpcfg.feedback = 'etf';
 
 if iserp
-  % cfg3.minnbchan = 5; % to avoid huge clusters
-  stat = ft_timelockstatistics(cfg3, gdat, gdat2); 
+  % tmpcfg.minnbchan = 5; % to avoid huge clusters
+  stat = ft_timelockstatistics(tmpcfg, gdat, gdat2); 
 else
-  stat = ft_freqstatistics(cfg3, gdat, gdat2);
+  stat = ft_freqstatistics(tmpcfg, gdat, gdat2);
 end
 %-----------------%
 

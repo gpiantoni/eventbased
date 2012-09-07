@@ -156,7 +156,7 @@ if isfield(cfg.gpow, 'comp')
       gplot = pow{1};
       %-------%
 
-      [pow_peak stat outtmp] = reportcluster(cfg, gpowall1);
+      [pow_peak stat outtmp] = report_cluster(cfg, gpowall1);
       %-----------------%
       
     else

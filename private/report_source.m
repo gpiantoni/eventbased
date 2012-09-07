@@ -1,4 +1,4 @@
-function [soupeak stat output] = reportsource(cfg, gdat1, gdat2)
+function [soupeak stat output] = report_source(cfg, gdat1, gdat2)
 %REPORTSOURCE get clusters in the comparison between two conditions or against baseline
 %
 % It only reports either positive or negative clusters. It does not make
@@ -69,7 +69,15 @@ cfg3.uvar = 2;
 cfg3.feedback = 'etf';
 
 cfg3.parameter = cfg.parameter;
-cfg3.dim = gdat1.dim;
+if isfield(gdat1, 'dim')
+  cfg3.dim = gdat1.dim;
+  issurf = false;
+  
+else
+  cfg3.dim = size(gdat1.avg.pow);
+  issurf = true;
+  
+end
 
 cfg3.alpha = 0.05;
 
@@ -162,13 +170,24 @@ signcl = find([clusters.prob] < cfg.clusterthr);
 for i = 1:numel(signcl)
   
   clmat = find(clusterslabelmat == i);
-  pos = stat.pos(clmat,:);
   
-  areas = mni2ba(pos);
-  areastext = unique({areas.IBASPM116});
+  if issurf
+    outtmp = sprintf('    %s cluster% 3.f: P = %4.3f, size =% 5.f\n', ...
+      posnegtxt, i, clusters(i).prob, numel(clmat));
+    
+  else
+    pos = stat.pos(clmat,:);
+    atlas = mni2ba(pos);
+    atlasname = fieldnames(atlas);
+    atlas = {atlas.(atlasname{1})};
+    atlas = atlas(~strcmp(atlas, ''));
+    [atlas, ~, i_atl] = unique(atlas);
+    
+    outtmp = sprintf('    %s cluster% 3.f: P = %4.3f, size =% 5.f, [% 5.1f % 5.1f % 5.1f], %s\n', ...
+      posnegtxt, i, clusters(i).prob, numel(clmat), mean(pos(:,1)), mean(pos(:,2)), mean(pos(:,3)), atlas{mode(i_atl)});
+    
+  end
   
-  outtmp = sprintf('    %s cluster% 3.f: P = %4.3f, size =% 5.f, [% 5.1f % 5.1f % 5.1f], %s\n', ...
-    posnegtxt, i, clusters(i).prob, numel(clmat), mean(pos(:,1)), mean(pos(:,2)), mean(pos(:,3)), sprintf(' %s', areastext{:}));
   output = [output outtmp];
   
 end
@@ -201,59 +220,4 @@ clmat(selvox) = 2; % largest t-score
 
 stat.image = zeros(size(clusterslabelmat));
 stat.image(selvox) = 1;
-%-------------------------------------%
-
-%-------------------------------------%
-%-----------------%
-%-plot main cluster
-%-prepare figure
-backgrnd = isnan(clusterslabelmat); % separate NaN to be used as background
-
-%-prepare axis
-xpos = unique(stat.pos(:,1));
-ypos = unique(stat.pos(:,2));
-zpos = unique(stat.pos(:,3));
-%-----------------%
-
-%-----------------%
-%-plot
-%-------%
-%-x-axis
-subplot(2,2,1)
-[~, imax] = max(sum(sum(clmat==2,2),3));
-toplot = nansum(cat(1, -1 * backgrnd(imax,:,:),  clmat(imax, :, :)), 1);
-
-imagesc(ypos, zpos, squeeze(toplot)', [-.5 2])
-axis xy equal
-colormap hot
-
-title(sprintf('x =% 3.f', xpos(imax)))
-%-------%
-
-%-------%
-%-y-axis
-subplot(2,2,2)
-[~, imax] = max(sum(sum(clmat==2,1),3));
-toplot = nansum(cat(2, -1 * backgrnd(:,imax,:),  clmat(:,imax,:)), 2);
-
-imagesc(xpos, zpos, squeeze(toplot)', [-.5 2])
-axis xy equal
-colormap hot
-
-title(sprintf('y =% 3.f', ypos(imax)))
-%-------%
-
-%-------%
-%-z-axis
-subplot(2,2,3)
-[~, imax] = max(sum(sum(clmat==2,1),2));
-toplot = nansum(cat(3, -1 * backgrnd(:,:,imax),  clmat(:,:,imax)), 3);
-
-imagesc(xpos, ypos, squeeze(toplot)', [-.5 2])
-axis xy equal
-colormap hot
-
-title(sprintf('z =% 3.f', zpos(imax)))
-%-------%
-%-----------------%
 %-------------------------------------%

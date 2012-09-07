@@ -161,7 +161,7 @@ if isfield(cfg.gpowcorr, 'comp')
       gplot = powcorr{1};
       %-------%
       
-      [powcorr_peak stat outtmp] = reportcluster(cfg, gpowcorrall1);
+      [powcorr_peak stat outtmp] = report_cluster(cfg, gpowcorrall1);
       %-----------------%
       
     else

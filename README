@@ -1,1 +1,100 @@
 A pipeline of MATLAB functions to run Fieldtrip for EEG/MEG analysis
+
+.bnd2lead.mni.warp: logical (optional. Instead of transforming the
+       brain into MNI coordinates, you can wrap the grid onto it) (if .vol.type == 'template')
+  ERPSOURC_SUBJ
+
+.data: path of /data1/projects/PROJ/subjects/
+  ERP_SUBJ, ERPSOURC_SUBJ
+
+.derp: directory with ERP data
+  ERP_SUBJ, ERP_GRAND, ERPSOURC_SUBJ
+   
+.endname: includes preprocessing steps (e.g. '_seldata_gclean_redef')
+  ERP_SUBJ, ERPSOURC_SUBJ
+
+.erp: a structure with cfg to pass to ft_timelockanalysis
+  ERP_SUBJ
+
+.erp.cond: cell with conditions (e.g. {'*cond1' '*cond2'})'
+  ERP_SUBJ, ERP_GRAND
+
+.erp.source: read virtual electrode data (logical)
+  ERP_SUBJ
+
+.erpsource.areas: how to speficy peaks to analyze, 'manual' or 'erp_peak' (peaks from granderp)
+  ERPSOURC_SUBJ
+
+.erpsource.bline: one number in s, the center of the covariance window
+                     of the baseline (the window length depends on erp_peak) 
+                     If empty, no baseline.
+  ERPSOURC_SUBJ
+
+.erpsource.cond: cell with conditions (e.g. {'*cond1' '*cond2'})
+  ERPSOURC_SUBJ
+
+.erpsource.erp: a structure with cfg to pass to ft_timelockanalysis
+  ERPSOURC_SUBJ
+
+.erpsource.erp_peak: struct with multiple elements (if .erpsource.areas == 'manual')
+            .name: string ('name_of_the_time_window')
+            .time: scalar (center of the time window in s)
+            .wndw: scalar (length of the time window in s)
+  ERPSOURC_SUBJ
+
+.erpsource.keepfilter: logical, to keep filters or not (keep them only
+                       if you plan to use erpstat or conn analyses)
+  ERPSOURC_SUBJ
+
+.erpsource.lcmv: options that will be passed to beamformer. Examples:
+            .lambda: regularization parameter of beamformer ('25%')
+            .powmethod: power method of beamformer ('trace' or 'lambda1')
+            .refdip: location of the dipole for computing coherence to.
+  ERPSOURC_SUBJ
+
+.erpsource.refcomp: cell of string(s) of the comparison whose peaks
+                    will be localized (one of the cells of cfg.gerp.comp) (if .erpsource.areas == 'manual')
+  ERPSOURC_SUBJ
+
+.gerp.bline: two scalars indicating the time window for baseline in s (only for plotting, TODO: check if necessary for normal analysis as well)
+  ERP_GRAND
+
+.gerp.chan(1).name: 'name_of_channels'
+  ERP_GRAND
+
+.gerp.chan(1).chan: cell with labels of channels of interest
+  ERP_GRAND
+
+.gerp.comp: comparisons to test (cell within cell, e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}})
+     but you cannot have more than 2 conditions (it's always a t-test).
+  ERP_GRAND
+
+.log: name of the file and directory to save log
+  ERP_SUBJ, ERP_GRAND, ERPSOURC_SUBJ
+
+.mod: modality, MOD in /data1/projects/PROJ/subjects/0001/MOD/NICK/
+  ERP_SUBJ, ERPSOURC_SUBJ
+
+.nick: NICK in /data1/projects/PROJ/subjects/0001/MOD/NICK/
+  ERP_SUBJ, ERP_GRAND, ERPSOURC_SUBJ
+
+.sens.layout: file with layout. It should be a mat containing 'layout'
+              If empty, it does not plot topo.
+  ERP_GRAND
+
+.subjall: index of the number of subjects
+  ERP_GRAND
+
+.rec: REC in /data1/projects/PROJ/recordings/REC/
+  ERP_SUBJ, ERPSOURC_SUBJ
+
+.rslt: directory images are saved into
+  ERP_GRAND
+
+.vol.type: 'template' or subject-specific ('dipoli' or 'openmeeg')
+  ERPSOURC_SUBJ
+
+.vol.template: file with template containing vol, lead, sens (if .vol.type == 'template')
+  ERPSOURC_SUBJ
+
+ 

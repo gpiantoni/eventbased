@@ -17,12 +17,13 @@ function powstat_subj(cfg, subj)
 %  .powsource.refcond: string of the condition used for DICS-filter
 %  .powstat.cond: cell with conditions (e.g. {'*cond1' '*cond2'})
 %
-%  .vol.type: 'template' or subject-specific ('dipoli' or 'openmeeg')
-%    if 'template'
+%  .vol.type: 'template' or subject-specific ('dipoli' or 'openmeeg' or 'bemcp')
+%  (if cfg.vol.type == 'template')
 %      .vol.template: file with template containing vol, lead, sens
-%    if ~ 'template'
-%      .bnd2lead.mni.warp: logical (optional. Instead of transforming the
-%      brain into MNI coordinates, you can wrap the grid onto it)
+%
+%  .sourcespace: 'surface' 'volume' 'volume_warp'
+%  (if cfg.sourcespace == 'surface')
+%  .SUBJECTS_DIR: where the Freesurfer data is stored, like the environmental variable
 %
 %  .powsource.peaks: how to speficy peaks to analyze, 'manual' or 'pow_peak'
 %          (peaks from grandpow) or 'powcorr_peak' (peaks from grandpowcorr)

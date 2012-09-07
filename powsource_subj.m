@@ -12,13 +12,13 @@ function powsource_subj(cfg, subj)
 %  .dpow: directory for POW data
 %  .powsource.cond: cell with conditions (e.g. {'*cond1' '*cond2'})'
 %
-%  .vol.type: 'template' or subject-specific ('dipoli' or 'openmeeg')
-%    if 'template'
+%  .vol.type: 'template' or subject-specific ('dipoli' or 'openmeeg' or 'bemcp')
+%  (if cfg.vol.type == 'template')
 %      .vol.template: file with template containing vol, lead, sens
-%    if ~ 'template'
-%      .bnd2lead.mni.warp: logical (optional. Instead of transforming the
-%      brain into MNI coordinates, you can wrap the grid onto it)
-%      .SUBJECTS_DIR: where the Freesurfer data is stored (like the environmental variable)
+%
+%  .sourcespace: 'surface' 'volume' 'volume_warp'
+%  (if cfg.sourcespace == 'surface')
+%  .SUBJECTS_DIR: where the Freesurfer data is stored (like the environmental variable)
 %
 %  .powsource.areas: how to specify peaks to analyze, 'manual' or 'pow_peak'
 %          (peaks from grandpow) or 'powcorr_peak' (peaks from grandpowcorr)
@@ -119,44 +119,44 @@ for k = 1:numel(cfg.powsource.cond)
     %-parameters
     %-----------------%
     %-covariance window
-    cfg1 = [];
-    cfg1.method = 'mtmconvol';
-    cfg1.output = 'fourier';
-    cfg1.t_ftimwin = freqparam.wndw;
+    cfgpow = [];
+    cfgpow.method = 'mtmconvol';
+    cfgpow.output = 'fourier';
+    cfgpow.t_ftimwin = freqparam.wndw;
     
-    cfg1.foi = freqparam.freq;
+    cfgpow.foi = freqparam.freq;
     if freqparam.dpss
-      cfg1.taper = 'dpss';
-      cfg1.tapsmofrq = freqparam.band;
+      cfgpow.taper = 'dpss';
+      cfgpow.tapsmofrq = freqparam.band;
     else
-      cfg1.taper = 'hanning';
+      cfgpow.taper = 'hanning';
     end
     
-    cfg1.feedback = 'none';
-    cfg1.channel = datachan;
+    cfgpow.feedback = 'none';
+    cfgpow.channel = datachan;
     
-    cfg1.toi = [cfg.powsource.bline freqparam.time];
+    cfgpow.toi = [cfg.powsource.bline freqparam.time];
     %-----------------%
     
     %-----------------%
     %-source analysis
-    cfg2 = [];
+    cfgsou = [];
     
-    cfg2.frequency = freqparam.freq;
+    cfgsou.frequency = freqparam.freq;
     
-    cfg2.method = 'dics';
-    cfg2.dics.feedback = 'none';
-    cfg2.dics = cfg.powsource.dics;
+    cfgsou.method = 'dics';
+    cfgsou.dics.feedback = 'none';
+    cfgsou.dics = cfg.powsource.dics;
     
-    cfg2.vol = vol;
-    cfg2.grid = leadchan;
-    cfg2.elec = sens;
+    cfgsou.vol = vol;
+    cfgsou.grid = leadchan;
+    cfgsou.elec = sens;
     
     if cfg.powsource.keepfilter
-      cfg2.dics.keepfilter = 'yes';
-      cfg2.dics.realfilter = 'yes';
-      if isfield(cfg1.dics, 'refdip')
-        cfg2.dics = rmfield(cfg2.dics, 'refdip');
+      cfgsou.dics.keepfilter = 'yes';
+      cfgsou.dics.realfilter = 'yes';
+      if isfield(cfgpow.dics, 'refdip')
+        cfgsou.dics = rmfield(cfgsou.dics, 'refdip');
       end
     end
     %-----------------%
@@ -164,7 +164,7 @@ for k = 1:numel(cfg.powsource.cond)
     
     %---------------------------%
     %-freq analysis (for baseline and main together)
-    freq = ft_freqanalysis(cfg1, data);
+    freq = ft_freqanalysis(cfgpow, data);
     %---------------------------%
     
     %---------------------------%
@@ -172,8 +172,8 @@ for k = 1:numel(cfg.powsource.cond)
     if ~isempty(cfg.powsource.bline)
       
       %-----------------%
-      cfg2.latency = cfg.powsource.bline;
-      source = ft_sourceanalysis(cfg2, freq);
+      cfgsou.latency = cfg.powsource.bline;
+      source = ft_sourceanalysis(cfgsou, freq);
       source.cfg = [];
       %-----------------%
       
@@ -188,15 +188,15 @@ for k = 1:numel(cfg.powsource.cond)
     %---------------------------%
     %-main analysis
     %-----------------%
-    cfg2.latency = freqparam.time;
-    source = ft_sourceanalysis(cfg2, freq);
+    cfgsou.latency = freqparam.time;
+    source = ft_sourceanalysis(cfgsou, freq);
     chan = source.cfg.channel;
     source.cfg = [];
     source.cfg.channel = chan;
     %-----------------%
     
     %-----------------%
-    %-load MNI grid
+    %-realign source
     powsource_s_A(p,:) = realign_source(cfg, subj, source);
     %-----------------%
     %---------------------------%
