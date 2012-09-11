@@ -34,7 +34,7 @@ if ischar(cond)
   %-one condition
   %-----------------%
   %-read the data
-  [data1 output] = readdata(cfg, type, cond);
+  [data1 output] = read_data(cfg, type, cond);
   %-----------------%
   
   %-----------------%
@@ -71,8 +71,8 @@ else
   %-two conditions
   %-----------------%
   %-read the data
-  [data1 output] = readdata(cfg, type, cond{1});
-  [data2 outtmp] = readdata(cfg, type, cond{2});
+  [data1 output] = read_data(cfg, type, cond{1});
+  [data2 outtmp] = read_data(cfg, type, cond{2});
   output = [output outtmp];
   %-----------------%
   
@@ -117,8 +117,8 @@ end
 %-------------------------------------%
 
 %-------------------------------------%
-function [dataout output] = readdata(cfg, type, cond)
-%READDATA read the single subject data
+function [dataout output] = read_data(cfg, type, cond)
+%read_data read the single subject data
 
 %---------------------------%
 %-file for each cond
@@ -156,8 +156,8 @@ for i = 1:numel(cfg.subjall)
       
     case 'erpsource'
       for p = 1:numel(erpsource_s_A) % n of peaks
-        dataout{i,1,p,:} = erpsource_s_B{p,:}; % baseline
-        dataout{i,2,p,:} = erpsource_s_A{p,:}; % of interest
+        dataout(i,1,p,:) = erpsource_s_B; % baseline
+        dataout(i,2,p,:) = erpsource_s_A; % of interest
       end
       
     case 'powsource'
