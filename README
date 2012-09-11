@@ -1,17 +1,13 @@
 A pipeline of MATLAB functions to run Fieldtrip for EEG/MEG analysis
 
-.bnd2lead.mni.warp: logical (optional. Instead of transforming the
-       brain into MNI coordinates, you can wrap the grid onto it) (if .vol.type == 'template')
-  ERPSOURC_SUBJ
-
 .data: path of /data1/projects/PROJ/subjects/
-  ERP_SUBJ, ERPSOURC_SUBJ
+  ERP_SUBJ, ERPSOURCE_SUBJ
 
 .derp: directory with ERP data
-  ERP_SUBJ, ERP_GRAND, ERPSOURC_SUBJ
+  ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ
    
 .endname: includes preprocessing steps (e.g. '_seldata_gclean_redef')
-  ERP_SUBJ, ERPSOURC_SUBJ
+  ERP_SUBJ, ERPSOURCE_SUBJ
 
 .erp: a structure with cfg to pass to ft_timelockanalysis
   ERP_SUBJ
@@ -23,38 +19,45 @@ A pipeline of MATLAB functions to run Fieldtrip for EEG/MEG analysis
   ERP_SUBJ
 
 .erpsource.areas: how to speficy peaks to analyze, 'manual' or 'erp_peak' (peaks from granderp)
-  ERPSOURC_SUBJ
+  ERPSOURCE_SUBJ
+
+.erpsource.atlas: index of the atlas to report labels
+  ERPSOURCE_GRAND
 
 .erpsource.bline: one number in s, the center of the covariance window
                      of the baseline (the window length depends on erp_peak) 
                      If empty, no baseline.
-  ERPSOURC_SUBJ
+  ERPSOURCE_SUBJ
 
 .erpsource.cond: cell with conditions (e.g. {'*cond1' '*cond2'})
-  ERPSOURC_SUBJ
+  ERPSOURCE_SUBJ
 
 .erpsource.erp: a structure with cfg to pass to ft_timelockanalysis
-  ERPSOURC_SUBJ
+  ERPSOURCE_SUBJ
 
 .erpsource.erp_peak: struct with multiple elements (if .erpsource.areas == 'manual')
             .name: string ('name_of_the_time_window')
             .time: scalar (center of the time window in s)
             .wndw: scalar (length of the time window in s)
-  ERPSOURC_SUBJ
+  ERPSOURCE_SUBJ
 
 .erpsource.keepfilter: logical, to keep filters or not (keep them only
                        if you plan to use erpstat or conn analyses)
-  ERPSOURC_SUBJ
+  ERPSOURCE_SUBJ
 
 .erpsource.lcmv: options that will be passed to beamformer. Examples:
             .lambda: regularization parameter of beamformer ('25%')
             .powmethod: power method of beamformer ('trace' or 'lambda1')
             .refdip: location of the dipole for computing coherence to.
-  ERPSOURC_SUBJ
+  ERPSOURCE_SUBJ
 
 .erpsource.refcomp: cell of string(s) of the comparison whose peaks
                     will be localized (one of the cells of cfg.gerp.comp) (if .erpsource.areas == 'manual')
-  ERPSOURC_SUBJ
+  ERPSOURCE_SUBJ
+
+.erpstat.cond: cell with conditions (e.g. {'*cond1' '*cond2'})
+  ERPSTAT_SUBJ
+
 
 .gerp.bline: two scalars indicating the time window for baseline in s (only for plotting, TODO: check if necessary for normal analysis as well)
   ERP_GRAND
@@ -70,13 +73,16 @@ A pipeline of MATLAB functions to run Fieldtrip for EEG/MEG analysis
   ERP_GRAND
 
 .log: name of the file and directory to save log
-  ERP_SUBJ, ERP_GRAND, ERPSOURC_SUBJ
+  ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ
 
 .mod: modality, MOD in /data1/projects/PROJ/subjects/0001/MOD/NICK/
-  ERP_SUBJ, ERPSOURC_SUBJ
+  ERP_SUBJ, ERPSOURCE_SUBJ
 
 .nick: NICK in /data1/projects/PROJ/subjects/0001/MOD/NICK/
-  ERP_SUBJ, ERP_GRAND, ERPSOURC_SUBJ
+  ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ
+
+.powsource.atlas: index of the atlas to report labels
+  POWSOURCE_GRAND
 
 .sens.layout: file with layout. It should be a mat containing 'layout'
               If empty, it does not plot topo.
@@ -85,16 +91,19 @@ A pipeline of MATLAB functions to run Fieldtrip for EEG/MEG analysis
 .subjall: index of the number of subjects
   ERP_GRAND
 
+.SUBJECTS_DIR: where the Freesurfer data is stored, like the environmental variable (if cfg.sourcespace == 'surface')
+
 .rec: REC in /data1/projects/PROJ/recordings/REC/
-  ERP_SUBJ, ERPSOURC_SUBJ
+  ERP_SUBJ, ERPSOURCE_SUBJ
 
 .rslt: directory images are saved into
   ERP_GRAND
 
-.vol.type: 'template' or subject-specific ('dipoli' or 'openmeeg')
-  ERPSOURC_SUBJ
+.vol.type: 'template' or subject-specific ('dipoli' or 'openmeeg' or 'bemcp')
+  ERPSOURCE_SUBJ, ERPSTAT_SUBJ, POWSOURCE_SUBJ, POWSTAT_SUBJ
 
 .vol.template: file with template containing vol, lead, sens (if .vol.type == 'template')
-  ERPSOURC_SUBJ
+  ERPSOURCE_SUBJ, ERPSTAT_SUBJ, POWSOURCE_SUBJ, POWSTAT_SUBJ
+ 
 
  
