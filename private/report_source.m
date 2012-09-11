@@ -1,12 +1,12 @@
 function [soupeak stat output] = report_source(cfg, gdat1, gdat2)
-%REPORTSOURCE get clusters in the comparison between two conditions or against baseline
+%REPORT_SOURCE get clusters in the comparison between two conditions or against baseline
 %
 % It only reports either positive or negative clusters. It does not make
 % sense to have both (how can one TFR element be associated with activation
 % and disactivation from baseline?)  
 % 
 % Use as:
-%   [soupeak stat output] = reportsource(cfg, gdat1, gdat2)
+%   [soupeak stat output] = report_source(cfg, gdat1, gdat2)
 %
 % CFG
 %  .clusterstatistics: 'maxsize' or 'max'
@@ -33,6 +33,7 @@ if ~isfield(cfg, 'numrandomization'); cfg.numrandomization = 1e5; end
 if ~isfield(cfg, 'clusteralpha'); cfg.clusteralpha = 0.05; end
 if ~isfield(cfg, 'maxvox'); cfg.maxvox = 50; end
 if ~isfield(cfg, 'clusterthr'); cfg.clusterthr = .5; end
+if ~isfield(cfg, 'atlas'); cfg.atlas = 1; end
 %---------------------------%
 
 %---------------------------%
@@ -177,14 +178,20 @@ for i = 1:numel(signcl)
     
   else
     pos = stat.pos(clmat,:);
-    atlas = mni2ba(pos);
+    atlas = mni2ba(pos, cfg.atlas);
     atlasname = fieldnames(atlas);
     atlas = {atlas.(atlasname{1})};
     atlas = atlas(~strcmp(atlas, ''));
-    [atlas, ~, i_atl] = unique(atlas);
+    
+    if isempty(atlas)
+      s_atlas = '';
+    else
+      [atlas, ~, i_atl] = unique(atlas);
+      s_atlas = atlas{mode(i_atl)};
+    end
     
     outtmp = sprintf('    %s cluster% 3.f: P = %4.3f, size =% 5.f, [% 5.1f % 5.1f % 5.1f], %s\n', ...
-      posnegtxt, i, clusters(i).prob, numel(clmat), mean(pos(:,1)), mean(pos(:,2)), mean(pos(:,3)), atlas{mode(i_atl)});
+      posnegtxt, i, clusters(i).prob, numel(clmat), mean(pos(:,1)), mean(pos(:,2)), mean(pos(:,3)), s_atlas);
     
   end
   
