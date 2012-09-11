@@ -153,8 +153,7 @@ for t = 1:numel(cfg.powstat.comp)
         output, cond);
       continue
     end
-    
-    ;
+
     %---------------------------%
     
   %---------------------------%
@@ -231,23 +230,14 @@ for t = 1:numel(cfg.powstat.comp)
     
     cfg1.grid.filter  = powsource_s_B{p}.avg.filter;
     
-    powstat_s_B{p} = ft_sourceanalysis(cfg1, freq);
-    powstat_s_B{p}.cfg = [];
-    powstat_s_B{p}.cfg.ntapers = sum(freq.cumtapcnt);
+    source{p} = ft_sourceanalysis(cfg1, freq);
+    source{p}.cfg = [];
+    source{p}.cfg.ntapers = sum(freq.cumtapcnt);
     %-----------------%
     
     %-----------------%
-    %-load MNI grid
-    if ~strcmp(cfg.vol.type, 'template') ...
-        && isfield(cfg, 'bnd2lead') && isfield(cfg.bnd2lead, 'mni') ...
-        && isfield(cfg.bnd2lead.mni, 'warp') && cfg.bnd2lead.mni.warp
-      
-      load(sprintf('%s/template/sourcemodel/standard_grid3d%dmm.mat', ...
-        fileparts(which('ft_defaults')), cfg.bnd2lead.mni.resolution), 'grid');
-      
-      grid = ft_convert_units(grid, 'mm');
-      powstat_s_B{p}.pos = grid.pos;
-    end
+    %-realign source
+    powstat_s_B(p,:) = realign_source(cfg, subj, source);
     %-----------------%
     %---------------------------%
     
@@ -256,20 +246,16 @@ for t = 1:numel(cfg.powstat.comp)
     %-----------------%
     cfg1.latency = freqparam.time;
     cfg1.grid.filter = powsource_s_A{p}.avg.filter;
-    powstat_s_A{p} = ft_sourceanalysis(cfg1, freq);
-    chan = powstat_s_A{p}.cfg.channel;
-    powstat_s_A{p}.cfg = [];
-    powstat_s_A{p}.cfg.channel = chan;
-    powstat_s_A{p}.cfg.ntapers = sum(freq.cumtapcnt);
+    source{p} = ft_sourceanalysis(cfg1, freq);
+    chan = source{p}.cfg.channel;
+    source{p}.cfg = [];
+    source{p}.cfg.channel = chan;
+    source{p}.cfg.ntapers = sum(freq.cumtapcnt);
     %-----------------%
     
     %-----------------%
-    %-load MNI grid
-    if ~strcmp(cfg.vol.type, 'template') ...
-        && isfield(cfg, 'bnd2lead') && isfield(cfg.bnd2lead, 'mni') ...
-        && isfield(cfg.bnd2lead.mni, 'warp') && cfg.bnd2lead.mni.warp
-      powstat_s_A{p}.pos = grid.pos;
-    end
+    %-realign source
+    powstat_s_A(p,:) = realign_source(cfg, subj, source);
     %-----------------%
     %---------------------------%
     
