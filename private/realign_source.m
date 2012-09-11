@@ -1,5 +1,6 @@
 function sourceout = realign_source(cfg, subj, source)
 %REALIGN_SOURCE realign to MNI space or to freesurfer sphere
+% It also transforms the source into a cell
 % 
 % To match the location of the sources, there are three approaches (defined
 % by cfg.sourcespace)
@@ -25,8 +26,8 @@ switch cfg.sourcespace
       fileparts(which('ft_defaults')), cfg.bnd2lead.mni.resolution), 'grid');
     
     grid = ft_convert_units(grid, 'mm');
-    sourceout = source;
-    sourceout.pos = grid.pos;
+    sourceout{1} = source;
+    sourceout{1}.pos = grid.pos;
     
     return
     %-------------------------------------%
@@ -80,5 +81,8 @@ switch cfg.sourcespace
     end
     %---------------------------%
     %-------------------------------------%
+    
+  otherwise
+    sourceout{1} = source;
     
 end
