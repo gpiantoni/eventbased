@@ -78,7 +78,7 @@ end
 [vol, lead, sens] = load_headshape(cfg, subj);
 %---------------------------%
 
-pow_peak = getpeak(cfg, 'pow');
+pow_peak = get_peak(cfg, 'pow');
 
 %-------------------------------------%
 %-loop over conditions
@@ -181,6 +181,9 @@ for k = 1:numel(cfg.powsource.cond)
       %-realign source
       powsource_s_B(p,:) = realign_source(cfg, subj, source);
       %-----------------%
+      
+    else
+      powsource_s_B = [];
       
     end
     %---------------------------%

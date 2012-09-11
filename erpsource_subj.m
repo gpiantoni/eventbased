@@ -12,12 +12,13 @@ function erpsource_subj(cfg, subj)
 %  .derp: directory for ERP data
 %  .erpsource.cond: cell with conditions (e.g. {'*cond1' '*cond2'})
 %
-%  .vol.type: 'template' or subject-specific ('dipoli' or 'openmeeg')
-%    if 'template'
+%  .vol.type: 'template' or subject-specific ('dipoli' or 'openmeeg' or 'bemcp')
+%  (if cfg.vol.type == 'template')
 %      .vol.template: file with template containing vol, lead, sens
-%    if ~ 'template'
-%      .bnd2lead.mni.warp: logical (optional. Instead of transforming the
-%      brain into MNI coordinates, you can wrap the grid onto it)
+%
+%  .sourcespace: 'surface' 'volume' 'volume_warp'
+%  (if cfg.sourcespace == 'surface')
+%  .SUBJECTS_DIR: where the Freesurfer data is stored, like the environmental variable
 %
 %  .erpsource.areas: how to speficy peaks to analyze, 'manual' or 'erp_peak' (peaks from granderp)
 %  (if .erpsource.areas == 'manual')
@@ -78,7 +79,7 @@ end
 [vol, lead, sens] = load_headshape(cfg, subj);
 %---------------------------%
 
-erp_peak = getpeak(cfg, 'erp');
+erp_peak = get_peak(cfg, 'erp');
 
 %-------------------------------------%
 %-loop over conditions
@@ -95,8 +96,7 @@ for k = 1:numel(cfg.erpsource.cond)
     continue
   end
 
-  erpsource_s_A = [];
-  erpsource_s_B = [];
+  clear erpsource_s_A erpsource_s_B
   outputfile = sprintf('erpsource_%04d_%s', subj, condname);
   %---------------------------%
   
@@ -160,6 +160,9 @@ for k = 1:numel(cfg.erpsource.cond)
       %-realign source
       erpsource_s_B(p,:) = realign_source(cfg, subj, source);
       %-----------------%
+      
+    else
+      erpsource_s_B = [];
       
     end
     %---------------------------%
