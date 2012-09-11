@@ -28,6 +28,7 @@ function erpsource_grand(cfg)
 %                           it can be a string in format '5%' to take top 5 voxels and put them in a cluster.
 %  .erpsource.maxvox: max number of significant voxels to be used in soupeak
 %  .erpsource.clusterthr: threshold to report clusters in output
+%  .erpsource.atlas: index of the atlas to report labels
 %
 %  .rslt: directory images are saved into
 %
@@ -128,7 +129,7 @@ for k = 1:numel(cfg.erpsource.cond)
     %--------%
     %-do stats and figure
     h = figure;
-    [soupos erpsource{p} outtmp] = reportsource(cfg.erpsource, gerpsource, gerpsouPre);
+    [soupos erpsource{p} outtmp] = report_source(cfg.erpsource, gerpsource, gerpsouPre);
     erpsource_peak(p).pos = soupos;
     erpsource_peak(p).center = mean(soupos,1);
     erpsource_peak(p).name = erp_peak(p).name;

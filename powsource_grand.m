@@ -37,6 +37,7 @@ function powsource_grand(cfg)
 %                           it can be a string in format '5%' to take top 5 voxels and put them in a cluster.
 %  .powsource.maxvox: max number of significant voxels to be used in soupeak
 %  .powsource.clusterthr: threshold to report clusters in output
+%  .powsource.atlas: index of the atlas to report labels
 % 
 %-Plot
 %  .rslt: directory images are saved into
