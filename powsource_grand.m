@@ -13,6 +13,7 @@ function powsource_grand(cfg)
 %  .sourcespace: 'surface' 'volume' 'volume_warp'
 %  (if cfg.sourcespace == 'surface')
 %  .SUBJECTS_DIR: where the Freesurfer data is stored (like the environmental variable)
+%  .surfdownsample: ratio of downsampling of the surface
 %
 %-Statistics
 %  The comparison is always against baseline. If you want to compare
@@ -76,16 +77,12 @@ pow_peak = get_peak(cfg, 'pow');
 %-prepare two hemisphere if surface
 if strcmp(cfg.sourcespace, 'surface')
   hemi = {'lh' 'rh'};
+  if ~isfield(cfg, 'surfdownsample'); cfg.surfdownsample = 0.01; end
   
   %-----------------%
-  %-average sphere info
+  %-mesh for stats and plotting
   sdir = sprintf('%s%s/%s', cfg.SUBJECTS_DIR, 'fsaverage', 'surf/');
-  for h = 1:numel(hemi)
-    avgsphere{h} = ft_read_headshape([sdir hemi{h} '.' 'sphere.reg']);
-    avgsphere{h}.inside = true(size(avgsphere{h}.pnt,1),1);
-    
-    template{h} = ft_read_headshape([sdir hemi{h} '.' 'pial']);
-  end
+  [avgsphere, template] = read_avgsurf(sdir, cfg.surfdownsample);
   %-----------------%
   
 else
@@ -151,15 +148,16 @@ for k = 1:numel(cfg.powsource.cond)
       
       %-----------------%
       %-grand average
-      cfg1 = [];
-      cfg1.keepindividual = 'yes';
-      cfg1.parameter = cfg.powsource.parameter;
-      gpowsouPre = ft_sourcegrandaverage(cfg1, data{:,1,p,h});
-      gpowsource = ft_sourcegrandaverage(cfg1, data{:,2,p,h});
+      tmpcfg = [];
+      tmpcfg.keepindividual = 'yes';
+      tmpcfg.parameter = cfg.powsource.parameter;
+      gpowsouPre = ft_sourcegrandaverage(tmpcfg, data{:,1,p,h});
+      gpowsource = ft_sourcegrandaverage(tmpcfg, data{:,2,p,h});
       %-----------------%
       
       %-----------------%
       %-do stats
+      cfg.powsource.channeighbstructmat = avgsphere{h}.neigh;
       [soupos powsource{p,h} outtmp] = report_source(cfg.powsource, gpowsource, gpowsouPre);
       powsource_peak(p,h).pos = soupos;
       powsource_peak(p,h).center = mean(soupos,1);
@@ -173,10 +171,10 @@ for k = 1:numel(cfg.powsource.cond)
     %-plot source
     h = figure;
     if strcmp(cfg.sourcespace, 'surface')
-      plot_surface(powsource(p,:), template)
+      plot_surface(powsource(p,:), template, 'stat')
       
     else
-      plot_volume(powsource(p, :), template)
+      plot_volume(powsource(p, :), template, 'stat')
       
     end
     

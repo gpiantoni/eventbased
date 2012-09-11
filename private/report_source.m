@@ -33,6 +33,7 @@ if ~isfield(cfg, 'numrandomization'); cfg.numrandomization = 1e5; end
 if ~isfield(cfg, 'clusteralpha'); cfg.clusteralpha = 0.05; end
 if ~isfield(cfg, 'maxvox'); cfg.maxvox = 50; end
 if ~isfield(cfg, 'clusterthr'); cfg.clusterthr = .5; end
+if ~isfield(cfg, 'minnbchan'); cfg.minnbchan = 0; end
 if ~isfield(cfg, 'atlas'); cfg.atlas = 1; end
 %---------------------------%
 
@@ -53,40 +54,41 @@ end
 
 %-------------------------------------%
 %-calc clusters
-cfg3 = [];
-cfg3.method      = 'montecarlo';
+tmpcfg = [];
+tmpcfg.method      = 'montecarlo';
 if strcmp(cfg.parameter, 'coh')
-  cfg3.statistic   = 'diff';
-  cfg3.clusterthreshold = 'nonparametric_common';
+  tmpcfg.statistic   = 'diff';
+  tmpcfg.clusterthreshold = 'nonparametric_common';
 else
-  cfg3.statistic   = 'depsamplesT';
+  tmpcfg.statistic   = 'depsamplesT';
 end
-cfg3.correctm    = 'cluster';
-cfg3.clusterstatistic = cfg.clusterstatistics; % 'maxsize' or 'max' ('max' might be better for focal sources)
-cfg3.numrandomization = cfg.numrandomization;
-cfg3.design = [ones(1,nsubj) ones(1,nsubj).*2; 1:nsubj 1:nsubj];
-cfg3.ivar = 1;
-cfg3.uvar = 2;
-cfg3.feedback = 'etf';
+tmpcfg.correctm    = 'cluster';
+tmpcfg.clusterstatistic = cfg.clusterstatistics; % 'maxsize' or 'max' ('max' might be better for focal sources)
+tmpcfg.numrandomization = cfg.numrandomization;
+tmpcfg.design = [ones(1,nsubj) ones(1,nsubj).*2; 1:nsubj 1:nsubj];
+tmpcfg.ivar = 1;
+tmpcfg.uvar = 2;
+tmpcfg.feedback = 'etf';
 
-cfg3.parameter = cfg.parameter;
+tmpcfg.parameter = cfg.parameter;
 if isfield(gdat1, 'dim')
-  cfg3.dim = gdat1.dim;
+  tmpcfg.dim = gdat1.dim;
   issurf = false;
   
 else
-  cfg3.dim = size(gdat1.avg.pow);
+  tmpcfg.dim = size(gdat1.avg.pow);
+  tmpcfg.channeighbstructmat = cfg.channeighbstructmat;
   issurf = true;
   
 end
-
-cfg3.alpha = 0.05;
+tmpcfg.minnbchan = cfg.minnbchan;
+tmpcfg.alpha = 0.05;
 
 %---------------------------%
 %-get value for clusteralpha
 if isnumeric(cfg.clusteralpha)
   
-  cfg3.clusteralpha = cfg.clusteralpha;
+  tmpcfg.clusteralpha = cfg.clusteralpha;
   
 elseif ischar(cfg.clusteralpha) && cfg.clusteralpha(end)=='%'
   
@@ -108,13 +110,13 @@ elseif ischar(cfg.clusteralpha) && cfg.clusteralpha(end)=='%'
   %-------%
   %-threshold as p-value
   df = size(x1,2)-1;
-  cfg3.clusteralpha = 2 * (1 - tcdf(t_thr, df));
+  tmpcfg.clusteralpha = 2 * (1 - tcdf(t_thr, df));
   %-------%
   
   %-------%
   %-output
   outtmp = sprintf('using adaptive threshold at %s, which corresponds to t-stat % 6.4f, P-value % 10.2e\n', ...
-    cfg.clusteralpha, t_thr, cfg3.clusteralpha);
+    cfg.clusteralpha, t_thr, tmpcfg.clusteralpha);
   outtmp = regexprep(outtmp, '%', '%%'); % otherwise fprint gets confused for normal % sign
   output = [output outtmp];
   %-------%
@@ -124,7 +126,7 @@ elseif ischar(cfg.clusteralpha) && cfg.clusteralpha(end)=='%'
 end
 %---------------------------%
 
-stat = ft_sourcestatistics(cfg3, gdat1, gdat2);
+stat = ft_sourcestatistics(tmpcfg, gdat1, gdat2);
 %-------------------------------------%
 
 %-------------------------------------%

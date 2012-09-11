@@ -1,4 +1,4 @@
-function plot_surface(stat, surfplot)
+function plot_surface(stat, surfplot, toplot)
 %PLOT_SURFACE plot surface
 %
 % TODO: allow for masking
@@ -9,7 +9,7 @@ for i = 1:2 % viewpoint
     cnt = cnt + 1;
     subplot(2,2, cnt)
     
-    ft_plot_mesh(surfplot{h}, 'edgecolor', 'none', 'vertexcolor', stat{h}.stat)
+    ft_plot_mesh(surfplot{h}, 'edgecolor', 'none', 'vertexcolor', double(stat{h}.(toplot)))
     set(gca, 'clim', [-3 3]);
     
     if ismember(cnt, [1 4])

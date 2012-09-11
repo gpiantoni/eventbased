@@ -1,15 +1,15 @@
-function plot_volume(stat, template)
+function plot_volume(stat, template, toplot)
 %PLOT_VOLUME plot significant voxels
 %
 % TODO: clean-up this  function, plot image as mask
 
 tmpcfg = [];
-tmpcfg.parameter = 'stat';
+tmpcfg.parameter = toplot;
 souinterp = ft_sourceinterpolate(tmpcfg, stat{1}, template);
 
 tmpcfg = [];
 tmpcfg.method = 'slice';
-tmpcfg.funparameter = 'stat';
+tmpcfg.funparameter = toplot;
 tmpcfg.funcolorlim = [-2.5 2.5];
 ft_sourceplot(tmpcfg, souinterp)
 

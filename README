@@ -93,6 +93,9 @@ A pipeline of MATLAB functions to run Fieldtrip for EEG/MEG analysis
 
 .SUBJECTS_DIR: where the Freesurfer data is stored, like the environmental variable (if cfg.sourcespace == 'surface')
 
+.surfdownsample: ratio of downsampling of the surface (if cfg.sourcespace == 'surface')
+  POWSOURCE_GRAND
+
 .rec: REC in /data1/projects/PROJ/recordings/REC/
   ERP_SUBJ, ERPSOURCE_SUBJ
 

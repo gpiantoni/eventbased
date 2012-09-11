@@ -10,9 +10,14 @@ function erpsource_grand(cfg)
 %  .derp: directory with ERP data
 %  .erpsource.cond: cell to make averages
 %
+%  .sourcespace: 'surface' 'volume' 'volume_warp'
+%  (if cfg.sourcespace == 'surface')
+%  .SUBJECTS_DIR: where the Freesurfer data is stored (like the environmental variable)
+%  .surfdownsample: ratio of downsampling of the surface
+%
 %-Statistics
 %  The comparison is always against baseline. If you want to compare
-%  conditions, use powstats_subj.
+%  conditions, use erpstats_subj.
 %
 %  .erpsource.areas: how to speficy peaks to analyze, 'manual' or 'erp_peak' (peaks from granderp)
 %    if 'manual'
@@ -31,10 +36,6 @@ function erpsource_grand(cfg)
 %  .erpsource.atlas: index of the atlas to report labels
 %
 %  .rslt: directory images are saved into
-%
-% Options if you want to create significance mask
-%  .erpsource.nifti: directory and initial part of the name where you want to save the masks
-%  .mriref: template for mask ('/usr/share/data/fsl-mni152-templates/MNI152_T1_1mm_brain.nii.gz')
 %
 % IN
 %  [cfg.derp 'erpsource_SUBJ_COND'] 'erpsource_subj_A': source data for period of interest for each subject
@@ -61,33 +62,34 @@ output = sprintf('%s began at %s on %s\n', ...
 tic_t = tic;
 %---------------------------%
 
-erp_peak = getpeak(cfg, 'erp');
+erp_peak = get_peak(cfg, 'erp');
 
 %---------------------------%
 %-prepare two hemisphere if surface
 if strcmp(cfg.sourcespace, 'surface')
   hemi = {'lh' 'rh'};
+  if ~isfield(cfg, 'surfdownsample'); cfg.surfdownsample = 0.01; end
   
   %-----------------%
-  %-average sphere info
+  %-mesh for stats and plotting
   sdir = sprintf('%s%s/%s', cfg.SUBJECTS_DIR, 'fsaverage', 'surf/');
-  for h = 1:numel(hemi)
-    avgsphere{h} = ft_read_headshape([sdir hemi{h} '.' 'sphere.reg']);
-    avgsphere{h}.inside = true(size(avgsphere{h}.pnt,1),1);
-    
-    surfplot{h} = ft_read_headshape([sdir hemi{h} '.' 'pial']);
-  end
+  [avgsphere, template] = read_avgsurf(sdir, cfg.surfdownsample);
   %-----------------%
   
 else
   hemi = {''}; % no hemisphere
+  
+  %-----------------%
+  %-load template
+  template = ft_read_mri(cfg.template.volume);
+  %-----------------%
   
 end
 %---------------------------%
 
 %---------------------------------------------------------%
 %-statistics for main effects
-%---------------------------%
+%-----------------------------------------------%
 %-loop over conditions
 for k = 1:numel(cfg.erpsource.cond)
   cond     = cfg.erpsource.cond{k};
@@ -109,64 +111,77 @@ for k = 1:numel(cfg.erpsource.cond)
   end
   %-----------------%
   
-  %-----------------%
+  %-------------------------------------%
   %-loop over peaks
   erpsource_peak = [];
   erpsource = [];
-  
   for p = 1:numel(erp_peak)
     output = sprintf('%s\n%s:\n', output, erp_peak(p).name);
     
-    %-----------------%
-    %-grand average
-    cfg1 = [];
-    cfg1.keepindividual = 'yes';
-    cfg1.parameter = cfg.erpsource.parameter;
-    gerpsouPre = ft_sourcegrandaverage(cfg1, data{:,1,p});
-    gerpsource = ft_sourcegrandaverage(cfg1, data{:,2,p});
-    %-----------------%
+    %---------------------------%
+    %-loop over hemisphere
+    for h = 1:numel(hemi)
+      
+      %-----------------%
+      %-interpolate to average sphere
+      if strcmp(cfg.sourcespace, 'surface')
+        tmpcfg = [];
+        %tmpcfg.method = TODO: it's possible to specify other interpolation methods
+        tmpcfg.parameter = ['avg.' cfg.erpsource.parameter];
+        
+        for i1 = 1:size(data,1)
+          for i2 = 1:size(data,2)
+            data{i1,i2, p, h} = ft_sourceinterpolate(tmpcfg, data{i1,i2,p,h}, avgsphere{h});
+          end
+        end
+      end
+      %-----------------%
+      
+      %-----------------%
+      %-grand average
+      tmpcfg = [];
+      tmpcfg.keepindividual = 'yes';
+      tmpcfg.parameter = cfg.erpsource.parameter;
+      gerpsouPre = ft_sourcegrandaverage(tmpcfg, data{:,1,p,h});
+      gerpsource = ft_sourcegrandaverage(tmpcfg, data{:,2,p,h});
+      %-----------------%
+      
+      %-----------------%
+      %-do stats
+      cfg.erpsource.channeighbstructmat = avgsphere{h}.neigh;
+      [soupos erpsource{p,h} outtmp] = report_source(cfg.erpsource, gerpsource, gerpsouPre);
+      erpsource_peak(p,h).pos = soupos;
+      erpsource_peak(p,h).center = mean(soupos,1);
+      erpsource_peak(p,h).name = erp_peak(p).name;
+      output = [output outtmp];
+      %-----------------%
+      
+    end
     
-    %--------%
-    %-do stats and figure
+    %-----------------%
+    %-plot source
     h = figure;
-    [soupos erpsource{p} outtmp] = report_source(cfg.erpsource, gerpsource, gerpsouPre);
-    erpsource_peak(p).pos = soupos;
-    erpsource_peak(p).center = mean(soupos,1);
-    erpsource_peak(p).name = erp_peak(p).name;
-    output = [output outtmp];
-    %--------%
+    if strcmp(cfg.sourcespace, 'surface')
+      plot_surface(erpsource(p,:), template, 'stat')
+      
+    else
+      plot_volume(erpsource(p, :), template, 'stat')
+      
+    end
     
     %--------%
     pngname = sprintf('gerp_peak_%s_%s', condname, erp_peak(p).name);
-    saveas(gcf, [cfg.log filesep pngname '.png'])
-    close(gcf); drawnow
+    saveas(h, [cfg.log filesep pngname '.png'])
+    close(h); drawnow
     
     [~, logfile] = fileparts(cfg.log);
     system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
     %--------%
-    
-    %--------%
-    %-prepare nifti image
-    if isfield(cfg.erpsource, 'nifti') && ~isempty(cfg.erpsource.nifti)
-      
-      dtimri = ft_read_mri(cfg.mriref);
-      
-      cfg1 = [];
-      cfg1.parameter = 'image';
-      souinterp = ft_sourceinterpolate(cfg1, erpsource{p}, dtimri);
-      
-      mriname = [cfg.erpsource.nifti '_' condname '_' erpsource_peak(p).name];
-      cfg1 = [];
-      cfg1.parameter = 'image';
-      cfg1.filename = mriname;
-      ft_sourcewrite(cfg1, souinterp);
-      gzip([mriname '.nii'])
-      delete([mriname '.nii'])
-    end
-    %--------%
+    %-----------------%
+    %---------------------------%
     
   end
-  %-----------------%
+  %-------------------------------------%
   
   %-----------------%
   %-save
