@@ -154,7 +154,6 @@ for k = 1:numel(cfg.powsource.cond)
     
     if cfg.powsource.keepfilter
       cfgsou.dics.keepfilter = 'yes';
-      cfgsou.dics.realfilter = 'yes';
       if isfield(cfgpow.dics, 'refdip')
         cfgsou.dics = rmfield(cfgsou.dics, 'refdip');
       end

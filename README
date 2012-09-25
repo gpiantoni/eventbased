@@ -58,7 +58,6 @@ A pipeline of MATLAB functions to run Fieldtrip for EEG/MEG analysis
 .erpstat.cond: cell with conditions (e.g. {'*cond1' '*cond2'})
   ERPSTAT_SUBJ
 
-
 .gerp.bline: two scalars indicating the time window for baseline in s (only for plotting, TODO: check if necessary for normal analysis as well)
   ERP_GRAND
 
@@ -92,9 +91,10 @@ A pipeline of MATLAB functions to run Fieldtrip for EEG/MEG analysis
   ERP_GRAND
 
 .SUBJECTS_DIR: where the Freesurfer data is stored, like the environmental variable (if cfg.sourcespace == 'surface')
+  ERPSOURCE_GRAND, POWSOURCE_GRAND
 
 .surfdownsample: ratio of downsampling of the surface (if cfg.sourcespace == 'surface')
-  POWSOURCE_GRAND
+  ERPSOURCE_GRAND, POWSOURCE_GRAND
 
 .rec: REC in /data1/projects/PROJ/recordings/REC/
   ERP_SUBJ, ERPSOURCE_SUBJ
