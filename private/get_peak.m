@@ -62,15 +62,20 @@ switch type
     if strcmp(cfg.powsource.areas, 'manual')
       pow_peak = cfg.powsource.pow_peak;
       
-    elseif strcmp(cfg.powsource.areas, 'pow_peak')
-      peakname = regexprep(cfg.powsource.refcomp, '*', '');
-      load([cfg.dpow 'pow_peak_' peakname], 'pow_peak')
+    elseif strcmp(cfg.powsource.areas, 'pow_peak') ...
+        || strcmp(cfg.powsource.areas, 'powcorr_peak')
       
-    elseif strcmp(cfg.powsource.areas, 'powcorr_peak')
-      peakname = regexprep(cfg.powsource.refcomp, '*', '');
-      load([cfg.dpow 'powcorrpeak_' peakname], 'powcorrpeak')
-      pow_peak = powcorrpeak;
+      peakname = regexprep(cfg.powsource.refcomp{1}, '*', '');
+      if numel(cfg.powsource.refcomp) == 2;
+        peakname = [peakname '_' regexprep(cfg.powsource.refcomp{2}, '*', '')];
+      end
       
+      if strcmp(cfg.powsource.areas, 'pow_peak')
+        load([cfg.dpow 'pow_peak_' peakname], 'pow_peak')
+      else
+        load([cfg.dpow 'powcorr_peak_' peakname], 'powcorr_peak')
+        pow_peak = powcorr_peak;
+      end
     end
     
     peaks = pow_peak;
