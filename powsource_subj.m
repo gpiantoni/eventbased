@@ -30,7 +30,7 @@ function powsource_subj(cfg, subj)
 %      .powsource.pow_peak(1).band = 4; % width of the frequency band
 %    if 'pow_peak' or 'powcorr_peak'
 %      .powsource.refcomp: cell of string(s) of the comparison whose peaks
-%                     will be localized (one of the cells of cfg.gpow.comp or cfg.gpowcorr.comp))
+%                    will be localized (one of the cells of cfg.gpow.comp or cfg.gpowcorr.comp))
 %
 %  .powsource.bline: one number in s, the center of the covariance window
 %                    of the baseline (the window length depends on pow_peak)

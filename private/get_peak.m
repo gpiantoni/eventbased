@@ -3,9 +3,19 @@ function peaks = get_peak(cfg, type)
 % Use as:
 %  peaks = get_peak(cfg, type)
 %
-%  CFG
+%  CFG with type == 'erp'
+%  .erpsource.areas: how to speficy peaks to analyze, 'manual' or 'erp_peak'
+%          (peaks from granderp)
+%    if 'manual'
+%      .erpsource.erp_peak(1).name: string ('name_of_the_time_window')
+%      .erpsource.erp_peak(1).time: scalar (center of the time window in s)
+%      .erpsource.erp_peak(1).wndw: scalar (length of the time window in s)
+%    if 'erp_peak'
+%      .erp.refcomp: string of the comparison whose peaks will be localized
+%
+%  CFG with type == 'pow'
 %  .powsource.areas: how to speficy peaks to analyze, 'manual' or 'pow_peak'
-%          (peaks from grandpow) or 'powcorrpeak' (peaks from grandpowcorr)
+%          (peaks from grandpow) or 'powcorr_peak' (peaks from grandpowcorr)
 %    if 'manual'
 %      .powsource.pow_peak(1).name: string ('name_of_the_time_window')
 %      .powsource.pow_peak(1).time: scalar (center of the time window in s)
@@ -53,11 +63,11 @@ switch type
       pow_peak = cfg.powsource.pow_peak;
       
     elseif strcmp(cfg.powsource.areas, 'pow_peak')
-      peakname = regexprep(cfg.pow.refcomp, '*', '');
+      peakname = regexprep(cfg.powsource.refcomp, '*', '');
       load([cfg.dpow 'pow_peak_' peakname], 'pow_peak')
       
-    elseif strcmp(cfg.powsource.areas, 'powcorrpeak')
-      peakname = regexprep(cfg.powcorr.refcomp, '*', '');
+    elseif strcmp(cfg.powsource.areas, 'powcorr_peak')
+      peakname = regexprep(cfg.powsource.refcomp, '*', '');
       load([cfg.dpow 'powcorrpeak_' peakname], 'powcorrpeak')
       pow_peak = powcorrpeak;
       
