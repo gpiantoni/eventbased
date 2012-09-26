@@ -131,6 +131,8 @@ for k = 1:numel(cfg.powsource.cond)
     %-loop over hemisphere
     for h = 1:numel(hemi)
       
+      output = [output hemi{h} ' '];
+      
       %-----------------%
       %-interpolate to average sphere
       if strcmp(cfg.sourcespace, 'surface')
