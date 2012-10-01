@@ -128,7 +128,7 @@ for i = 1:numel(allfile)
         output = [output outtmp];
         continue
       else
-        outtmp = sprintf('   cond ''%s'', final trials:% 4d (total trials:% 4d, discarded: % 4d))\n', ...
+        outtmp = sprintf('   cond ''%s'', final trials:% 4d (total trials:% 4d, discarded: % 4d)\n', ...
           cond(c).name, numel(find(goodtrl)), size(cond(c).trl,1), numel(find(~goodtrl)));
         output = [output outtmp];
       end
