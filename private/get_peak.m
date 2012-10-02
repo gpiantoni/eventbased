@@ -1,84 +1,67 @@
-function peaks = get_peak(cfg, type)
-%GETPEAK simply get the peaks for the analysis, similar for ERP and POW
+function peaks = get_peak(info, peak, type)
+%GET_PEAK get the peaks for the source analysis
 % Use as:
-%  peaks = get_peak(cfg, type)
+%  peaks = get_peak(info, peak, type)
 %
-%  CFG with type == 'erp'
-%  .erpsource.areas: how to speficy peaks to analyze, 'manual' or 'erp_peak'
-%          (peaks from granderp)
-%    if 'manual'
-%      .erpsource.erp_peak(1).name: string ('name_of_the_time_window')
-%      .erpsource.erp_peak(1).time: scalar (center of the time window in s)
-%      .erpsource.erp_peak(1).wndw: scalar (length of the time window in s)
-%    if 'erp_peak'
-%      .erp.refcomp: string of the comparison whose peaks will be localized
+%-with ERP
+% INFO
+%  .derp: directory with ERP data
+% 
+% PEAK: description of the peaks
+%  - manually, as struct
+%    .name: 'name_of_the_peak'
+%    .time: center of the time window in s
+%    .wndw: length of the time window in s
+%  - automatically, as comparison of interest (one cell of cfg.opt.comp)
 %
-%  CFG with type == 'pow'
-%  .powsource.areas: how to speficy peaks to analyze, 'manual' or 'pow_peak'
-%          (peaks from grandpow) or 'powcorr_peak' (peaks from grandpowcorr)
-%    if 'manual'
-%      .powsource.pow_peak(1).name: string ('name_of_the_time_window')
-%      .powsource.pow_peak(1).time: scalar (center of the time window in s)
-%      .powsource.pow_peak(1).wndw: scalar (length of the time window in s)
-%      .powsource.pow_peak(1).freq = 10; % center of the frequency
-%      .powsource.pow_peak(1).band = 4; % width of the frequency band
-%    if 'pow_peak'
-%      .pow.refcomp: string of the comparison whose peaks will be localized
-%    if 'powcorrpeak'
-%      .powcorr.refcomp: string of the comparison whose peaks will be localized
+%-with POW or POWCORR
+% INFO
+%  .dpow: directory with POW data
+% 
+% PEAK: description of the peaks
+%  - manually, as struct
+%    .name: 'name_of_the_peak'
+%    .time: center of the time window in s
+%    .wndw: length of the time window in s
+%    .freq: center of the frequency in Hz
+%    .band: width of the frequency band in Hz
+%  - automatically, as comparison of interest (one cell of cfg.opt.comp)
 %
 %  TYPE
-%  'erp' for erp_peaks or 'pow' for pow_peaks
+%  'erp' for erp_peaks, 'pow' for pow_peaks, 'powcorr' for powcorr_peaks
 %
 %  PEAKS
 %  erp_peak with time and window info
-%  pow_peak with time and window info, freq and band info.
+%  pow_peak, powcorr_peak with time and window info, freq and band info.
 %
 % Part of EVENTBASED/PRIVATE
 
-switch type
-  case 'erp'
-    %---------------------------%
-    %-use predefined or ERP-peaks for areas of interest
-    switch cfg.erpsource.areas
-      case 'manual'
-        erp_peak = cfg.erpsource.erp_peak;
-        
-      case 'erp_peak'
-        peakname = regexprep(cfg.erpsource.refcomp{1}, '*', '');
-        if numel(cfg.erpsource.refcomp) == 2;
-          peakname = [peakname '_' regexprep(cfg.erpsource.refcomp{2}, '*', '')];
-        end
-        load([cfg.derp 'erp_peak_' peakname], 'erp_peak')
-        
-    end
-    
-    peaks = erp_peak;
-    %---------------------------%
-    
-  case 'pow'
-    %---------------------------%
-    %-use predefined or power-peaks for areas of interest
-    if strcmp(cfg.powsource.areas, 'manual')
-      pow_peak = cfg.powsource.pow_peak;
+if isstruct(peak)
+  peaks = peak;
+  
+else
+  
+  %---------------------------%
+  %-read from file
+  peakname = regexprep(peak{1}, '*', '');
+  if numel(peak) == 2;
+    peakname = [peakname '_' regexprep(peak{2}, '*', '')];
+  end
+  
+  switch type
+    case 'erp'
+      load([info.derp 'erp_peak_' peakname], 'erp_peak')
+      peaks = erp_peak;
       
-    elseif strcmp(cfg.powsource.areas, 'pow_peak') ...
-        || strcmp(cfg.powsource.areas, 'powcorr_peak')
+    case 'pow'
+      load([info.dpow 'pow_peak_' peakname], 'pow_peak')
+      peaks = pow_peak;
       
-      peakname = regexprep(cfg.powsource.refcomp{1}, '*', '');
-      if numel(cfg.powsource.refcomp) == 2;
-        peakname = [peakname '_' regexprep(cfg.powsource.refcomp{2}, '*', '')];
-      end
+    case 'powcorr'
+      load([info.dpow 'powcorr_peak_' peakname], 'powcorr_peak')
+      peaks = powcorr_peak;
       
-      if strcmp(cfg.powsource.areas, 'pow_peak')
-        load([cfg.dpow 'pow_peak_' peakname], 'pow_peak')
-      else
-        load([cfg.dpow 'powcorr_peak_' peakname], 'powcorr_peak')
-        pow_peak = powcorr_peak;
-      end
-    end
-    
-    peaks = pow_peak;
-    %---------------------------%
-    
+  end
+  %---------------------------%
+  
 end

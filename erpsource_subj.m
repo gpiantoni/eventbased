@@ -1,36 +1,20 @@
 function erpsource_subj(info, opt, subj)
-%ERPSOURCE_SUBJ: identify sources from erp peaks using LCMV
+%ERPSOURCE_SUBJ: sources of ERP using LCMV for each subject
 %
-% CFG
-%  .data: path of /data1/projects/PROJ/subjects/
-%  .rec: REC in /data1/projects/PROJ/recordings/REC/
-%  .nick: NICK in /data1/projects/PROJ/subjects/0001/MOD/NICK/
-%  .mod: modality, MOD in /data1/projects/PROJ/subjects/0001/MOD/NICK/
-%  .endname: includes preprocessing steps (e.g. '_seldata_gclean_redef')
-%
+% INFO
 %  .log: name of the file and directory to save log
 %  .derp: directory for ERP data
-%  .erpsource.cond: cell with conditions (e.g. {'*cond1' '*cond2'})
 %
-%  .vol.type: 'template' or subject-specific ('dipoli' or 'openmeeg' or 'bemcp')
-%  (if cfg.vol.type == 'template')
-%      .vol.template: file with template containing vol, lead, sens
+% CFG.OPT
+%  .cond*: cell with conditions (e.g. {'*cond1' '*cond2'})
+%  .erp: a structure with cfg to pass to ft_timelockanalysis 
+%  .keepfilter: keep filters or not, keep them only if you plan to use erpstat or conn analyses (logical)
+
 %
-%  .sourcespace: 'surface' 'volume' 'volume_warp'
-%  (if cfg.sourcespace == 'surface')
-%  .SUBJECTS_DIR: where the Freesurfer data is stored, like the environmental variable
-%
-%  .erpsource.areas: how to speficy peaks to analyze, 'manual' or 'erp_peak' (peaks from granderp)
-%  (if .erpsource.areas == 'manual')
-%  .erpsource.erp_peak: struct with multiple elements 
-%              .name: string ('name_of_the_time_window')
-%              .time: scalar (center of the time window in s)
-%              .wndw: scalar (length of the time window in s)
-%  (if .erpsource.areas == 'erp_peak')
 %  .erpsource.refcomp: cell of string(s) of the comparison whose peaks
 %                     will be localized (one of the cells of cfg.gerp.comp)
 %
-%  .erpsource.erp: a structure with cfg to pass to ft_timelockanalysis
+
 %  .erpsource.bline: one number in s, the center of the covariance window
 %                    of the baseline (the window length depends on erp_peak) 
 %                    If empty, no baseline.
@@ -40,8 +24,7 @@ function erpsource_subj(info, opt, subj)
 %     .powmethod: power method of beamformer ('trace' or 'lambda1')
 %     .refdip: location of the dipole for computing coherence to.
 %
-%  .erpsource.keepfilter: logical, to keep filters or not (keep them only
-%                          if you plan to use erpstat or conn analyses)
+
 %
 % IN:
 %  data in /PROJ/subjects/SUBJ/MOD/NICK/
@@ -49,6 +32,8 @@ function erpsource_subj(info, opt, subj)
 % OUT
 %  [info.derp 'erpsource_SUBJ_COND'] 'erpsource_s_A': source data for period of interest for each subject
 %  [info.derp 'erpsource_SUBJ_COND'] 'erpsource_s_B': source data for baseline for each subject
+%
+% * indicates obligatory parameter
 %
 % Part of EVENTBASED single-subject
 % see also ERP_SUBJ, ERP_GRAND, 
@@ -66,20 +51,16 @@ tic_t = tic;
 
 %---------------------------%
 %-default cfg
-if ~isfield(cfg.erpsource, 'lmcv'); 
-  cfg.erpsource.lmcv = []; 
-end
-if ~isfield(cfg.erpsource, 'keepfilter')
-  cfg.erpsource.keepfilter = false;
-end
+if ~isfield(opt, 'lmcv'); opt.lmcv = []; end
+if ~isfield(opt, 'keepfilter'); opt.keepfilter = false; end
 %---------------------------%
 
 %---------------------------%
 %-dir and files
-[vol, lead, sens] = load_headshape(info, opt, subj);
+[vol, lead, sens] = load_headshape(info, subj);
 %---------------------------%
 
-erp_peak = get_peak(cfg, 'erp');
+erp_peak = get_peak(info, opt.peak, 'erp');
 
 %-------------------------------------%
 %-loop over conditions

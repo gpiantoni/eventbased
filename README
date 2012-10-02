@@ -13,6 +13,7 @@ PREPROCESSING
 ANALYSIS
 - ERP_SUBJ: timelock-analysis for each subject
 - ERP_GRAND: timelock-analysis over subjects
+- ERP_SOURCE: sources of ERP using LCMV for each subject
 - POW_SUBJ: power-analysis for each subject
 - POW_GRAND: power-analysis over subjects
 - POWCORR_SUBJ: power-trial correlation for each subject
@@ -22,8 +23,14 @@ ANALYSIS
 
 -----------------------------------------------------------
 SUBFUNCTIONS
+- GET_PEAK: get the peaks for the source analysis
+  ERPSOURCE_SUBJ, 
+
 - LOAD_DATA: load data, and optionally get bad channels
   ERP_SUBJ, POW_SUBJ, POWCORR_SUBJ, 
+  
+- LOAD_HEADSHAPE: load vol, lead, sens
+  ERPSOURCE_SUBJ, 
 
 - LOAD_SUBJ: load single-subject data
   ERP_GRAND, POW_GRAND, POWCORR_GRAND,
@@ -38,19 +45,19 @@ SUBFUNCTIONS
 -----------------------------------------------------------
 INFO
 .data: path of /data1/projects/PROJ/subjects/
-  SELDATA, GCLEAN, REDEF, LOAD_DATA, 
+  SELDATA, GCLEAN, REDEF, LOAD_DATA, LOAD_HEADSHAPE,
 
 .derp: directory with ERP data
-  ERP_SUBJ, LOAD_SUBJ,
+  ERP_SUBJ, ERPSOURCE_SUBJ, LOAD_SUBJ, GET_PEAK
 
 .dpow: directory with POW data
-  POW_SUBJ, POW_GRAND, POWCORR_SUBJ, POWCORR_GRAND, LOAD_SUBJ, 
+  POW_SUBJ, POW_GRAND, POWCORR_SUBJ, POWCORR_GRAND, LOAD_SUBJ, GET_PEAK
   
 .dsou: directory with SOURCE data
   LOAD_SOURCE,
 
 .log: name of the file and directory to save log
-  SELDATA, GCLEAN, REDEF, ERP_SUBJ, ERP_GRAND, POW_SUBJ, POW_GRAND, POWCORR_SUBJ, POWCORR_GRAND,
+  SELDATA, GCLEAN, REDEF, ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, POW_SUBJ, POW_GRAND, POWCORR_SUBJ, POWCORR_GRAND,
 
 .mod: modality, MOD in /data1/projects/PROJ/subjects/SUBJ/MOD/NICK/
   SELDATA, GCLEAN, REDEF, LOAD_DATA, 
@@ -62,7 +69,7 @@ INFO
   SELDATA, 
 
 .rec: REC in /data1/projects/PROJ/recordings/REC/
-  LOAD_DATA, 
+  LOAD_DATA, LOAD_HEADSHAPE,
 
 .recs: path of /data1/projects/PROJ/recordings/REC/subjects/
   SELDATA, 
@@ -78,6 +85,12 @@ INFO
 
 .sens.layout: file with layout. It should be a mat containing 'layout'. If empty, it does not plot topo.
   ERP_GRAND, POW_GRAND, POWCORR_GRAND, 
+  
+.vol.type: 'template' or subject-specific ('dipoli' or 'openmeeg')
+  LOAD_HEADSHAPE,
+
+.vol.template: file with template containing vol, lead, sens
+  LOAD_HEADSHAPE, 
 -----------------------------------------------------------
   
 -----------------------------------------------------------
@@ -108,7 +121,7 @@ CFG.OPT
   ERP_GRAND, POW_GRAND, POWCORR_GRAND, 
   
 .cond: cell with conditions (e.g. {'*cond1' '*cond2'})'
-  ERP_SUBJ, ERP_GRAND, POW_SUBJ, POW_GRAND, POWCORR_GRAND, 
+  ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, POW_SUBJ, POW_GRAND, POWCORR_GRAND, 
  
 .csd.method: method to do scalp current density ('finite' or 'spline' or 'hjorth')
   REDEF,
@@ -120,7 +133,7 @@ CFG.OPT
   GCLEAN,
 
 .erp: a structure with cfg to pass to ft_timelockanalysis
-  ERP_SUBJ,
+  ERP_SUBJ, ERPSOURCE_SUBJ,
 
 .event2trl: function name in NICK_private which creates the correct trl based on events
   REDEF,
@@ -128,6 +141,9 @@ CFG.OPT
 .fsample: manually specify the frequency (very easily bug-prone, but in this way it does not read "data" all the time)
   GCLEAN,
 
+.keepfilter: keep filters or not, keep them only if you plan to use erpstat or conn analyses (logical)
+  ERPSOURCE_SUBJ,  
+  
 .label: if not empty, labels of electrodes to rename (same length as seldata.selchan) 
   SELDATA, 
 
@@ -136,6 +152,9 @@ CFG.OPT
 
 .numrandomization: number of randomization
   REPORT_CLUSTER, 
+  
+.peak: description of the peaks
+  GET_PEAK
   
 .plot.bline: two scalars indicating the time window for baseline in s (only for plotting, TODO: check if necessary for normal analysis as well)
   ERP_GRAND,
