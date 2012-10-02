@@ -109,10 +109,10 @@ CFG.OPT
   REPORT_CLUSTER,
   
 .comp*: comparisons to test (cell within cell, e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}}), but you cannot have more than 2 conditions (it's always a t-test). If empty, not statistics and no plots.
-  ERP_GRAND,
+  ERP_GRAND, POW_GRAND, 
   
 .cond: cell with conditions (e.g. {'*cond1' '*cond2'})'
-  ERP_SUBJ, ERP_GRAND
+  ERP_SUBJ, ERP_GRAND, POW_SUBJ, POW_GRAND
  
 .csd.method: method to do scalp current density ('finite' or 'spline' or 'hjorth')
   REDEF,
@@ -139,13 +139,19 @@ CFG.OPT
   GCLEAN,
 
 .plot.bline: two scalars indicating the time window for baseline in s (only for plotting, TODO: check if necessary for normal analysis as well)
-  ERP_GRAND, 
+  ERP_GRAND,
   
 .plot.chan(1).name: 'name_of_channels'
-  ERP_GRAND, 
+  ERP_GRAND, POW_GRAND, 
 
 .plot.chan(1).chan: cell with labels of channels of interest
-  ERP_GRAND, 
+  ERP_GRAND, POW_GRAND, 
+  
+.plot.freq(1).name: 'name_of_frequency'
+  POW_GRAND, 
+
+.plot.freq(1).freq: two scalars with the frequency limits
+  POW_GRAND, 
   
 .pow: a structure with cfg to pass to ft_freqanalysis
   POW_SUBJ,

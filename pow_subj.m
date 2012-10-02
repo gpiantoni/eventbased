@@ -41,6 +41,7 @@ tic_t = tic;
 %---------------------------%
 
 if ~isfield(opt, 'planar'); opt.planar = []; end
+if ~isfield(opt, 'bl'); opt.bl = []; end
 
 %-------------------------------------%
 %-loop over conditions
@@ -51,9 +52,9 @@ for k = 1:numel(opt.cond)
   %---------------------------%
   %-read data
   if ~isfield(opt, 'source') || ~opt.source
-    [data] = load_data(cfg, subj, cond);
+    [data] = load_data(info, subj, cond);
   else
-    [data] = load_source(cfg, subj, cond);
+    [data] = load_source(info, subj, cond);
   end
   if isempty(data)
     output = sprintf('%sCould not find any file for condition %s\n', ...
@@ -113,7 +114,7 @@ for k = 1:numel(opt.cond)
   
   %-----------------%
   %-average
-  tmpcfg = [];
+  cfg = [];
   pow_s = ft_freqdescriptives(cfg, pow_s);
   %-----------------%
   

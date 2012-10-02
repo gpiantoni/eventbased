@@ -48,6 +48,12 @@ tic_t = tic;
 %---------------------------%
 
 %---------------------------%
+%-by default, no plot
+if ~isfield(opt, 'plot'); opt.plot = []; end
+if ~isfield(opt.plot, 'chan'); opt.plot.chan = []; end
+%---------------------------%
+
+%---------------------------%
 %-loop over conditions
 for k = 1:numel(opt.cond)
   cond = opt.cond{k};
@@ -89,12 +95,6 @@ end
 %-sensor information to pass to report_cluster
 opt.sens = info.sens;
 %-------%
-%---------------------------%
-
-%---------------------------%
-%-by default, no plot
-if ~isfield(opt, 'plot'); opt.plot = []; end
-if ~isfield(opt.plot, 'chan'); opt.plot.chan = []; end
 %---------------------------%
 
 if isfield(opt, 'comp')

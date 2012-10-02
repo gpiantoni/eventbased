@@ -1,44 +1,27 @@
 function pow_grand(info, opt)
-%POW_GRAND grand power average
+%POW_GRAND power-analysis over subject
 % 1) read single subject-data and create gpow in info.dpow
-% 2) do statistics for condition indicated by cfg.gpow.comp
+% 2) do statistics for condition indicated by opt.comp
 % 3) plot the topoplot over time, frequency and singleplot for some electrodes
 %
-% CFG
-%-Average
-%  .nick: NICK to save files specific to each NICK
+% INFO
 %  .log: name of the file and directory with analysis log
-%  .subjall: index of the number of subjects
-%
 %  .dpow: directory with POW data
-%  .pow.cond: conditions to make averages
-%  .pow.source: read virtual electrode data (logical)
-%
-%  Baseline correction at the single-subject level:
-%  .gpow.bl: if empty, no baseline. Otherwise:
-%  .gpow.bl.baseline: two scalars with baseline windows
-%  .gpow.bl.baselinetype: type of baseline ('relchange')
-%
-%-Statistics
-%  .gpow.comp: cells within cell (e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}})
-%        but you cannot have more than 2 conditions (it's always a t-test).
-%   If empty, not statistics.
-%   If stats,
-%     .gpow.stat.time: time limit for statistics (two scalars)
-%     .gpow.stat.freq: freq limit for statistics (two scalars)
-%     .cluster.thr: threshold to consider clusters are erppeaks
-%
-%-Plot
-%  .gpow.bline: two scalars indicating the time window for baseline in s
-%  .gpow.chan(1).name: 'name_of_channels'
-%  .gpow.chan(1).chan: cell with labels of channels of interest
-%  .gpow.freq(1).name: 'name_of_frequency'
-%  .gpow.freq(1).freq: two scalars with the frequency limits
-%
 %  .sens.layout: file with layout. It should be a mat containing 'layout'
 %                If empty, it does not plot topo.
-%
 %  .rslt: directory images are saved into
+%
+% CFG.OPT
+%  .cond*: cell with conditions (e.g. {'*cond1' '*cond2'})'
+%  .comp*: comparisons to test (cell within cell, e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}})
+%        but you cannot have more than 2 conditions (it's always a t-test). If empty, not statistics and no plots
+%
+%  .plot.chan(1).name: 'name_of_channels'
+%  .plot.chan(1).chan: cell with labels of channels of interest
+%  .plot.freq(1).name: 'name_of_frequency'
+%  .plot.freq(1).freq: two scalars with the frequency limits
+%
+% TODO: Baseline correction at the single-subject level
 %
 % IN
 %  [info.dpow 'pow_SUBJ_COND'] 'pow_subj': timelock analysis for single-subject
@@ -51,6 +34,8 @@ function pow_grand(info, opt)
 %  gpow_tfr_COMP_CHAN: time-frequency plot POW, for each condition, for one channel group
 %  gpow_val_CHAN_FREQ: singleplot POW, all conditions, for one channel group, one frequency % TODO: does it re-write files
 %  gpow_topo_COMP_FREQ: topoplot POW for each frequency, over time
+%
+% * indicates obligatory parameter
 %
 % Part of EVENTBASED group-analysis
 % see also ERP_SUBJ, ERP_GRAND, 
@@ -67,17 +52,18 @@ tic_t = tic;
 %---------------------------%
 
 %---------------------------%
-%-check CFG
-if ~isfield(cfg.gpow, 'chan'); cfg.gpow.chan = []; end
-if ~isfield(cfg.gpow, 'freq'); cfg.gpow.freq = []; end
+%-by default, no plot
+if ~isfield(opt, 'plot'); opt.plot = []; end
+if ~isfield(opt.plot, 'chan'); opt.plot.chan = []; end
+if ~isfield(opt.plot, 'freq'); opt.plot.freq = []; end
 %---------------------------%
 
 %-----------------------------------------------%
 %-read the data
 %---------------------------%
 %-loop over conditions
-for k = 1:numel(cfg.pow.cond)
-  cond     = cfg.pow.cond{k};
+for k = 1:numel(opt.cond)
+  cond     = opt.cond{k};
   condname = regexprep(cond, '*', '');
   
   %-----------------%
@@ -89,13 +75,13 @@ for k = 1:numel(cfg.pow.cond)
   
   %-----------------%
   %-average across subjects
-  cfg1 = [];
-  cfg1.keepindividual = 'yes';
-  gpowall = ft_freqgrandaverage(cfg1, data{:});
+  cfg = [];
+  cfg.keepindividual = 'yes';
+  gpowall = ft_freqgrandaverage(cfg, data{:});
   
-  cfg2 = [];
-  cfg2.variance = 'yes';
-  pow = ft_freqdescriptives(cfg2, gpowall);
+  cfg = [];
+  cfg.variance = 'yes';
+  pow = ft_freqdescriptives(cfg, gpowall);
   pow.tscore =  pow.powspctrm ./ pow.powspctrmsem;
   pow.cfg = []; % remove cfg
   %-----------------%
@@ -112,30 +98,37 @@ clear pow powall
 
 %-----------------------------------------------%
 %-stats and plots
-if ~isempty(cfg.sens.layout) && ...
-    ~(isfield(cfg.pow, 'source') && cfg.pow.source)
+%---------------------------%
+%-sensors
+if ~isempty(info.sens.layout) %TODO: check that data is not source
   haslay = true;
-  load(cfg.sens.layout, 'layout');
+  load(info.sens.layout, 'layout');
   
 else
   haslay = false;
   
 end
 
-if isfield(cfg.gpow, 'comp')
+%-------%
+%-sensor information to pass to report_cluster
+opt.sens = info.sens;
+%-------%
+%---------------------------%
+
+if isfield(opt, 'comp')
   
   %-------------------------------------%
   %-loop over statistics conditions
-  for t = 1:numel(cfg.gpow.comp)
+  for t = 1:numel(opt.comp)
     clear pow
     
     %---------------------------%
     %-statistics for effects of interest
-    if numel(cfg.gpow.comp{t}) == 1
+    if numel(opt.comp{t}) == 1
       
       %-----------------%
       %-compare against baseline
-      cond = cfg.gpow.comp{t}{1};
+      cond = opt.comp{t}{1};
       comp = regexprep(cond, '*', '');
       output = sprintf('%s\n   COMPARISON %s\n', output, cond);
       
@@ -145,10 +138,10 @@ if isfield(cfg.gpow, 'comp')
       output = [output outtmp];
       if isempty(data); continue; end
       
-      cfg1 = [];
-      pow{1} = ft_freqgrandaverage(cfg1, data{:});
-      cfg1.keepindividual = 'yes';
-      gpowall1 = ft_freqgrandaverage(cfg1, data{:});
+      cfg = [];
+      pow{1} = ft_freqgrandaverage(cfg, data{:});
+      cfg.keepindividual = 'yes';
+      gpowall1 = ft_freqgrandaverage(cfg, data{:});
       %-------%
       
       %-------%
@@ -156,43 +149,43 @@ if isfield(cfg.gpow, 'comp')
       gplot = pow{1};
       %-------%
 
-      [pow_peak stat outtmp] = report_cluster(cfg, gpowall1);
+      [pow_peak stat outtmp] = report_cluster(opt, gpowall1);
       %-----------------%
       
     else
       
       %-----------------%
       %-compare two conditions
-      cond1 = cfg.gpow.comp{t}{1};
-      cond2 = cfg.gpow.comp{t}{2};
+      cond1 = opt.comp{t}{1};
+      cond2 = opt.comp{t}{2};
       comp = [regexprep(cond1, '*', '') '_' regexprep(cond2, '*', '')];
       output = sprintf('%s\n   COMPARISON %s vs %s\n', output, cond1, cond2);
       
       %-------%
       %-pow over subj
-      [outtmp data1 data2] = load_subj(info, 'pow', cfg.gpow.comp{t});
+      [outtmp data1 data2] = load_subj(info, 'pow', opt.comp{t});
       output = [output outtmp];
       if isempty(data1) || isempty(data2); continue; end
       
-      cfg1 = [];
-      pow{1} = ft_freqgrandaverage(cfg1, data1{:});
-      pow{2} = ft_freqgrandaverage(cfg1, data2{:});
-      cfg1.keepindividual = 'yes';
-      gpowall1 = ft_freqgrandaverage(cfg1, data1{:});
-      gpowall2 = ft_freqgrandaverage(cfg1, data2{:});
+      cfg = [];
+      pow{1} = ft_freqgrandaverage(cfg, data1{:});
+      pow{2} = ft_freqgrandaverage(cfg, data2{:});
+      cfg.keepindividual = 'yes';
+      gpowall1 = ft_freqgrandaverage(cfg, data1{:});
+      gpowall2 = ft_freqgrandaverage(cfg, data2{:});
       %-------%
       
       %-------%
       %-data for plot
       gplot = pow{2};
-      if ~isfield(cfg.pow, 'bl') || isempty(cfg.pow.bl)
+      if 1
         gplot.powspctrm = log(pow{2}.powspctrm ./ pow{1}.powspctrm);
-      else % with baseline correction, take the difference
+      else % TODO: with baseline correction, take the difference
         gplot.powspctrm = pow{2}.powspctrm - pow{1}.powspctrm;
       end
       %-------%
       
-      [pow_peak stat outtmp] = reportcluster(cfg, gpowall1, gpowall2);
+      [pow_peak stat outtmp] = report_cluster(opt, gpowall1, gpowall2);
       %-----------------%
       
     end
@@ -203,7 +196,7 @@ if isfield(cfg.gpow, 'comp')
     
     %---------------------------%
     %-loop over channels
-    for c = 1:numel(cfg.gpow.chan)
+    for c = 1:numel(opt.plot.chan)
       
       %-----------------%
       %-figure
@@ -212,20 +205,20 @@ if isfield(cfg.gpow, 'comp')
       
       %--------%
       %-options
-      cfg3 = [];
-      cfg3.channel = cfg.gpow.chan(c).chan;
-      cfg3.zlim = 'maxabs';
-      cfg3.parameter = 'powspctrm';
-      ft_singleplotTFR(cfg3, gplot);
+      cfg = [];
+      cfg.channel = opt.plot.chan(c).chan;
+      cfg.zlim = 'maxabs';
+      cfg.parameter = 'powspctrm';
+      ft_singleplotTFR(cfg, gplot);
       colorbar
       
-      title([comp ' ' cfg.gpow.chan(c).name], 'Interpreter', 'none')
+      title([comp ' ' opt.plot.chan(c).name], 'Interpreter', 'none')
       %--------%
       %-----------------%
       
       %-----------------%
       %-save and link
-      pngname = sprintf('gpow_tfr_%s_%s', comp, cfg.gpow.chan(c).name);
+      pngname = sprintf('gpow_tfr_%s_%s', comp, opt.plot.chan(c).name);
       saveas(gcf, [info.log filesep pngname '.png'])
       close(gcf); drawnow
       
@@ -241,7 +234,7 @@ if isfield(cfg.gpow, 'comp')
     if haslay
       
       %-loop over freq
-      for f = 1:numel(cfg.gpow.freq)
+      for f = 1:numel(opt.plot.freq)
         
         %-----------------%
         %-figure
@@ -250,28 +243,28 @@ if isfield(cfg.gpow, 'comp')
         
         %--------%
         %-options
-        cfg5 = [];
-        cfg5.parameter = 'powspctrm';
-        cfg5.layout = layout;
+        cfg = [];
+        cfg.parameter = 'powspctrm';
+        cfg.layout = layout;
         
-        cfg5.ylim = cfg.gpow.freq(f).freq;
+        cfg.ylim = opt.plot.freq(f).freq;
         
         %-color scaling specific to each frequency band
-        i_freq1 = nearest(pow{1}.freq, cfg.gpow.freq(f).freq(1));
-        i_freq2 = nearest(pow{1}.freq, cfg.gpow.freq(f).freq(2));
+        i_freq1 = nearest(pow{1}.freq, opt.plot.freq(f).freq(1));
+        i_freq2 = nearest(pow{1}.freq, opt.plot.freq(f).freq(2));
         powspctrm = gplot.powspctrm(:, i_freq1:i_freq2, :);
-        cfg5.zlim = [-1 1] * max(powspctrm(:));
+        cfg.zlim = [-1 1] * max(powspctrm(:));
         
-        cfg5.style = 'straight';
-        cfg5.marker = 'off';
-        cfg5.comment = 'xlim';
-        cfg5.commentpos = 'title';
+        cfg.style = 'straight';
+        cfg.marker = 'off';
+        cfg.comment = 'xlim';
+        cfg.commentpos = 'title';
         
         %-no topoplot if the data contains NaN
         onedat = squeeze(pow{1}.powspctrm(1, i_freq1, :)); % take one example, lowest frequency
-        cfg5.xlim = pow{1}.time(~isnan(onedat));
+        cfg.xlim = pow{1}.time(~isnan(onedat));
         
-        ft_topoplotER(cfg5, gplot);
+        ft_topoplotER(cfg, gplot);
         %--------%
         
         %--------%
@@ -281,7 +274,7 @@ if isfield(cfg.gpow, 'comp')
         
         %-----------------%
         %-save and link
-        pngname = sprintf('gpow_topo_%s_%s', condname, cfg.gpow.freq(f).name);
+        pngname = sprintf('gpow_topo_%s_%s', condname, opt.plot.freq(f).name);
         saveas(gcf, [info.log filesep pngname '.png'])
         close(gcf); drawnow
         
@@ -296,10 +289,10 @@ if isfield(cfg.gpow, 'comp')
     
     %---------------------------%
     %-singleplotER (multiple conditions at once)
-    for c = 1:numel(cfg.gpow.chan)
+    for c = 1:numel(opt.plot.chan)
       
       %-loop over freq
-      for f = 1:numel(cfg.gpow.freq)
+      for f = 1:numel(opt.plot.freq)
         
         %-----------------%
         %-figure
@@ -309,21 +302,21 @@ if isfield(cfg.gpow, 'comp')
         %--------%
         %-plot
         cfg4 = [];
-        cfg4.channel = cfg.gpow.chan(c).chan;
+        cfg4.channel = opt.plot.chan(c).chan;
         cfg4.parameter = 'powspctrm';
-        cfg4.zlim = cfg.gpow.freq(f).freq;
+        cfg4.zlim = opt.plot.freq(f).freq;
         ft_singleplotER(cfg4, pow{:});
         
         legend('cond1', 'cond2')
         ylabel(cfg4.parameter)
         
-        title([comp ' ' cfg.gpow.chan(c).name ' ' cfg.gpow.freq(f).name], 'Interpreter', 'none')
+        title([comp ' ' opt.plot.chan(c).name ' ' opt.plot.freq(f).name], 'Interpreter', 'none')
         %--------%
         %-----------------%
         
         %-----------------%
         %-save and link
-        pngname = sprintf('gpow_val_%s_%s_%s', comp, cfg.gpow.chan(c).name, cfg.gpow.freq(f).name);
+        pngname = sprintf('gpow_val_%s_%s_%s', comp, opt.plot.chan(c).name, opt.plot.freq(f).name);
         saveas(gcf, [info.log filesep pngname '.png'])
         close(gcf); drawnow
         
