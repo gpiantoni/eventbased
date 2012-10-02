@@ -162,7 +162,7 @@ for i = 1:numel(info.subjall)
   end
 end
 
-if ~exist(dataout, 'var')
+if ~exist('dataout', 'var')
   dataout = [];
 end
 %---------------------------%

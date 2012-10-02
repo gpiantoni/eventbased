@@ -41,7 +41,7 @@ function powcorr_grand(info, opt)
 %  [info.dpow 'powcorr_COND'] 'powcorr': power correlation for all subjects
 %  [info.dpow 'powcorrpeak_COMP'] 'powcorr_peak': significant peaks in the POWCORR for the comparison
 %
-% FIGURES (saved in info.log and, if not empty, cfg.rslt)
+% FIGURES (saved in info.log and, if not empty, info.rslt)
 %  gpowcorr_tfr_COMP_COND: time-frequency plot powcorr, for each comparison, for one channel group
 %  gpowcorr_val_CHAN_FREQ: singleplot powcorr, all conditions, for one channel group, one frequency
 %  gpowcorr_topo_COMP_FREQ: topoplot powcorr for each condition and frequency, over time
@@ -239,7 +239,7 @@ if isfield(cfg.gpowcorr, 'comp')
       close(gcf); drawnow
       
       [~, logfile] = fileparts(info.log);
-      system(['ln ' info.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
+      system(['ln ' info.log filesep pngname '.png ' info.rslt pngname '_' logfile '.png']);
       %-----------------%
       
     end
@@ -286,7 +286,7 @@ if isfield(cfg.gpowcorr, 'comp')
         close(gcf); drawnow
         
         [~, logfile] = fileparts(info.log);
-        system(['ln ' info.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
+        system(['ln ' info.log filesep pngname '.png ' info.rslt pngname '_' logfile '.png']);
         %-----------------%
         
       end
@@ -328,7 +328,7 @@ if isfield(cfg.gpowcorr, 'comp')
         close(gcf); drawnow
         
         [~, logfile] = fileparts(info.log);
-        system(['ln ' info.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
+        system(['ln ' info.log filesep pngname '.png ' info.rslt pngname '_' logfile '.png']);
         %-----------------%
         
       end

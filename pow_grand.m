@@ -47,7 +47,7 @@ function pow_grand(info, opt)
 %  [info.dpow 'pow_COND'] 'pow': power analysis for all subjects
 %  [info.dpow 'pow_peak_COMP'] 'pow_peak': significant peaks in the POW for the comparison
 %
-% FIGURES (saved in info.log and, if not empty, cfg.rslt)
+% FIGURES (saved in info.log and, if not empty, info.rslt)
 %  gpow_tfr_COMP_CHAN: time-frequency plot POW, for each condition, for one channel group
 %  gpow_val_CHAN_FREQ: singleplot POW, all conditions, for one channel group, one frequency % TODO: does it re-write files
 %  gpow_topo_COMP_FREQ: topoplot POW for each frequency, over time
@@ -230,7 +230,7 @@ if isfield(cfg.gpow, 'comp')
       close(gcf); drawnow
       
       [~, logfile] = fileparts(info.log);
-      system(['ln ' info.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
+      system(['ln ' info.log filesep pngname '.png ' info.rslt pngname '_' logfile '.png']);
       %-----------------%
       
     end
@@ -286,7 +286,7 @@ if isfield(cfg.gpow, 'comp')
         close(gcf); drawnow
         
         [~, logfile] = fileparts(info.log);
-        system(['ln ' info.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
+        system(['ln ' info.log filesep pngname '.png ' info.rslt pngname '_' logfile '.png']);
         %-----------------%
         
       end
@@ -328,7 +328,7 @@ if isfield(cfg.gpow, 'comp')
         close(gcf); drawnow
         
         [~, logfile] = fileparts(info.log);
-        system(['ln ' info.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
+        system(['ln ' info.log filesep pngname '.png ' info.rslt pngname '_' logfile '.png']);
         %-----------------%
         
       end

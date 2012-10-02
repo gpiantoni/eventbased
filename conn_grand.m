@@ -293,7 +293,7 @@ if isfield(cfg.gconn, 'comp')
     close(gcf); drawnow
     
     [~, logfile] = fileparts(info.log);
-    system(['ln ' info.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
+    system(['ln ' info.log filesep pngname '.png ' info.rslt pngname '_' logfile '.png']);
     %-----------------%
     
   end % numel(gcomp)

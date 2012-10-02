@@ -1,4 +1,4 @@
-function [clpeak stat output] = reportcluster(cfg, gdat, gdat2, paired)
+function [clpeak stat output] = report_cluster(cfg, gdat, gdat2, paired)
 %REPORTCLUSTER report which clusters are significant
 % It compares against zero or two conditions. The significant
 % time-(freq)-sensor points are clustered and then statistics is run on
@@ -16,18 +16,10 @@ function [clpeak stat output] = reportcluster(cfg, gdat, gdat2, paired)
 %  .sens.dist: distance of two sensors to be considered neighbors
 %
 %  You can then specify the time window and frequency band to do statistics on:
-%  .gerp.stat.time: for ERP only, two scalars for the beginning and end of the time window
+%  .stat.time: latency of interest (two scalar)
+%  .stat.freq: frequency of interest (two scalar)
+%  .clusterthr: threshold of cluster
 %
-%  .gpow.stat.time: for POW only, two scalars for the beginning and end of the time window
-%  .gpow.stat.freq: for POW only, two scalars for the beginning and end of the frequency band
-% 
-%  .gpowcorr.stat.time: for POWCORR only, two scalars for the beginning and end of the time window
-%  .gpowcorr.stat.freq: for POWCORR only, two scalars for the beginning and end of the frequency band
-% 
-%  .cluster.thr: threshold 
-%
-%  .pow:
-%  
 % GDAT, GDAT2
 %  One or two datasets obtained from ft_timelockgrandaverage or
 %  ft_freqgrandaverage.
@@ -59,8 +51,8 @@ function [clpeak stat output] = reportcluster(cfg, gdat, gdat2, paired)
 
 %-----------------%
 %-check CFG
-if ~isfield(cfg, 'cluster') || ~isfield(cfg.cluster, 'thr')
-  cfg.cluster.thr = 0.05;
+if ~isfield(cfg, 'clusterthr')
+  cfg.clusterthr = 0.05;
 end
 if nargin < 4
   paired = true;
@@ -144,16 +136,14 @@ else
   tmpcfg.ivar   = 1;
 end
 
-if iserp && isfield(cfg.gerp, 'stat') && isfield(cfg.gerp.stat, 'time') && ~isempty(cfg.gerp.stat.time)
-  tmpcfg.latency = cfg.gerp.stat.time;
-elseif ~iserp && isfield(cfg.gpow, 'stat') && isfield(cfg.gpow.stat, 'time') && ~isempty(cfg.gpow.stat.time)
-  tmpcfg.latency = cfg.gpow.stat.time;
+if isfield(cfg, 'stat') && isfield(cfg.stat, 'time') && ~isempty(cfg.stat.time)
+  tmpcfg.latency = cfg.stat.time;
 else
   tmpcfg.latency = gdat.time([1 end]);
 end
 
-if ~iserp && isfield(cfg.gpow, 'stat') && isfield(cfg.gpow.stat, 'freq') && ~isempty(cfg.gpow.stat.freq)
-  tmpcfg.frequency = cfg.gpow.stat.freq;
+if isfield(cfg, 'stat') && isfield(cfg.stat, 'freq') && ~isempty(cfg.stat.freq)
+  tmpcfg.frequency = cfg.stat.freq;
 end
 
 tmpcfg.neighbours = neigh;
@@ -185,7 +175,7 @@ clpeak = [];
 if isempty(stat.posclusters)
   poscl = [];
 else
-  poscl = find([stat.posclusters.prob] < cfg.cluster.thr);
+  poscl = find([stat.posclusters.prob] < cfg.clusterthr);
 end
 
 for i = 1:numel(poscl)
@@ -262,7 +252,7 @@ end
 if isempty(stat.negclusters)
   negcl = [];
 else
-  negcl = find([stat.negclusters.prob] < cfg.cluster.thr);
+  negcl = find([stat.negclusters.prob] < cfg.clusterthr);
 end
 
 for i = 1:numel(negcl)

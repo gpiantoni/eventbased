@@ -29,7 +29,8 @@ SUBFUNCTIONS
 - LOAD_SOURCE: load source data from virtual electrode
   ERP_SUBJ, 
   
-
+- REPORT_CLUSTER: report which clusters are significant
+  ERP_GRAND, 
 
 
 
@@ -69,6 +70,9 @@ INFO
 
 .recs: path of /data1/projects/PROJ/recordings/REC/subjects/
   SELDATA, 
+  
+.rslt: directory images are saved into
+  ERP_GRAND,
 
 .sens.dist: distance between sensors to consider them neighbors (in the units of cfg.sens.file)
   GCLEAN,
@@ -93,6 +97,9 @@ CFG.OPT
 .bad_samples.Percentile = [25 75];
   GCLEAN,
 
+.clusterthr: threshold of the cluster
+  REPORT_CLUSTER,
+  
 .comp*: comparisons to test (cell within cell, e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}}), but you cannot have more than 2 conditions (it's always a t-test). If empty, not statistics and no plots.
   ERP_GRAND,
   
@@ -123,6 +130,15 @@ CFG.OPT
 .lpfreqn = [.3 / (cfg.gclean.fsample/2)]; % normalized by half of the sampling frequency!
   GCLEAN,
 
+.plot.bline: two scalars indicating the time window for baseline in s (only for plotting, TODO: check if necessary for normal analysis as well)
+  ERP_GRAND, 
+  
+.plot.chan(1).name: 'name_of_channels'
+  ERP_GRAND, 
+
+.plot.chan(1).chan: cell with labels of channels of interest
+  ERP_GRAND, 
+
 .preproc1: struct to pass to ft_preprocessing before cutting trials (if empty, no preprocessing)
   REDEF,
 
@@ -147,6 +163,12 @@ CFG.OPT
 .source: read virtual electrode data (logical)
   ERP_SUBJ,
 
+.stat.time: latency of interest (two scalar)
+  REPORT_CLUSTER,
+
+.stat.freq: frequency of interest (two scalar)
+  REPORT_CLUSTER,
+  
 .trialfun: name of the trialfun used to read the data, see below. The function should be in NICK_private/ 
   SELDATA, 
 

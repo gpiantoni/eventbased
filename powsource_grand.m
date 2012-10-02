@@ -186,7 +186,7 @@ for k = 1:numel(cfg.powsource.cond)
     close(h); drawnow
     
     [~, logfile] = fileparts(info.log);
-    system(['ln ' info.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
+    system(['ln ' info.log filesep pngname '.png ' info.rslt pngname '_' logfile '.png']);
     %--------%
     %-----------------%
     %---------------------------%

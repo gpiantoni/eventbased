@@ -9,26 +9,16 @@ function erp_grand(info, opt)
 %  .derp: directory with ERP data
 %  .sens.layout: file with layout. It should be a mat containing 'layout'
 %                If empty, it does not plot topo.
+%  .rslt: directory images are saved into
 %
 % CFG.OPT
 %  .cond*: cell with conditions (e.g. {'*cond1' '*cond2'})'
 %  .comp*: comparisons to test (cell within cell, e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}})
 %        but you cannot have more than 2 conditions (it's always a t-test). If empty, not statistics and no plots
 %
-
-%   If stats,
-%     .gerp.stat.time: time limit for statistics (two scalars)
-%     .cluster.thr: threshold to consider clusters are erppeaks
-%
-%-Plot
-%  .gerp.bline: two scalars indicating the time window for baseline in s (only for plotting, TODO: check if necessary for normal analysis as well)
-%  .gerp.chan(1).name: 'name_of_channels'
-%  .gerp.chan(1).chan: cell with labels of channels of interest
-%
-%  .sens.layout: file with layout. It should be a mat containing 'layout'
-%                If empty, it does not plot topo.
-%
-%  .rslt: directory images are saved into
+%  .plot.bline: two scalars indicating the time window for baseline in s (only for plotting, TODO: check if necessary for normal analysis as well)
+%  .plot.chan(1).name: 'name_of_channels'
+%  .plot.chan(1).chan: cell with labels of channels of interest
 %
 % IN
 %  [info.derp 'erp_SUBJ_COND'] 'erp_subj': timelock analysis for single-subject
@@ -37,7 +27,7 @@ function erp_grand(info, opt)
 %  [info.derp 'erp_COND'] 'erp': the ERP for all subjects
 %  [info.derp 'erp_peak_COMP'] 'erp_peak': significant peaks in the ERP for the comparison
 %
-% FIGURES (saved in info.log and, if not empty, cfg.rslt)
+% FIGURES (saved in info.log and, if not empty, info.rslt)
 %  gerp_erp_COMP_CHAN: singleplot ERP, all conditions, for one channel group
 %  gerp_topo_COMP: topoplot ERP for each comparison, over time
 %
@@ -84,6 +74,8 @@ clear erp
 
 %-----------------------------------------------%
 %-stats and plots
+%---------------------------%
+%-sensors
 if ~isempty(info.sens.layout) %TODO: check that data is not source
   haslay = true;
   load(info.sens.layout, 'layout');
@@ -92,6 +84,18 @@ else
   haslay = false;
   
 end
+
+%-------%
+%-sensor information to pass to report_cluster
+opt.sens = info.sens;
+%-------%
+%---------------------------%
+
+%---------------------------%
+%-by default, no plot
+if ~isfield(opt, 'plot'); opt.plot = []; end
+if ~isfield(opt.plot, 'chan'); opt.plot.chan = []; end
+%---------------------------%
 
 if isfield(opt, 'comp')
   
@@ -161,7 +165,7 @@ if isfield(opt, 'comp')
       gplot.avg = gerp{2}.avg - gerp{1}.avg;
       %-------%
       
-      [erp_peak stat outtmp] = reportcluster(opt, gerpall1, gerpall2);
+      [erp_peak stat outtmp] = report_cluster(opt, gerpall1, gerpall2);
       %-----------------%
       
     end
@@ -172,7 +176,7 @@ if isfield(opt, 'comp')
     
     %---------------------------%
     %-singleplotER (multiple conditions at once)
-    for c = 1:numel(cfg.gerp.chan)
+    for c = 1:numel(opt.plot.chan)
       
       %-----------------%
       %-figure
@@ -181,26 +185,26 @@ if isfield(opt, 'comp')
       
       %--------%
       %-plot
-      tmpcfg = [];
-      tmpcfg.channel = cfg.gerp.chan(c).chan;
-      tmpcfg.baseline = cfg.gerp.bline;
-      tmpcfg.ylim = 'maxabs';
-      ft_singleplotER(tmpcfg, gerp{:});
+      cfg = [];
+      cfg.channel = opt.plot.chan(c).chan;
+      cfg.baseline = opt.plot.bline;
+      cfg.ylim = 'maxabs';
+      ft_singleplotER(cfg, gerp{:});
       
       legend('cond1', 'cond2')
       
-      title([comp ' ' cfg.gerp.chan(c).name], 'Interpreter', 'none')
+      title([comp ' ' opt.plot.chan(c).name], 'Interpreter', 'none')
       %--------%
       %-----------------%
       
       %-----------------%
       %-save and link
-      pngname = sprintf('gerp_erp_%s_%s', comp, cfg.gerp.chan(c).name);
+      pngname = sprintf('gerp_erp_%s_%s', comp, opt.plot.chan(c).name);
       saveas(gcf, [info.log filesep pngname '.png'])
       close(gcf); drawnow
       
       [~, logfile] = fileparts(info.log);
-      system(['ln ' info.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
+      system(['ln ' info.log filesep pngname '.png ' info.rslt pngname '_' logfile '.png']);
       %-----------------%
       
     end
@@ -217,20 +221,20 @@ if isfield(opt, 'comp')
       
       %--------%
       %-plot
-      tmpcfg = [];
+      cfg = [];
       
       timelim = gplot.time([1 end]);
-      tmpcfg.xlim = timelim(1):.1:timelim(2); % one plot every 100 ms
+      cfg.xlim = timelim(1):.1:timelim(2); % one plot every 100 ms
       
-      tmpcfg.zlim = [-1 1] * max(gplot.avg(:));
+      cfg.zlim = [-1 1] * max(gplot.avg(:));
       
-      tmpcfg.layout = layout;
-      tmpcfg.style = 'straight';
-      tmpcfg.marker = 'off';
-      tmpcfg.comment = 'xlim';
-      tmpcfg.commentpos = 'title';
+      cfg.layout = layout;
+      cfg.style = 'straight';
+      cfg.marker = 'off';
+      cfg.comment = 'xlim';
+      cfg.commentpos = 'title';
       
-      ft_topoplotER(tmpcfg, gplot);
+      ft_topoplotER(cfg, gplot);
       %--------%
       
       %--------%
@@ -246,7 +250,7 @@ if isfield(opt, 'comp')
       close(gcf); drawnow
       
       [~, logfile] = fileparts(info.log);
-      system(['ln ' info.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
+      system(['ln ' info.log filesep pngname '.png ' info.rslt pngname '_' logfile '.png']);
       %-----------------%
       
     end
