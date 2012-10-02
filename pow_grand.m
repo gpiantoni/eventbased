@@ -263,6 +263,7 @@ if isfield(opt, 'comp')
         %-no topoplot if the data contains NaN
         onedat = squeeze(pow{1}.powspctrm(1, i_freq1, :)); % take one example, lowest frequency
         cfg.xlim = pow{1}.time(~isnan(onedat));
+        if numel(cfg.xlim) == 1; cfg.xlim = [1 1] * cfg.xlim; end
         
         ft_topoplotER(cfg, gplot);
         %--------%

@@ -170,18 +170,18 @@ if isfield(opt, 'comp')
       output = [output outtmp];
       if isempty(data1) || isempty(data2); continue; end
       
-      cfg1 = [];
-      cfg1.keepindividual = 'yes';
-      gpowcorrall1 = ft_freqgrandaverage(cfg1, data1{:});
-      gpowcorrall2 = ft_freqgrandaverage(cfg1, data2{:});
+      cfg = [];
+      cfg.keepindividual = 'yes';
+      gpowcorrall1 = ft_freqgrandaverage(cfg, data1{:});
+      gpowcorrall2 = ft_freqgrandaverage(cfg, data2{:});
       
-      cfg2 = [];
-      cfg2.variance = 'yes';
-      powcorr{1} = ft_freqdescriptives(cfg2, gpowcorrall1);
+      cfg = [];
+      cfg.variance = 'yes';
+      powcorr{1} = ft_freqdescriptives(cfg, gpowcorrall1);
       powcorr{1}.tscore =  powcorr{1}.powspctrm ./ powcorr{1}.powspctrmsem;
       powcorr{1}.cfg = []; % remove cfg
 
-      powcorr{2} = ft_freqdescriptives(cfg2, gpowcorrall2);
+      powcorr{2} = ft_freqdescriptives(cfg, gpowcorrall2);
       powcorr{2}.tscore =  powcorr{2}.powspctrm ./ powcorr{2}.powspctrmsem;
       powcorr{2}.cfg = []; % remove cfg
       %-------%
@@ -212,11 +212,11 @@ if isfield(opt, 'comp')
       
       %--------%
       %-options
-      cfg3 = [];
-      cfg3.channel = opt.plot.chan(c).chan;
-      cfg3.zlim = [-4 4];
-      cfg3.parameter = 'tscore';
-      ft_singleplotTFR(cfg3, gplot);
+      cfg = [];
+      cfg.channel = opt.plot.chan(c).chan;
+      cfg.zlim = [-4 4];
+      cfg.parameter = 'tscore';
+      ft_singleplotTFR(cfg, gplot);
       colorbar
       
       title([comp ' ' opt.plot.chan(c).name], 'Interpreter', 'none')
@@ -250,23 +250,24 @@ if isfield(opt, 'comp')
         
         %--------%
         %-options
-        cfg5 = [];
-        cfg5.parameter = 'tscore';
-        cfg5.layout = layout;
+        cfg = [];
+        cfg.parameter = 'tscore';
+        cfg.layout = layout;
         
-        cfg5.ylim = opt.plot.freq(f).freq;
-        cfg5.zlim = [-4 4];
-        cfg5.style = 'straight';
-        cfg5.marker = 'off';
-        cfg5.comment = 'xlim';
-        cfg5.commentpos = 'title';
+        cfg.ylim = opt.plot.freq(f).freq;
+        cfg.zlim = [-4 4];
+        cfg.style = 'straight';
+        cfg.marker = 'off';
+        cfg.comment = 'xlim';
+        cfg.commentpos = 'title';
         
         %-no topoplot if the data contains NaN
         i_freq1 = nearest(powcorr{f}.freq, opt.plot.freq(f).freq(1));
         onedat = squeeze(powcorr{t}.tscore(1, i_freq1, :)); % take one example, lowest frequency
-        cfg5.xlim = powcorr{t}.time(~isnan(onedat));
+        cfg.xlim = powcorr{t}.time(~isnan(onedat));
+        if numel(cfg.xlim) == 1; cfg.xlim = [1 1] * cfg.xlim; end
         
-        ft_topoplotER(cfg5, gplot);
+        ft_topoplotER(cfg, gplot);
         %--------%
         %-----------------%
         
@@ -299,14 +300,14 @@ if isfield(opt, 'comp')
         
         %--------%
         %-plot
-        cfg4 = [];
-        cfg4.channel = opt.plot.chan(c).chan;
-        cfg4.parameter = 'tscore';
-        cfg4.zlim = opt.plot.freq(f).freq;
-        ft_singleplotER(cfg4, powcorr{:});
+        cfg = [];
+        cfg.channel = opt.plot.chan(c).chan;
+        cfg.parameter = 'tscore';
+        cfg.zlim = opt.plot.freq(f).freq;
+        ft_singleplotER(cfg, powcorr{:});
         
         legend('cond1', 'cond2')
-        ylabel(cfg4.parameter)
+        ylabel(cfg.parameter)
         
         title([comp ' ' opt.plot.chan(c).name ' ' opt.plot.freq(f).name], 'Interpreter', 'none')
         %--------%
