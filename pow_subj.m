@@ -46,7 +46,7 @@ if ~isfield(opt, 'bl'); opt.bl = []; end
 %-------------------------------------%
 %-loop over conditions
 for k = 1:numel(opt.cond)
-  cond     = opt.cond{k};
+  cond = opt.cond{k};
   condname = regexprep(cond, '*', '');
   
   %---------------------------%

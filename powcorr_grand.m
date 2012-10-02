@@ -1,5 +1,5 @@
 function powcorr_grand(info, opt)
-%POWCORR_GRAND grand power average
+%POWCORR_GRAND power-trial correlation over subjects
 % 1) read single subject-data and create gpowcorr in info.dpow
 % 2) do statistics for condition indicated by cfg.gpowcorr.comp
 % 3) plot the topoplot over time, frequency and singleplot for some electrodes
@@ -45,6 +45,8 @@ function powcorr_grand(info, opt)
 %  gpowcorr_tfr_COMP_COND: time-frequency plot powcorr, for each comparison, for one channel group
 %  gpowcorr_val_CHAN_FREQ: singleplot powcorr, all conditions, for one channel group, one frequency
 %  gpowcorr_topo_COMP_FREQ: topoplot powcorr for each condition and frequency, over time
+%
+% * indicates obligatory parameter
 %
 % Part of EVENTBASED group-analysis
 % see also ERP_SUBJ, ERP_GRAND, 

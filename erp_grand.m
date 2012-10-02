@@ -1,5 +1,5 @@
 function erp_grand(info, opt)
-%ERP_GRAND timelock-analysis over subject
+%ERP_GRAND timelock-analysis over subjects
 % 1) read single subject-data and create gerp in info.derp
 % 2) do statistics for condition indicated by opt.comp
 % 3) plot the topoplot over time and singleplot for some electrodes

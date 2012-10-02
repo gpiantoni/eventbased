@@ -13,6 +13,11 @@ PREPROCESSING
 -----------------------------
 ANALYSIS
 - ERP_SUBJ: timelock-analysis for each subject
+- ERP_GRAND: timelock-analysis over subjects
+- POW_SUBJ: power-analysis for each subject
+- POW_GRAND: power-analysis over subjects
+- POWCORR_SUBJ: power-trial correlation for each subject
+- POWCORR_GRAND: power-trial correlation over subjects
 
 
 -----------------------------
@@ -21,16 +26,16 @@ ANALYSIS
 -----------------------------------------------------------
 SUBFUNCTIONS
 - LOAD_DATA: load data, and optionally get bad channels
-  ERP_SUBJ,
+  ERP_SUBJ, POW_SUBJ, POWCORR_SUBJ, 
 
 - LOAD_SUBJ: load single-subject data
-  ERP_GRAND,  
+  ERP_GRAND, POW_GRAND, 
   
 - LOAD_SOURCE: load source data from virtual electrode
-  ERP_SUBJ, 
+  ERP_SUBJ, POW_SUBJ, POWCORR_SUBJ,
   
 - REPORT_CLUSTER: report which clusters are significant
-  ERP_GRAND, 
+  ERP_GRAND, POW_GRAND, 
 
 
 
@@ -41,20 +46,17 @@ INFO
 .data: path of /data1/projects/PROJ/subjects/
   SELDATA, GCLEAN, REDEF, LOAD_DATA, 
 
-.dcor: directory with correlation data
-  LOAD_SUBJ, 
-
 .derp: directory with ERP data
   ERP_SUBJ, LOAD_SUBJ,
 
 .dpow: directory with POW data
-  POW_SUBJ, LOAD_SUBJ, 
+  POW_SUBJ, POWCORR_SUBJ, LOAD_SUBJ, 
   
 .dsou: directory with SOURCE data
   LOAD_SOURCE,
 
 .log: name of the file and directory to save log
-  SELDATA, GCLEAN, REDEF, ERP_SUBJ, ERP_GRAND, POW_SUBJ, 
+  SELDATA, GCLEAN, REDEF, ERP_SUBJ, ERP_GRAND, POW_SUBJ, POW_GRAND, POWCORR_SUBJ, 
 
 .mod: modality, MOD in /data1/projects/PROJ/subjects/SUBJ/MOD/NICK/
   SELDATA, GCLEAN, REDEF, LOAD_DATA, 
@@ -72,16 +74,16 @@ INFO
   SELDATA, 
   
 .rslt: directory images are saved into
-  ERP_GRAND,
+  ERP_GRAND, POW_GRAND,
 
 .sens.dist: distance between sensors to consider them neighbors (in the units of cfg.sens.file)
-  GCLEAN,
+  GCLEAN, REPORT_CLUSTER
 
 .sens.file: file with EEG sensors. It can be sfp or mat. It's included in data struct. If empty, it does not read the sensors.
   SELDATA, GCLEAN,
 
 .sens.layout: file with layout. It should be a mat containing 'layout'. If empty, it does not plot topo.
-  ERP_GRAND,
+  ERP_GRAND, POW_GRAND, 
 -----------------------------------------------------------
   
 -----------------------------------------------------------
@@ -156,11 +158,17 @@ CFG.OPT
 .plot.freq(1).freq: two scalars with the frequency limits
   POW_GRAND, 
   
-.pow: a structure with cfg to pass to ft_freqanalysis
+.planar: planar transformation, MEG-only (logical)
   POW_SUBJ,
 
-.pow.planar: planar transformation, MEG-only (logical)
-  POW_SUBJ,
+.pow: a structure with cfg to pass to ft_freqanalysis
+  POW_SUBJ, POWCORR_SUBJ, 
+  
+.powcorr: column of trialinfo to use for the correlation
+  POWCORR_SUBJ,
+
+.powlog: logical (take the log of power, strongly advised)
+  POWCORR_SUBJ, 
 
 .preproc1: struct to pass to ft_preprocessing before cutting trials (if empty, no preprocessing)
   REDEF,
