@@ -1,9 +1,9 @@
-function  [vol, lead, sens] = load_headshape(cfg, subj)
-%LOAD_HEADSHAPE load headshape
+function  [vol, lead, sens] = load_headshape(info, subj)
+%LOAD_HEADSHAPE load vol, lead, sens
 % Use as:
 %   [vol, lead, sens] = load_headshape(cfg, subj)
 %
-% CFG
+% INFO
 %  .vol.type: 'template' or subject-specific ('dipoli' or 'openmeeg')
 %    if template
 %      .vol.template: file with template containing vol, lead, sens
@@ -19,18 +19,19 @@ function  [vol, lead, sens] = load_headshape(cfg, subj)
 % 
 % Part of EVENTBASED/PRIVATE
 
-if strcmp(cfg.vol.type, 'template')
-  load(cfg.vol.template, 'vol', 'lead', 'sens')
+if strcmp(info.vol.type, 'template')
+  load(info.vol.template, 'vol', 'lead', 'sens')
   
 else
   mod = 'smri';
   cond = 't1';
-  mdir = sprintf('%s%04.f/%s/%s/', cfg.data, subj, mod, cond); % mridata dir
-  mfile = sprintf('%s_%04.f_%s_%s', cfg.rec, subj, mod, cond); % mridata
+  mdir = sprintf('%s%04d/%s/%s/', info.data, subj, mod, cond); % mridata dir
+  mfile = sprintf('%s_%04d_%s_%s', info.rec, subj, mod, cond); % mridata
   
   load([mdir mfile '_elec.mat'], 'elec')
   sens = elec;
-  load([mdir mfile '_vol_' cfg.vol.type '.mat'], 'vol')
-  load([mdir mfile '_lead_' cfg.vol.type '.mat'], 'lead')
+  load([mdir mfile '_vol_' info.vol.type '.mat'], 'vol')
+  load([mdir mfile '_lead_' info.vol.type '.mat'], 'lead')
   
 end
+
