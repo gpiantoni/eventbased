@@ -13,7 +13,7 @@ function seldata(info, opt, subj)
 %  .sens.file: file with EEG sensors. It can be sfp or mat. It's included
 %              in data struct. If empty, it does not read the sensors.
 %
-% opt.OPT
+% CFG.OPT
 %  .rcnd: specific name of the condition of interest in the raw recording folder
 % 
 %  .trialfun: name of the trialfun used to read the data, see below.
@@ -22,7 +22,7 @@ function seldata(info, opt, subj)
 %                    strings with the elec names on file (Micromed elec
 %                    names are '  1' '  2'  '  3') 
 %  .label: if not empty, labels of electrodes to rename (same
-%                  length as seldata.selchan) 
+%                  length as cfg.opt.selchan) 
 %
 % IN
 %  raw data in any format Fieldtrip can read in the recording folder:
@@ -67,7 +67,7 @@ if isfield(info.sens, 'file') && ~isempty(info.sens.file)
 end
 %-----------------%
 
-prepr_name = 'A'; % preprocessing name to append
+prepr_name = '_A'; % preprocessing name to append
 %---------------------------%
 
 %---------------------------%
@@ -84,7 +84,7 @@ for i = 1:numel(allfile)
   cfg.trialfun = opt.trialfun;
   cfg.dataset = dataset;
   
-  cfg = ft_definetrial(info, opt);
+  cfg = ft_definetrial(cfg);
   
   %--------%
   %-ignore files with no events
@@ -97,15 +97,15 @@ for i = 1:numel(allfile)
   %-----------------%
   %-preprocessing
   cfg.feedback = 'off';
-  if iscell(opt.seldata.selchan)
-    cfg.channel = opt.seldata.selchan{subj};
+  if iscell(opt.selchan)
+    cfg.channel = opt.selchan{subj};
   else
-    cfg.channel = opt.seldata.selchan;
+    cfg.channel = opt.selchan;
   end
   
   cfg.continuous = 'yes'; % necessary for MEG data over trials
-  data = ft_preprocessing(info, opt);
-  event = ft_findopt(data.opt, 'event');
+  data = ft_preprocessing(cfg);
+  event = ft_findcfg(data.cfg, 'event');
   
   if ischar(event) && ...
       strcmp(event, 'empty - this was cleared by checkconfig')
@@ -127,7 +127,7 @@ for i = 1:numel(allfile)
   %-----------------%
   %-save data
   [~, filename] = fileparts(allfile(i).name);
-  savename = [info.proj '_' filename '_' prepr_name]; % <-- add proj name
+  savename = [info.proj '_' filename prepr_name]; % <-- add proj name
   save([ddir savename], 'data', 'event');
   clear data
   %-----------------%
