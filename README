@@ -1,6 +1,5 @@
 A pipeline of MATLAB functions to run Fieldtrip for EEG/MEG analysis
 
-
 -----------------------------------------------------------
 MAIN FUNCTIONS
 -----------------------------
@@ -18,8 +17,6 @@ ANALYSIS
 - POW_GRAND: power-analysis over subjects
 - POWCORR_SUBJ: power-trial correlation for each subject
 - POWCORR_GRAND: power-trial correlation over subjects
-
-
 -----------------------------
 -----------------------------------------------------------
 
@@ -29,16 +26,13 @@ SUBFUNCTIONS
   ERP_SUBJ, POW_SUBJ, POWCORR_SUBJ, 
 
 - LOAD_SUBJ: load single-subject data
-  ERP_GRAND, POW_GRAND, 
+  ERP_GRAND, POW_GRAND, POWCORR_GRAND,
   
 - LOAD_SOURCE: load source data from virtual electrode
   ERP_SUBJ, POW_SUBJ, POWCORR_SUBJ,
   
 - REPORT_CLUSTER: report which clusters are significant
-  ERP_GRAND, POW_GRAND, 
-
-
-
+  ERP_GRAND, POW_GRAND, POWCORR_GRAND,
 -----------------------------------------------------------
 
 -----------------------------------------------------------
@@ -50,13 +44,13 @@ INFO
   ERP_SUBJ, LOAD_SUBJ,
 
 .dpow: directory with POW data
-  POW_SUBJ, POWCORR_SUBJ, LOAD_SUBJ, 
+  POW_SUBJ, POW_GRAND, POWCORR_SUBJ, POWCORR_GRAND, LOAD_SUBJ, 
   
 .dsou: directory with SOURCE data
   LOAD_SOURCE,
 
 .log: name of the file and directory to save log
-  SELDATA, GCLEAN, REDEF, ERP_SUBJ, ERP_GRAND, POW_SUBJ, POW_GRAND, POWCORR_SUBJ, 
+  SELDATA, GCLEAN, REDEF, ERP_SUBJ, ERP_GRAND, POW_SUBJ, POW_GRAND, POWCORR_SUBJ, POWCORR_GRAND,
 
 .mod: modality, MOD in /data1/projects/PROJ/subjects/SUBJ/MOD/NICK/
   SELDATA, GCLEAN, REDEF, LOAD_DATA, 
@@ -74,7 +68,7 @@ INFO
   SELDATA, 
   
 .rslt: directory images are saved into
-  ERP_GRAND, POW_GRAND,
+  ERP_GRAND, POW_GRAND, POWCORR_GRAND, 
 
 .sens.dist: distance between sensors to consider them neighbors (in the units of cfg.sens.file)
   GCLEAN, REPORT_CLUSTER
@@ -83,7 +77,7 @@ INFO
   SELDATA, GCLEAN,
 
 .sens.layout: file with layout. It should be a mat containing 'layout'. If empty, it does not plot topo.
-  ERP_GRAND, POW_GRAND, 
+  ERP_GRAND, POW_GRAND, POWCORR_GRAND, 
 -----------------------------------------------------------
   
 -----------------------------------------------------------
@@ -111,10 +105,10 @@ CFG.OPT
   REPORT_CLUSTER,
   
 .comp*: comparisons to test (cell within cell, e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}}), but you cannot have more than 2 conditions (it's always a t-test). If empty, not statistics and no plots.
-  ERP_GRAND, POW_GRAND, 
+  ERP_GRAND, POW_GRAND, POWCORR_GRAND, 
   
 .cond: cell with conditions (e.g. {'*cond1' '*cond2'})'
-  ERP_SUBJ, ERP_GRAND, POW_SUBJ, POW_GRAND
+  ERP_SUBJ, ERP_GRAND, POW_SUBJ, POW_GRAND, POWCORR_GRAND, 
  
 .csd.method: method to do scalp current density ('finite' or 'spline' or 'hjorth')
   REDEF,
@@ -147,16 +141,16 @@ CFG.OPT
   ERP_GRAND,
   
 .plot.chan(1).name: 'name_of_channels'
-  ERP_GRAND, POW_GRAND, 
+  ERP_GRAND, POW_GRAND, POWCORR_GRAND, 
 
 .plot.chan(1).chan: cell with labels of channels of interest
-  ERP_GRAND, POW_GRAND, 
+  ERP_GRAND, POW_GRAND, POWCORR_GRAND, 
   
 .plot.freq(1).name: 'name_of_frequency'
-  POW_GRAND, 
+  POW_GRAND, POWCORR_GRAND, 
 
 .plot.freq(1).freq: two scalars with the frequency limits
-  POW_GRAND, 
+  POW_GRAND, POWCORR_GRAND, 
   
 .planar: planar transformation, MEG-only (logical)
   POW_SUBJ,
@@ -205,9 +199,6 @@ CFG.OPT
 
 .verbose: true
   GCLEAN,
-
-REDEF, 
-
 -----------------------------------------------------------
 
  

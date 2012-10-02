@@ -9,7 +9,6 @@ function powcorr_subj(info, opt, subj)
 %  .source: read virtual electrode data (logical)
 %  .cond*: cell with conditions (e.g. {'*cond1' '*cond2'})
 %  .pow*: a structure with cfg to pass to ft_freqanalysis
-%  .planar: planar transformation, MEG-only (logical)
 %
 %  .powcorr*: column of trialinfo to use for the correlation
 %  .powlog: logical (take the log of power, strongly advised)

@@ -63,7 +63,7 @@ if ~isfield(opt.plot, 'freq'); opt.plot.freq = []; end
 %---------------------------%
 %-loop over conditions
 for k = 1:numel(opt.cond)
-  cond     = opt.cond{k};
+  cond = opt.cond{k};
   condname = regexprep(cond, '*', '');
   
   %-----------------%
@@ -127,7 +127,7 @@ if isfield(opt, 'comp')
     if numel(opt.comp{t}) == 1
       
       %-----------------%
-      %-compare against baseline
+      %-compare against zero
       cond = opt.comp{t}{1};
       comp = regexprep(cond, '*', '');
       output = sprintf('%s\n   COMPARISON %s\n', output, cond);

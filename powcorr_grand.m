@@ -1,38 +1,27 @@
 function powcorr_grand(info, opt)
 %POWCORR_GRAND power-trial correlation over subjects
 % 1) read single subject-data and create gpowcorr in info.dpow
-% 2) do statistics for condition indicated by cfg.gpowcorr.comp
+% 2) do statistics for condition indicated by opt.comp
 % 3) plot the topoplot over time, frequency and singleplot for some electrodes
 %
-% CFG
-%-Average
-%  .nick: NICK to save files specific to each NICK
+% INFO
 %  .log: name of the file and directory with analysis log
-%  .subjall: index of the number of subjects
-%
-%  .dpow: directory with ERP data
-%  .powcorr.cond: conditions to make averages
-%  .powcorr.source: read virtual electrode data (logical)
-%
-%-Statistics
-%  .gpowcorr.comp: cells within cell (e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}})
-%        but you cannot have more than 2 conditions (it's always a t-test).
-%   If empty, not statistics.
-%   If stats,
-%     .gpowcorr.stat.time: time limit for statistics (two scalars)
-%     .gpowcorr.stat.freq: freq limit for statistics (two scalars)
-%     .cluster.thr: threshold to consider clusters are erppeaks
-%
-%-Plot
-%  .gpowcorr.chan(1).name: 'name_of_channels'
-%  .gpowcorr.chan(1).chan: cell with labels of channels of interest
-%  .gpowcorr.freq(1).name: 'name_of_frequency'
-%  .gpowcorr.freq(1).freq: two scalars with the frequency limits
-%
+%  .dpow: directory with POW data
 %  .sens.layout: file with layout. It should be a mat containing 'layout'
 %                If empty, it does not plot topo.
-%
 %  .rslt: directory images are saved into
+%
+% CFG.OPT
+%  .cond*: cell with conditions (e.g. {'*cond1' '*cond2'})'
+%  .comp*: comparisons to test (cell within cell, e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}})
+%        but you cannot have more than 2 conditions (it's always a t-test). If empty, not statistics and no plots
+%
+%  .plot.chan(1).name: 'name_of_channels'
+%  .plot.chan(1).chan: cell with labels of channels of interest
+%  .plot.freq(1).name: 'name_of_frequency'
+%  .plot.freq(1).freq: two scalars with the frequency limits
+%
+% TODO: Baseline correction at the single-subject level
 %
 % IN
 %  [info.dpow 'powcorr_SUBJ_COND'] 'powcorr_subj': power correlation for single-subject
@@ -62,30 +51,37 @@ output = sprintf('%s began at %s on %s\n', ...
 tic_t = tic;
 %---------------------------%
 
+%---------------------------%
+%-by default, no plot
+if ~isfield(opt, 'plot'); opt.plot = []; end
+if ~isfield(opt.plot, 'chan'); opt.plot.chan = []; end
+if ~isfield(opt.plot, 'freq'); opt.plot.freq = []; end
+%---------------------------%
+
 %-----------------------------------------------%
 %-read the data
 %---------------------------%
 %-loop over conditions
-for k = 1:numel(cfg.powcorr.cond)
-  cond     = cfg.powcorr.cond{k};
+for k = 1:numel(opt.cond)
+  cond = opt.cond{k};
   condname = regexprep(cond, '*', '');
   
   %-----------------%
-  %-powcorr over subj
-  [outtmp data] = load_subj(info, 'powcorr', cond);
+  %-pow over subj
+  [outtmp data] = load_subj(info, 'pow', cond);
   output = [output outtmp];
   if isempty(data); continue; end
   %-----------------%
   
   %-----------------%
   %-average across subjects
-  cfg1 = [];
-  cfg1.keepindividual = 'yes';
-  gpowcorrall = ft_freqgrandaverage(cfg1, data{:});
+  cfg = [];
+  cfg.keepindividual = 'yes';
+  gpowcorrall = ft_freqgrandaverage(cfg, data{:});
   
-  cfg2 = [];
-  cfg2.variance = 'yes';
-  powcorr = ft_freqdescriptives(cfg2, gpowcorrall);
+  cfg = [];
+  cfg.variance = 'yes';
+  powcorr = ft_freqdescriptives(cfg, gpowcorrall);
   powcorr.tscore =  powcorr.powspctrm ./ powcorr.powspctrmsem;
   powcorr.cfg = []; % remove cfg
   %-----------------%
@@ -101,43 +97,36 @@ clear gpowcorr gpowcorrall
 
 %-----------------------------------------------%
 %-stats and plots
-if ~isempty(cfg.sens.layout) && ...
-    ~(isfield(cfg.pow, 'source') && cfg.pow.source)
+%---------------------------%
+%-sensors
+if ~isempty(info.sens.layout) %TODO: check that data is not source
   haslay = true;
-  load(cfg.sens.layout, 'layout');
+  load(info.sens.layout, 'layout');
   
 else
   haslay = false;
   
 end
 
-if isfield(cfg.gpowcorr, 'comp')
-  
-  %-----------------%
-  %-use gpowcorr.test info, not gpow.test info; then pass them to
-  %reportcluster
-  cfg.gpow.test.time = [];
-  cfg.gpow.test.freq = [];
-  if isfield(cfg.gpowcorr, 'test') && isfield(cfg.gpowcorr.test, 'time')
-    cfg.gpow.test.time = cfg.gpowcorr.test.time;
-  end
-  
-  if isfield(cfg.gpowcorr, 'test') && isfield(cfg.gpowcorr.test, 'freq')
-    cfg.gpow.test.freq = cfg.gpowcorr.test.freq;
-  end
-  %-----------------%
+%-------%
+%-sensor information to pass to report_cluster
+opt.sens = info.sens;
+%-------%
+%---------------------------%
+
+if isfield(opt, 'comp')
   
   %-------------------------------------%
   %-loop over statistics conditions
-  for t = 1:numel(cfg.gpowcorr.comp)
+  for t = 1:numel(opt.comp)
     
     %---------------------------%
     %-statistics for effects of interest
-    if numel(cfg.gpowcorr.comp{t}) == 1
+    if numel(opt.comp{t}) == 1
       
       %-----------------%
-      %-compare against baseline
-      cond = cfg.gpowcorr.comp{t}{1};
+      %-compare against zero
+      cond = opt.comp{t}{1};
       comp = regexprep(cond, '*', '');
       output = sprintf('%s\n   COMPARISON %s\n', output, cond);
       
@@ -147,13 +136,13 @@ if isfield(cfg.gpowcorr, 'comp')
       output = [output outtmp];
       if isempty(data); continue; end
       
-      cfg1 = [];
-      cfg1.keepindividual = 'yes';
-      gpowcorrall1 = ft_freqgrandaverage(cfg1, data{:});
+      cfg = [];
+      cfg.keepindividual = 'yes';
+      gpowcorrall1 = ft_freqgrandaverage(cfg, data{:});
       
-      cfg2 = [];
-      cfg2.variance = 'yes';
-      powcorr{1} = ft_freqdescriptives(cfg2, gpowcorrall1);
+      cfg = [];
+      cfg.variance = 'yes';
+      powcorr{1} = ft_freqdescriptives(cfg, gpowcorrall1);
       powcorr{1}.tscore =  powcorr{1}.powspctrm ./ powcorr{1}.powspctrmsem;
       powcorr{1}.cfg = []; % remove cfg
       %-------%
@@ -163,21 +152,21 @@ if isfield(cfg.gpowcorr, 'comp')
       gplot = powcorr{1};
       %-------%
       
-      [powcorr_peak stat outtmp] = report_cluster(cfg, gpowcorrall1);
+      [powcorr_peak stat outtmp] = report_cluster(opt, gpowcorrall1);
       %-----------------%
       
     else
       
       %-----------------%
       %-compare two conditions
-      cond1 = cfg.gpowcorr.comp{t}{1};
-      cond2 = cfg.gpowcorr.comp{t}{2};
+      cond1 = opt.comp{t}{1};
+      cond2 = opt.comp{t}{2};
       comp = [regexprep(cond1, '*', '') '_' regexprep(cond2, '*', '')];
       output = sprintf('%s\n   COMPARISON %s vs %s\n', output, cond1, cond2);
       
       %-------%
       %-powcorr over subj
-      [outtmp data1 data2] = load_subj(info, 'powcorr', cfg.gpowcorr.comp{t});
+      [outtmp data1 data2] = load_subj(info, 'powcorr', opt.comp{t});
       output = [output outtmp];
       if isempty(data1) || isempty(data2); continue; end
       
@@ -203,7 +192,7 @@ if isfield(cfg.gpowcorr, 'comp')
       gplot.tscore = powcorr{2}.tscore - powcorr{1}.tscore;
       %-------%
       
-      [powcorr_peak stat outtmp] = reportcluster(cfg, gpowcorrall1, gpowcorrall2);
+      [powcorr_peak stat outtmp] = report_cluster(opt, gpowcorrall1, gpowcorrall2);
       %-----------------%
       
     end
@@ -214,7 +203,7 @@ if isfield(cfg.gpowcorr, 'comp')
     
     %---------------------------%
     %-loop over channels
-    for c = 1:numel(cfg.gpowcorr.chan)
+    for c = 1:numel(opt.plot.chan)
       
       %-----------------%
       %-figure
@@ -224,19 +213,19 @@ if isfield(cfg.gpowcorr, 'comp')
       %--------%
       %-options
       cfg3 = [];
-      cfg3.channel = cfg.gpowcorr.chan(c).chan;
+      cfg3.channel = opt.plot.chan(c).chan;
       cfg3.zlim = [-4 4];
       cfg3.parameter = 'tscore';
       ft_singleplotTFR(cfg3, gplot);
       colorbar
       
-      title([comp ' ' cfg.gpowcorr.chan(c).name], 'Interpreter', 'none')
+      title([comp ' ' opt.plot.chan(c).name], 'Interpreter', 'none')
       %--------%
       %-----------------%
       
       %-----------------%
       %-save and link
-      pngname = sprintf('gpow_tfr_%s_%s', comp, cfg.gpowcorr.chan(c).name);
+      pngname = sprintf('gpow_tfr_%s_%s', comp, opt.plot.chan(c).name);
       saveas(gcf, [info.log filesep pngname '.png'])
       close(gcf); drawnow
       
@@ -252,7 +241,7 @@ if isfield(cfg.gpowcorr, 'comp')
     if haslay
       
       %-loop over freq
-      for f = 1:numel(cfg.gpowcorr.freq)
+      for f = 1:numel(opt.plot.freq)
         
         %-----------------%
         %-figure
@@ -265,7 +254,7 @@ if isfield(cfg.gpowcorr, 'comp')
         cfg5.parameter = 'tscore';
         cfg5.layout = layout;
         
-        cfg5.ylim = cfg.gpowcorr.freq(f).freq;
+        cfg5.ylim = opt.plot.freq(f).freq;
         cfg5.zlim = [-4 4];
         cfg5.style = 'straight';
         cfg5.marker = 'off';
@@ -273,7 +262,7 @@ if isfield(cfg.gpowcorr, 'comp')
         cfg5.commentpos = 'title';
         
         %-no topoplot if the data contains NaN
-        i_freq1 = nearest(powcorr{f}.freq, cfg.gpowcorr.freq(f).freq(1));
+        i_freq1 = nearest(powcorr{f}.freq, opt.plot.freq(f).freq(1));
         onedat = squeeze(powcorr{t}.tscore(1, i_freq1, :)); % take one example, lowest frequency
         cfg5.xlim = powcorr{t}.time(~isnan(onedat));
         
@@ -283,7 +272,7 @@ if isfield(cfg.gpowcorr, 'comp')
         
         %-----------------%
         %-save and link
-        pngname = sprintf('gpowcorr_topo_%s_%s', cfg.gpowcorr.chan(c).name, cfg.gpowcorr.freq(f).name);
+        pngname = sprintf('gpowcorr_topo_%s_%s', opt.plot.chan(c).name, opt.plot.freq(f).name);
         saveas(gcf, [info.log filesep pngname '.png'])
         close(gcf); drawnow
         
@@ -298,10 +287,10 @@ if isfield(cfg.gpowcorr, 'comp')
     
     %---------------------------%
     %-singleplotER (multiple conditions at once)
-    for c = 1:numel(cfg.gpowcorr.chan)
+    for c = 1:numel(opt.plot.chan)
       
       %-loop over freq
-      for f = 1:numel(cfg.gpowcorr.freq)
+      for f = 1:numel(opt.plot.freq)
         
         %-----------------%
         %-figure
@@ -311,21 +300,21 @@ if isfield(cfg.gpowcorr, 'comp')
         %--------%
         %-plot
         cfg4 = [];
-        cfg4.channel = cfg.gpowcorr.chan(c).chan;
+        cfg4.channel = opt.plot.chan(c).chan;
         cfg4.parameter = 'tscore';
-        cfg4.zlim = cfg.gpowcorr.freq(f).freq;
+        cfg4.zlim = opt.plot.freq(f).freq;
         ft_singleplotER(cfg4, powcorr{:});
         
         legend('cond1', 'cond2')
         ylabel(cfg4.parameter)
         
-        title([comp ' ' cfg.gpowcorr.chan(c).name ' ' cfg.gpowcorr.freq(f).name], 'Interpreter', 'none')
+        title([comp ' ' opt.plot.chan(c).name ' ' opt.plot.freq(f).name], 'Interpreter', 'none')
         %--------%
         %-----------------%
         
         %-----------------%
         %-save and link
-        pngname = sprintf('gpowcorr_val_%s_%s_%s', comp, cfg.gpowcorr.chan(c).name, cfg.gpowcorr.freq(f).name);
+        pngname = sprintf('gpowcorr_val_%s_%s_%s', comp, opt.plot.chan(c).name, opt.plot.freq(f).name);
         saveas(gcf, [info.log filesep pngname '.png'])
         close(gcf); drawnow
         
