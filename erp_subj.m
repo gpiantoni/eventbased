@@ -6,8 +6,8 @@ function erp_subj(info, opt, subj)
 %  .log: name of the file and directory to save log
 %
 % CFG.OPT
-%  .cond*: cell with conditions (e.g. {'*cond1' '*cond2'})'
 %  .source: read virtual electrode data (logical)
+%  .cond*: cell with conditions (e.g. {'*cond1' '*cond2'})'
 %  .erp*: a structure with cfg to pass to ft_timelockanalysis
 %
 % IN
