@@ -20,6 +20,8 @@ function erp_grand(info, opt)
 %  .plot.chan(1).name: 'name_of_channels'
 %  .plot.chan(1).chan: cell with labels of channels of interest
 %
+% TODO: Baseline correction at the single-subject level
+%
 % IN
 %  [info.derp 'erp_SUBJ_COND'] 'erp_subj': timelock analysis for single-subject
 %

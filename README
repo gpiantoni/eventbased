@@ -138,6 +138,9 @@ CFG.OPT
 .lpfreqn = [.3 / (cfg.gclean.fsample/2)]; % normalized by half of the sampling frequency!
   GCLEAN,
 
+.numrandomization: number of randomization
+  REPORT_CLUSTER, 
+  
 .plot.bline: two scalars indicating the time window for baseline in s (only for plotting, TODO: check if necessary for normal analysis as well)
   ERP_GRAND,
   
