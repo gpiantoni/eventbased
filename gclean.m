@@ -49,7 +49,7 @@ tic_t = tic;
 ddir = sprintf('%s%04d/%s/%s/', info.data, subj, info.mod, info.nick); % data dir
 allfile = dir([ddir '*_A.mat']); % files matching a preprocessing
 
-prepr_name = 'B'; % preprocessing name to append
+prepr_name = '_B'; % preprocessing name to append
 %---------------------------%
 
 %---------------------------%
@@ -64,7 +64,7 @@ if isfield(info.sens, 'file') && ~isempty(info.sens.file)
   cfg.elec = sens;
   cfg.method = 'distance';
   cfg.neighbourdist = info.sens.dist;
-  neigh = ft_prepare_neighbours(info, opt);
+  neigh = ft_prepare_neighbours(cfg);
 end
 
 if strcmp(info.mod, 'meg')
@@ -238,7 +238,7 @@ for i = 1:numel(allfile)
   cfg.feedback = 'none';
   
   [~, filename] = fileparts(allfile(i).name);
-  cfg.outputfile = [ddir filename '_' prepr_name];
+  cfg.outputfile = [ddir filename prepr_name];
   
   ft_channelrepair(cfg, data)
   %-----------------%

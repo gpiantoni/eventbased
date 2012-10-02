@@ -47,12 +47,12 @@ function powsource_grand(info, opt)
 %  .template.volume: absolute path to the reference mri 
 %
 % IN
-%  [cfg.dpow 'powsource_SUBJ_COND'] 'powsource_subj_A': source data for period of interest for each subject
-%  [cfg.dpow 'powsource_SUBJ_COND'] 'powsource_subj_B': source data for baseline for each subject
+%  [info.dpow 'powsource_SUBJ_COND'] 'powsource_subj_A': source data for period of interest for each subject
+%  [info.dpow 'powsource_SUBJ_COND'] 'powsource_subj_B': source data for baseline for each subject
 %
 % OUT
-%  [cfg.dpow 'powsource_COND'] 'powsource': source analysis for all subject
-%  [cfg.dpow 'powsource_peak_COND'] 'powsource_peak': significant source peaks in POW
+%  [info.dpow 'powsource_COND'] 'powsource': source analysis for all subject
+%  [info.dpow 'powsource_peak_COND'] 'powsource_peak': significant source peaks in POW
 %
 % FIGURES
 %  gpow_peak_COND_POWPEAK: 3d plot of the source for one peak
@@ -106,7 +106,7 @@ for k = 1:numel(cfg.powsource.cond)
   
   %-----------------%
   %-file for each cond
-  [outtmp data] = load_subj(cfg, 'powsource', cond);
+  [outtmp data] = load_subj(info, 'powsource', cond);
   output = [output outtmp];
   if isempty(data); continue; end
   %-----------------%
@@ -196,12 +196,12 @@ for k = 1:numel(cfg.powsource.cond)
   
   %-----------------%
   %-save
-  save([cfg.dpow 'powsource_peak_' condname], 'powsource_peak')
+  save([info.dpow 'powsource_peak_' condname], 'powsource_peak')
   
   for p = 1:numel(powsource)
     powsource{p}.cfg = []; % this is huge
   end
-  save([cfg.dpow 'powsource_' condname], 'powsource', '-v7.3')
+  save([info.dpow 'powsource_' condname], 'powsource', '-v7.3')
   %-----------------%
   
 end

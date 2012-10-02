@@ -56,11 +56,11 @@ function source_subj(info, opt, subj)
 % IN:
 %  data in /PROJ/subjects/SUBJ/MOD/NICK/
 %  if .source.areas == 'erppeak' or ('dip' and .source.beamformer == 'erp')
-%     [cfg.derp 'erpsource_SUBJ_COND']: source data for period of interest for each subject
-%     [cfg.derp 'NICK_COND_soupeak']: significant source peaks in the ERP
+%     [info.derp 'erpsource_SUBJ_COND']: source data for period of interest for each subject
+%     [info.derp 'NICK_COND_soupeak']: significant source peaks in the ERP
 %  if .source.areas == 'powpeak'  or ('dip' and .source.beamformer == 'pow')
-%     [cfg.derp 'erpsource_SUBJ_COND']: source data for period of interest for each subject
-%     [cfg.dpow 'NICK_COND_soupeak']: significant source peaks in the POW
+%     [info.derp 'erpsource_SUBJ_COND']: source data for period of interest for each subject
+%     [info.dpow 'NICK_COND_soupeak']: significant source peaks in the POW
 %
 % OUT
 %  [cfg.dsou 'conn_SUBJ_COND']: virtual electrode for each channel
@@ -88,28 +88,28 @@ switch cfg.source.areas
     
   case 'erp'
     condname = regexprep(cfg.source.refcond, '*', '');
-    load([cfg.derp 'erp_' condname], 'erp')
+    load([info.derp 'erp_' condname], 'erp')
     
     [mont outtmp] = prepare_montage(cfg, erp);
     
   case 'dip'
     condname = regexprep(cfg.source.refcond, '*', '');
     sourcename = sprintf('%ssource_s_A', cfg.source.beamformer);
-    load(sprintf('%s%ssource_%04d_%s', cfg.derp, cfg.source.beamformer, subj, condname), sourcename) % source of interest
+    load(sprintf('%s%ssource_%04d_%s', info.derp, cfg.source.beamformer, subj, condname), sourcename) % source of interest
     
     [mont outtmp] = prepare_montage(cfg, eval(sourcename), cfg.source.dip);
     
   case 'erppeak'
     condname = regexprep(cfg.source.refcond, '*', '');
-    load(sprintf('%serpsource_%04d_%s', cfg.derp, subj, condname), 'erpsource_s_A') % source of interest
-    load(sprintf('%serpsource_peak_%s', cfg.derp, condname), 'erpsource_peak') % peaks in ERP
+    load(sprintf('%serpsource_%04d_%s', info.derp, subj, condname), 'erpsource_s_A') % source of interest
+    load(sprintf('%serpsource_peak_%s', info.derp, condname), 'erpsource_peak') % peaks in ERP
     
     [mont outtmp] = prepare_montage(cfg, erpsource_s_A, erpsource_peak);
     
   case 'powpeak'
     condname = regexprep(cfg.source.refcond, '*', '');
-    load(sprintf('%serpsource_%04d_%s', cfg.derp, subj, condname), 'erpsource_s_A') % source of interest
-    load(sprintf('%spowsource_peak_%s', cfg.dpow, condname), 'powsource_peak') % peaks in POW
+    load(sprintf('%serpsource_%04d_%s', info.derp, subj, condname), 'erpsource_s_A') % source of interest
+    load(sprintf('%spowsource_peak_%s', info.dpow, condname), 'powsource_peak') % peaks in POW
     
     [mont outtmp] = prepare_montage(cfg, erpsource_s_A, powsource_peak);
     

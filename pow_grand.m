@@ -1,6 +1,6 @@
 function pow_grand(info, opt)
 %POW_GRAND grand power average
-% 1) read single subject-data and create gpow in cfg.dpow
+% 1) read single subject-data and create gpow in info.dpow
 % 2) do statistics for condition indicated by cfg.gpow.comp
 % 3) plot the topoplot over time, frequency and singleplot for some electrodes
 %
@@ -41,11 +41,11 @@ function pow_grand(info, opt)
 %  .rslt: directory images are saved into
 %
 % IN
-%  [cfg.dpow 'pow_SUBJ_COND'] 'pow_subj': timelock analysis for single-subject
+%  [info.dpow 'pow_SUBJ_COND'] 'pow_subj': timelock analysis for single-subject
 %
 % OUT
-%  [cfg.dpow 'pow_COND'] 'pow': power analysis for all subjects
-%  [cfg.dpow 'pow_peak_COMP'] 'pow_peak': significant peaks in the POW for the comparison
+%  [info.dpow 'pow_COND'] 'pow': power analysis for all subjects
+%  [info.dpow 'pow_peak_COMP'] 'pow_peak': significant peaks in the POW for the comparison
 %
 % FIGURES (saved in info.log and, if not empty, cfg.rslt)
 %  gpow_tfr_COMP_CHAN: time-frequency plot POW, for each condition, for one channel group
@@ -82,7 +82,7 @@ for k = 1:numel(cfg.pow.cond)
   
   %-----------------%
   %-pow over subj
-  [outtmp data] = load_subj(cfg, 'pow', cond);
+  [outtmp data] = load_subj(info, 'pow', cond);
   output = [output outtmp];
   if isempty(data); continue; end
   %-----------------%
@@ -102,7 +102,7 @@ for k = 1:numel(cfg.pow.cond)
   
   %-----------------%
   %-save
-  save([cfg.dpow 'pow_' condname], 'pow')
+  save([info.dpow 'pow_' condname], 'pow')
   %-----------------%
   
 end
@@ -141,7 +141,7 @@ if isfield(cfg.gpow, 'comp')
       
       %-------%
       %-pow over subj
-      [outtmp data] = load_subj(cfg, 'pow', cond);
+      [outtmp data] = load_subj(info, 'pow', cond);
       output = [output outtmp];
       if isempty(data); continue; end
       
@@ -170,7 +170,7 @@ if isfield(cfg.gpow, 'comp')
       
       %-------%
       %-pow over subj
-      [outtmp data1 data2] = load_subj(cfg, 'pow', cfg.gpow.comp{t});
+      [outtmp data1 data2] = load_subj(info, 'pow', cfg.gpow.comp{t});
       output = [output outtmp];
       if isempty(data1) || isempty(data2); continue; end
       
@@ -197,7 +197,7 @@ if isfield(cfg.gpow, 'comp')
       
     end
     
-    save([cfg.dpow 'pow_peak_' comp], 'pow_peak', 'stat')
+    save([info.dpow 'pow_peak_' comp], 'pow_peak', 'stat')
     output = [output outtmp];
     %---------------------------%
     

@@ -38,12 +38,12 @@ function erpsource_grand(info, opt)
 %  .rslt: directory images are saved into
 %
 % IN
-%  [cfg.derp 'erpsource_SUBJ_COND'] 'erpsource_subj_A': source data for period of interest for each subject
-%  [cfg.derp 'erpsource_SUBJ_COND'] 'erpsource_subj_B': source data for baseline for each subject
+%  [info.derp 'erpsource_SUBJ_COND'] 'erpsource_subj_A': source data for period of interest for each subject
+%  [info.derp 'erpsource_SUBJ_COND'] 'erpsource_subj_B': source data for baseline for each subject
 %
 % OUT
-%  [cfg.derp 'erpsource_COND'] 'erpsource': source analysis for all subject
-%  [cfg.derp 'erpsource_peak_COND'] 'erpsource_peak': significant source peaks in the ERP
+%  [info.derp 'erpsource_COND'] 'erpsource': source analysis for all subject
+%  [info.derp 'erpsource_peak_COND'] 'erpsource_peak': significant source peaks in the ERP
 %
 % FIGURES
 %  gerp_peak_COND_ERPPEAK: 3d plot of the source for one peak
@@ -97,7 +97,7 @@ for k = 1:numel(cfg.erpsource.cond)
   
   %-----------------%
   %-file for each cond
-  [outtmp data] = load_subj(cfg, 'erpsource', cond);
+  [outtmp data] = load_subj(info, 'erpsource', cond);
   output = [output outtmp];
   if isempty(data); continue; end
   %-----------------%
@@ -185,12 +185,12 @@ for k = 1:numel(cfg.erpsource.cond)
   
   %-----------------%
   %-save
-  save([cfg.derp 'erpsource_peak_' condname], 'erpsource_peak')
+  save([info.derp 'erpsource_peak_' condname], 'erpsource_peak')
   
   for p = 1:numel(erpsource)
     erpsource{p}.cfg = []; % this is huge
   end
-  save([cfg.derp 'erpsource_' condname], 'erpsource', '-v7.3')
+  save([info.derp 'erpsource_' condname], 'erpsource', '-v7.3')
   %-----------------%
   
 end

@@ -39,11 +39,11 @@ function erpstat_grand(info, opt)
 %  .dti.ref: template for mask ('/usr/share/data/fsl-mni152-templates/MNI152_T1_1mm_brain.nii.gz')
 %
 % IN
-%  [cfg.dpow 'powstat_SUBJ_COND']: source data for period of interest and baseline for each subject
+%  [info.dpow 'powstat_SUBJ_COND']: source data for period of interest and baseline for each subject
 %
 % OUT
-%  [cfg.dpow 'powstat_COND']: source analysis for all subject
-%  [cfg.dpow 'powsoupeak_COND']: significant source peaks in POW
+%  [info.dpow 'powstat_COND']: source analysis for all subject
+%  [info.dpow 'powsoupeak_COND']: significant source peaks in POW
 %
 % FIGURES
 %  gpowpeak_COND_POWPEAK: 3d plot of the source for one peak
@@ -69,11 +69,11 @@ if strcmp(cfg.powsource.areas, 'manual')
   
 elseif strcmp(cfg.powsource.areas, 'powpeak')
   peakname = regexprep(cfg.pow.refcond, '*', '');
-  load([cfg.dpow 'powpeak_' peakname], 'powpeak')
+  load([info.dpow 'powpeak_' peakname], 'powpeak')
   
 elseif strcmp(cfg.powsource.areas, 'powcorrpeak')
   peakname = regexprep(cfg.powcorr.refcond, '*', '');
-  load([cfg.dpow 'powcorrpeak_' peakname], 'powcorrpeak')
+  load([info.dpow 'powcorrpeak_' peakname], 'powcorrpeak')
   powpeak = powcorrpeak;
   
 end
@@ -95,7 +95,7 @@ for t = 1:numel(cfg.powstat.comp) % DOC: cfg.powstat.comp
     
     %-------%
     %-pow over subj
-    [outtmp data] = load_subj(cfg, 'powstat', cond);
+    [outtmp data] = load_subj(info, 'powstat', cond);
     output = [output outtmp];
     if isempty(data); continue; end
     %-------%
@@ -115,14 +115,14 @@ for t = 1:numel(cfg.powstat.comp) % DOC: cfg.powstat.comp
     
     %-------%
     %-pow over subj
-    [outtmp data1] = load_subj(cfg, 'powstat', cond1);
+    [outtmp data1] = load_subj(info, 'powstat', cond1);
     output = [output outtmp];
     if isempty(data); continue; end
     %-------%
     
     %-------%
     %-pow over subj
-    [outtmp data2] = load_subj(cfg, 'powstat', cond2);
+    [outtmp data2] = load_subj(info, 'powstat', cond2);
     output = [output outtmp];
     if isempty(data); continue; end
     %-------%
@@ -183,12 +183,12 @@ for t = 1:numel(cfg.powstat.comp) % DOC: cfg.powstat.comp
   
   %-----------------%
   %-save
-  save([cfg.dpow 'powstatpeak_' condname], 'soupeak')
+  save([info.dpow 'powstatpeak_' condname], 'soupeak')
   
   for p = 1:numel(powstat)
     powstat{p}.cfg = []; % this is huge
   end
-  save([cfg.dpow 'powstat_' condname], 'powstat', '-v7.3')
+  save([info.dpow 'powstat_' condname], 'powstat', '-v7.3')
   %-----------------%
   
 end

@@ -43,12 +43,12 @@ function erpstat_subj(info, opt, subj)
 %
 % IN:
 %  data in /PROJ/subjects/SUBJ/MOD/NICK/
-%  [cfg.derp 'erpsource_SUBJ_COND'] 'erpsource_s_A': source data for period of interest for each subject
-%  [cfg.derp 'erpsource_SUBJ_COND'] 'erpsource_s_B': source data for baseline for each subject
+%  [info.derp 'erpsource_SUBJ_COND'] 'erpsource_s_A': source data for period of interest for each subject
+%  [info.derp 'erpsource_SUBJ_COND'] 'erpsource_s_B': source data for baseline for each subject
 %
 % OUT
-%  [cfg.derp 'erpstat_SUBJ_COND'] 'erpstat_s_A': source data for period of interest for each subject, after common filters
-%  [cfg.derp 'erpstat_SUBJ_COND'] 'erpstat_s_B': source data for baseline for each subject, after common filters
+%  [info.derp 'erpstat_SUBJ_COND'] 'erpstat_s_A': source data for period of interest for each subject, after common filters
+%  [info.derp 'erpstat_SUBJ_COND'] 'erpstat_s_B': source data for baseline for each subject, after common filters
 %
 % Part of EVENTBASED single-subject
 % see also ERP_SUBJ, ERP_GRAND, 
@@ -72,7 +72,7 @@ tic_t = tic;
 %-load source
 souname = regexprep(cfg.erpstat.refcond, '*', '');
 sourcefile = sprintf('erpsource_%04d_%s', subj, souname);
-load([cfg.derp sourcefile], 'erpsource_s_A', 'erpsource_s_B')
+load([info.derp sourcefile], 'erpsource_s_A', 'erpsource_s_B')
 souchan = sourceA{1}.cfg.channel;
 %-----------------%
 
@@ -193,7 +193,7 @@ for k = 1:numel(cfg.erpstat.cond)
   
   %-----------------%
   %-save source
-  save([cfg.derp outputfile], 'erpstat_s_A', 'erpstat_s_B', '-v7.3')
+  save([info.derp outputfile], 'erpstat_s_A', 'erpstat_s_B', '-v7.3')
   %-----------------%
   
 end

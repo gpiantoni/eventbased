@@ -45,12 +45,12 @@ function powstat_subj(info, opt, subj)
 %
 % IN:
 %  data in /PROJ/subjects/SUBJ/MOD/NICK/
-%  [cfg.dpow 'powsource_SUBJ_COND'] 'powsource_s_A': source data for period of interest for each subject
-%  [cfg.dpow 'powsource_SUBJ_COND'] 'powsource_s_B': source data for baseline for each subject
+%  [info.dpow 'powsource_SUBJ_COND'] 'powsource_s_A': source data for period of interest for each subject
+%  [info.dpow 'powsource_SUBJ_COND'] 'powsource_s_B': source data for baseline for each subject
 %
 % OUT
-%  [cfg.dpow 'powstat_SUBJ_COND'] 'powstat_s_A': source data for period of interest for each subject, after common filters
-%  [cfg.dpow 'powstat_SUBJ_COND'] 'powstat_s_B': source data for baseline for each subject, after common filters
+%  [info.dpow 'powstat_SUBJ_COND'] 'powstat_s_A': source data for period of interest for each subject, after common filters
+%  [info.dpow 'powstat_SUBJ_COND'] 'powstat_s_B': source data for baseline for each subject, after common filters
 %
 % Part of EVENTBASED single-subject
 % see also ERP_SUBJ, ERP_GRAND, 
@@ -74,7 +74,7 @@ tic_t = tic;
 %-load source
 souname = regexprep(cfg.powsource.refcond, '*', '');
 sourcefile = sprintf('powsource_%04d_%s', subj, souname);
-load([cfg.dpow sourcefile], 'powsource_s_A', 'powsource_s_B')
+load([info.dpow sourcefile], 'powsource_s_A', 'powsource_s_B')
 souchan = powsource_s_A{1}.cfg.channel;
 %-----------------%
 
@@ -263,7 +263,7 @@ for t = 1:numel(cfg.powstat.comp)
   
   %-----------------%
   %-save source
-  save([cfg.dpow outputfile], 'powstat_s_A', 'powstat_s_B', '-v7.3')
+  save([info.dpow outputfile], 'powstat_s_A', 'powstat_s_B', '-v7.3')
   %-----------------%
   
 end

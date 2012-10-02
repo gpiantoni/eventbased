@@ -25,7 +25,7 @@ function powcorr_subj(info, opt, subj)
 %  source in cfg.dsou from SOURCE_SUBJ
 %
 % OUT
-%  [cfg.dpow 'powcorr_SUBJ_COND'] 'powcorr_s': power correlation for single-subject
+%  [info.dpow 'powcorr_SUBJ_COND'] 'powcorr_s': power correlation for single-subject
 %
 % Part of EVENTBASED single-subject
 % see also ERP_SUBJ, ERP_GRAND, 
@@ -117,7 +117,7 @@ for k = 1:numel(cfg.powcorr.cond)
   powcorr_s.powspctrm = powspctrm;
   %---------------------------%
   
-  save([cfg.dpow outputfile], 'powcorr_s')
+  save([info.dpow outputfile], 'powcorr_s')
   
 end
 %-------------------------------------%

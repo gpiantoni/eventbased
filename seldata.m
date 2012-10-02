@@ -127,7 +127,7 @@ for i = 1:numel(allfile)
   %-----------------%
   %-save data
   [~, filename] = fileparts(allfile(i).name);
-  savename = [info.proj '_' filename prepr_name]; % <-- add proj name
+  savename = [info.nick '_' filename prepr_name]; % <-- add nick name
   save([ddir savename], 'data', 'event');
   clear data
   %-----------------%

@@ -36,11 +36,11 @@ function powstat_grand(info, opt)
 %  .rslt: directory images are saved into
 %
 % IN
-%  [cfg.dpow 'powstat_SUBJ_COND']: source data for period of interest and baseline for each subject
+%  [info.dpow 'powstat_SUBJ_COND']: source data for period of interest and baseline for each subject
 %
 % OUT
-%  [cfg.dpow 'powstat_COMP']: source analysis for each cfg.powstat.comp
-%  [cfg.dpow 'powpowstat_peak_COMP']: significant source peaks for each cfg.powstat.comp
+%  [info.dpow 'powstat_COMP']: source analysis for each cfg.powstat.comp
+%  [info.dpow 'powpowstat_peak_COMP']: significant source peaks for each cfg.powstat.comp
 %
 % FIGURES
 %  gpow_peak_COMP_POWPEAK: 3d plot of the source for one peak
@@ -94,7 +94,7 @@ for t = 1:numel(cfg.powstat.comp)
     
     %-------%
     %-pow over subj
-    [outtmp data] = load_subj(cfg, 'powstat', cond);
+    [outtmp data] = load_subj(info, 'powstat', cond);
     output = [output outtmp];
     if isempty(data); continue; end
     %-------%
@@ -125,14 +125,14 @@ for t = 1:numel(cfg.powstat.comp)
     
     %-------%
     %-pow over subj
-    [outtmp data1] = load_subj(cfg, 'powstat', cond1);
+    [outtmp data1] = load_subj(info, 'powstat', cond1);
     output = [output outtmp];
     if isempty(data1); continue; end
     %-------%
     
     %-------%
     %-pow over subj
-    [outtmp data2] = load_subj(cfg, 'powstat', cond2);
+    [outtmp data2] = load_subj(info, 'powstat', cond2);
     output = [output outtmp];
     if isempty(data2); continue; end
     %-------%
@@ -203,12 +203,12 @@ for t = 1:numel(cfg.powstat.comp)
   
   %-----------------%
   %-save
-  save([cfg.dpow 'powstat_peak_' comp], 'powstat_peak')
+  save([info.dpow 'powstat_peak_' comp], 'powstat_peak')
   
   for p = 1:numel(powstat)
     powstat{p}.cfg = []; % this is huge
   end
-  save([cfg.dpow 'powstat_' comp], 'powstat', '-v7.3')
+  save([info.dpow 'powstat_' comp], 'powstat', '-v7.3')
   %-----------------%
   
 end

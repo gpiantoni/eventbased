@@ -6,15 +6,15 @@ function redef(info, opt, subj)
 % each condition. It only keeps trials which are in the good part of the data.
 %
 % INFO
-%  .data: path of /data1/projects/PROJ/subjects/
-%  .nick: NICK in /data1/projects/PROJ/subjects/0001/MOD/NICK/
-%  .mod: modality, MOD in /data1/projects/PROJ/subjects/0001/MOD/NICK/
+%  .data*: path of /data1/projects/PROJ/subjects/
+%  .nick*: NICK in /data1/projects/PROJ/subjects/0001/MOD/NICK/
+%  .mod*: modality, MOD in /data1/projects/PROJ/subjects/0001/MOD/NICK/
 %
-%  .log: name of the file and directory to save log
+%  .log*: name of the file and directory to save log
 %
 % CFG.OPT
-%  .event2trl: function name in NICK_private which creates the correct trl based on events
-%  .redef: options to pass to event2trl 
+%  .event2trl*: function name in NICK_private which creates the correct trl based on events
+%  .redef: options to pass to event2trl
 %
 %  .preproc1: struct to pass to ft_preprocessing before cutting trials (if empty, no preprocessing)
 %  .preproc2: struct to pass to ft_preprocessing after cutting trials (if empty, no preprocessing)
@@ -41,6 +41,8 @@ function redef(info, opt, subj)
 %     .trialinfo = extra_trialinfo (optional)
 %   output is a text for output
 %
+% * indicates obligatory parameter
+%
 % Part of EVENTBASED preprocessing
 % see also SELDATA, GCLEAN, REDEF
 
@@ -54,17 +56,19 @@ tic_t = tic;
 %---------------------------%
 %-dir and files
 ddir = sprintf('%s%04d/%s/%s/', info.data, subj, info.mod, info.nick); % data dir
-allfile = dir([ddir '*_B_A.mat']); % files matching a preprocessing
+allfile = dir([ddir '*_A_B.mat']); % files matching a preprocessing
 
 %-------%
 %-for CSD
-if isfield(cfg.sens, 'file') && ~isempty(cfg.sens.file)
-  sens = ft_read_sens(cfg.sens.file);
+if isfield(info.sens, 'file') && ~isempty(info.sens.file)
+  sens = ft_read_sens(info.sens.file);
   sens.label = upper(sens.label);
 end
 %-------%
 
-prepr_name = 'C'; % preprocessing name to append
+if ~isfield(opt, 'redef'); opt.redef = []; end
+
+prepr_name = '_C'; % preprocessing name to append
 %---------------------------%
 
 %-------------------------------------%
@@ -92,7 +96,7 @@ for i = 1:numel(allfile)
   
   %-----------------%
   %-define the new trl
-  opt.fsample = data.fsample; % pass the sampling frequency as well
+  opt.redef.fsample = data.fsample; % pass the sampling frequency as well
   [cond outtmp] = feval(opt.event2trl, opt.redef, event);
   output = [output outtmp];
   %-----------------%
@@ -107,8 +111,8 @@ for i = 1:numel(allfile)
       %-redefine trials
       %---------%
       %-insert condition name into the condition field
-      basicname = allfile(i).name(1:strfind(allfile(i).name, '_B_A')-1); % name without last part of the name
-      outputfile = [basicname '-' cond(c).name '_B_A' '_' prepr_name];
+      basicname = allfile(i).name(1:strfind(allfile(i).name, '_A_B')-1); % name without last part of the name
+      outputfile = [basicname '-' cond(c).name '_A_B' prepr_name];
       %---------%
       
       %---------%
@@ -187,7 +191,7 @@ output = [output outtmp];
 
 %-----------------%
 fprintf(output)
-fid = fopen([cfg.log '.txt'], 'a');
+fid = fopen([info.log '.txt'], 'a');
 fwrite(fid, output);
 fclose(fid);
 %-----------------%

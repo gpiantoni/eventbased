@@ -1,6 +1,6 @@
 function powcorr_grand(info, opt)
 %POWCORR_GRAND grand power average
-% 1) read single subject-data and create gpowcorr in cfg.dpow
+% 1) read single subject-data and create gpowcorr in info.dpow
 % 2) do statistics for condition indicated by cfg.gpowcorr.comp
 % 3) plot the topoplot over time, frequency and singleplot for some electrodes
 %
@@ -35,11 +35,11 @@ function powcorr_grand(info, opt)
 %  .rslt: directory images are saved into
 %
 % IN
-%  [cfg.dpow 'powcorr_SUBJ_COND'] 'powcorr_subj': power correlation for single-subject
+%  [info.dpow 'powcorr_SUBJ_COND'] 'powcorr_subj': power correlation for single-subject
 %
 % OUT
-%  [cfg.dpow 'powcorr_COND'] 'powcorr': power correlation for all subjects
-%  [cfg.dpow 'powcorrpeak_COMP'] 'powcorr_peak': significant peaks in the POWCORR for the comparison
+%  [info.dpow 'powcorr_COND'] 'powcorr': power correlation for all subjects
+%  [info.dpow 'powcorrpeak_COMP'] 'powcorr_peak': significant peaks in the POWCORR for the comparison
 %
 % FIGURES (saved in info.log and, if not empty, cfg.rslt)
 %  gpowcorr_tfr_COMP_COND: time-frequency plot powcorr, for each comparison, for one channel group
@@ -70,7 +70,7 @@ for k = 1:numel(cfg.powcorr.cond)
   
   %-----------------%
   %-powcorr over subj
-  [outtmp data] = load_subj(cfg, 'powcorr', cond);
+  [outtmp data] = load_subj(info, 'powcorr', cond);
   output = [output outtmp];
   if isempty(data); continue; end
   %-----------------%
@@ -90,7 +90,7 @@ for k = 1:numel(cfg.powcorr.cond)
   
   %-----------------%
   %-save
-  save([cfg.dpow 'powcorr_' condname], 'powcorr')
+  save([info.dpow 'powcorr_' condname], 'powcorr')
   %-----------------%
   
 end
@@ -141,7 +141,7 @@ if isfield(cfg.gpowcorr, 'comp')
       
       %-------%
       %-powcorr over subj
-      [outtmp data] = load_subj(cfg, 'powcorr', cond);
+      [outtmp data] = load_subj(info, 'powcorr', cond);
       output = [output outtmp];
       if isempty(data); continue; end
       
@@ -175,7 +175,7 @@ if isfield(cfg.gpowcorr, 'comp')
       
       %-------%
       %-powcorr over subj
-      [outtmp data1 data2] = load_subj(cfg, 'powcorr', cfg.gpowcorr.comp{t});
+      [outtmp data1 data2] = load_subj(info, 'powcorr', cfg.gpowcorr.comp{t});
       output = [output outtmp];
       if isempty(data1) || isempty(data2); continue; end
       
@@ -206,7 +206,7 @@ if isfield(cfg.gpowcorr, 'comp')
       
     end
     
-    save([cfg.dpow 'powcorr_peak_' comp], 'powcorr_peak', 'stat')
+    save([info.dpow 'powcorr_peak_' comp], 'powcorr_peak', 'stat')
     output = [output outtmp];
     %---------------------------%
     

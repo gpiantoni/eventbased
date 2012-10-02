@@ -50,11 +50,11 @@ function conn_subj(info, opt, subj)
 % IN:
 %  data in /PROJ/subjects/SUBJ/MOD/NICK/
 %  if .conn.areas == 'erppeak' or ('dip' and .conn.beamformer == 'erp')
-%     [cfg.derp 'erpsource_SUBJ_COND']: source data for period of interest for each subject
-%     [cfg.derp 'NICK_COND_soupeak']: significant source peaks in the ERP
+%     [info.derp 'erpsource_SUBJ_COND']: source data for period of interest for each subject
+%     [info.derp 'NICK_COND_soupeak']: significant source peaks in the ERP
 %  if .conn.areas == 'powpeak'  or ('dip' and .conn.beamformer == 'pow')
-%     [cfg.dpow 'powsource_SUBJ_COND']: source data for period of interest for each subject
-%     [cfg.dpow 'NICK_COND_soupeak']: significant source peaks in the POW
+%     [info.dpow 'powsource_SUBJ_COND']: source data for period of interest for each subject
+%     [info.dpow 'NICK_COND_soupeak']: significant source peaks in the POW
 %
 % OUT
 %  [cfg.dcon 'conn_CONNMETHOD_SUBJ_COND']: connectivty analysis for each subject

@@ -12,7 +12,7 @@ PREPROCESSING
 
 -----------------------------
 ANALYSIS
-- ERP_SUBJ: create subject-specific erp
+- ERP_SUBJ: timelock-analysis for each subject
 
 
 -----------------------------
@@ -23,6 +23,9 @@ SUBFUNCTIONS
 - LOAD_DATA: load data, and optionally get bad channels
   ERP_SUBJ,
 
+- LOAD_SUBJ: load single-subject data
+  ERP_GRAND,  
+  
 - LOAD_SOURCE: load source data from virtual electrode
   ERP_SUBJ, 
   
@@ -37,11 +40,17 @@ INFO
 .data: path of /data1/projects/PROJ/subjects/
   SELDATA, GCLEAN, REDEF, LOAD_DATA, 
 
-.derp: directory with ERP data
-  ERP_SUBJ, 
+.dcor: directory with correlation data
+  LOAD_SUBJ, 
 
+.derp: directory with ERP data
+  ERP_SUBJ, LOAD_SUBJ, 
+
+.dpow: directory with POW data
+  LOAD_SUBJ, 
+  
 .dsou: directory with SOURCE data
-  LOAD_SOURCE
+  LOAD_SOURCE,
 
 .log: name of the file and directory to save log
   SELDATA, GCLEAN, REDEF, ERP_SUBJ, 
@@ -61,12 +70,16 @@ INFO
 .recs: path of /data1/projects/PROJ/recordings/REC/subjects/
   SELDATA, 
 
-.sens.file: file with EEG sensors. It can be sfp or mat. It's included in data struct. If empty, it does not read the sensors.
-  SELDATA, GCLEAN,
-
 .sens.dist: distance between sensors to consider them neighbors (in the units of cfg.sens.file)
   GCLEAN,
 
+.sens.file: file with EEG sensors. It can be sfp or mat. It's included in data struct. If empty, it does not read the sensors.
+  SELDATA, GCLEAN,
+
+.sens.layout: file with layout. It should be a mat containing 'layout'. If empty, it does not plot topo.
+  ERP_GRAND,
+-----------------------------------------------------------
+  
 -----------------------------------------------------------
 CFG.OPT
 
@@ -80,8 +93,11 @@ CFG.OPT
 .bad_samples.Percentile = [25 75];
   GCLEAN,
 
+.comp*: comparisons to test (cell within cell, e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}}), but you cannot have more than 2 conditions (it's always a t-test). If empty, not statistics and no plots.
+  ERP_GRAND,
+  
 .cond: cell with conditions (e.g. {'*cond1' '*cond2'})'
-  ERP_SUBJ,
+  ERP_SUBJ, ERP_GRAND
  
 .csd.method: method to do scalp current density ('finite' or 'spline' or 'hjorth')
   REDEF,

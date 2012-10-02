@@ -47,8 +47,8 @@ function erpsource_subj(info, opt, subj)
 %  data in /PROJ/subjects/SUBJ/MOD/NICK/
 %
 % OUT
-%  [cfg.derp 'erpsource_SUBJ_COND'] 'erpsource_s_A': source data for period of interest for each subject
-%  [cfg.derp 'erpsource_SUBJ_COND'] 'erpsource_s_B': source data for baseline for each subject
+%  [info.derp 'erpsource_SUBJ_COND'] 'erpsource_s_A': source data for period of interest for each subject
+%  [info.derp 'erpsource_SUBJ_COND'] 'erpsource_s_B': source data for baseline for each subject
 %
 % Part of EVENTBASED single-subject
 % see also ERP_SUBJ, ERP_GRAND, 
@@ -194,7 +194,7 @@ for k = 1:numel(cfg.erpsource.cond)
   
   %-----------------%
   %-save source
-  save([cfg.derp outputfile], 'erpsource_s_A', 'erpsource_s_B', '-v7.3')
+  save([info.derp outputfile], 'erpsource_s_A', 'erpsource_s_B', '-v7.3')
   %-----------------%
   
 end

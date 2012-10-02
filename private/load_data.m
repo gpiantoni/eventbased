@@ -66,13 +66,13 @@ end
 %-----------------%
 %-find bad channels (bad channel if bad in at least one dataset)
 if ~isfield(data.cfg, 'previous') || ~iscell(data.cfg.previous) % not appenddata
-  badchan = ft_findinfo(data.cfg, 'badchannel');
+  badchan = ft_findcfg(data.cfg, 'badchannel');
   
 else
   
   badchan = {};
   for i = 1:numel(data.cfg.previous)
-    badtemp = ft_findinfo(data.cfg.previous{i}, 'badchannel');
+    badtemp = ft_findcfg(data.cfg.previous{i}, 'badchannel');
     badchan = union(badchan, badtemp);
   end
   

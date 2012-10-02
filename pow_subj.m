@@ -27,7 +27,7 @@ function pow_subj(info, opt, subj)
 %  source in cfg.dsou from SOURCE_SUBJ
 %
 % OUT
-%  [cfg.dpow 'pow_SUBJ_COND'] 'pow_s': power analysis for single-subject
+%  [info.dpow 'pow_SUBJ_COND'] 'pow_s': power analysis for single-subject
 %
 % Part of EVENTBASED single-subject
 % see also ERP_SUBJ, ERP_GRAND,
@@ -127,7 +127,7 @@ for k = 1:numel(cfg.pow.cond)
   %-----------------%
   %---------------------------%
   
-  save([cfg.dpow outputfile], 'pow_s')
+  save([info.dpow outputfile], 'pow_s')
   
 end
 %-------------------------------------%

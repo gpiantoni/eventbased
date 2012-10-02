@@ -1,14 +1,13 @@
-function [output data1 data2] = load_subj(cfg, type, cond)
+function [output data1 data2] = load_subj(info, type, cond)
 %LOAD_SUBJ load single-subject data
 % Use as:
-%   [data] = load_subj(cfg, type, cond)
+%   [data] = load_subj(info, type, cond)
 %
-% CFG
-%  .data: path of /data1/projects/PROJ/subjects/
-%  .rec: REC in /data1/projects/PROJ/recordings/REC/
-%  .nick: NICK in /data1/projects/PROJ/subjects/SUBJ/MOD/NICK/
-%  .mod: modality, MOD in /data1/projects/PROJ/subjects/SUBJ/MOD/NICK/
-%  .endname: includes preprocessing steps (e.g. '_seldata_gclean_preproc_redef')
+% INFO
+%   .subjall: index of subjects to analyze (vector)
+%   .derp: directory with ERP data
+%   .dpow: directory with POW data
+%   .dcor: directory with correlation data
 %
 % TYPE
 %   erp, erpsource, erpstat, pow, powcorr, powsource, powstat
@@ -34,7 +33,7 @@ if ischar(cond)
   %-one condition
   %-----------------%
   %-read the data
-  [data1 output] = read_data(cfg, type, cond);
+  [data1 output] = read_data(info, type, cond);
   %-----------------%
   
   %-----------------%
@@ -51,16 +50,8 @@ if ischar(cond)
   nodata = cellfun(@isempty, data1);
   if any(nodata,2)
     output = sprintf('%s!!! WARNING: in condition %s, no data for subjects: %s !!!\n', ...
-      output, cond, sprintf(' %d', cfg.subjall(nodata)));
+      output, cond, sprintf(' %d', info.subjall(nodata)));
     data1 = data1(~nodata);
-  end
-  %-----------------%
-  
-  %-----------------%
-  %-baseline correction
-  if strcmp(type, 'pow') && ...
-      isfield(cfg, 'gpow') && isfield(cfg.gpow, 'bl') && ~isempty(cfg.gpow.bl)
-    data1 = baseline(cfg, data1);
   end
   %-----------------%
   %-------------------------------------%
@@ -71,8 +62,8 @@ else
   %-two conditions
   %-----------------%
   %-read the data
-  [data1 output] = read_data(cfg, type, cond{1});
-  [data2 outtmp] = read_data(cfg, type, cond{2});
+  [data1 output] = read_data(info, type, cond{1});
+  [data2 outtmp] = read_data(info, type, cond{2});
   output = [output outtmp];
   %-----------------%
   
@@ -98,18 +89,9 @@ else
   nodata = nodata1 | nodata2;
   if any(nodata)
     output = sprintf('%s!!! WARNING: in condition %s and %s, missing data for subjects: %s !!!\n', ...
-      output, cond{1}, cond{2}, sprintf(' %04d', cfg.subjall(nodata)));
+      output, cond{1}, cond{2}, sprintf(' %04d', info.subjall(nodata)));
     data1 = data1(~nodata);
     data2 = data2(~nodata);
-  end
-  %-----------------%
-  
-  %-----------------%
-  %-baseline correction
-  if strcmp(type, 'pow') && ...
-      isfield(cfg, 'pow') && isfield(cfg.pow, 'bl') && ~isempty(cfg.pow.bl)
-    data1 = baseline(cfg, data1);
-    data2 = baseline(cfg, data2);
   end
   %-----------------%
   
@@ -117,7 +99,7 @@ end
 %-------------------------------------%
 
 %-------------------------------------%
-function [dataout output] = read_data(cfg, type, cond)
+function [dataout output] = read_data(info, type, cond)
 %read_data read the single subject data
 
 %---------------------------%
@@ -125,11 +107,11 @@ function [dataout output] = read_data(cfg, type, cond)
 output = '';
 clear dataout
 typedir = ['d' type(1:3)]; % derp, dpow or dcon
-groupdir = cfg.(typedir);
+groupdir = info.(typedir);
 condname = regexprep(cond, '*', '');
 
-for i = 1:numel(cfg.subjall)
-  subj = cfg.subjall(i);
+for i = 1:numel(info.subjall)
+  subj = info.subjall(i);
   
   subjfile = sprintf('%s_%04d_%s.mat', type, subj, condname);
   if ~exist([groupdir subjfile], 'file')
@@ -178,28 +160,6 @@ for i = 1:numel(cfg.subjall)
         dataout{i,2,p} = powstat_s_A{p}; % of interest
       end
   end
-end
-%---------------------------%
-%-------------------------------------%
-
-%-------------------------------------%
-function data = baseline(cfg, data)
-
-%---------------------------%
-for i = 1:numel(data)
-  
-  %-------%
-  %-baseline correction
-  cfg3 = [];
-  cfg3.baseline = cfg.gpow.bl.baseline;
-  cfg3.baselinetype = cfg.gpow.bl.baselinetype;
-  data{i} = ft_freqbaseline(cfg3, data{i});
-  
-  if strcmp(cfg.gpow.bl.baselinetype, 'relative')
-    data{i}.powspctrm = 10*log10(data{i}.powspctrm);
-  end
-  %-------%
-  
 end
 %---------------------------%
 %-------------------------------------%

@@ -48,8 +48,8 @@ function powsource_subj(info, opt, subj)
 %  data in /PROJ/subjects/SUBJ/MOD/NICK/
 %
 % OUT
-%  [cfg.dpow 'powsource_SUBJ_COND'] 'powsource_s_A': source data for period of interest for each subject
-%  [cfg.dpow 'powsource_SUBJ_COND'] 'powsource_s_B': source data for baseline for each subject
+%  [info.dpow 'powsource_SUBJ_COND'] 'powsource_s_A': source data for period of interest for each subject
+%  [info.dpow 'powsource_SUBJ_COND'] 'powsource_s_B': source data for baseline for each subject
 %
 % Part of EVENTBASED single-subject
 % see also ERP_SUBJ, ERP_GRAND, 
@@ -207,7 +207,7 @@ for k = 1:numel(cfg.powsource.cond)
 
   %-----------------%
   %-save source
-  save([cfg.dpow outputfile], 'powsource_s_A', 'powsource_s_B', '-v7.3')
+  save([info.dpow outputfile], 'powsource_s_A', 'powsource_s_B', '-v7.3')
   %-----------------%
   
 end

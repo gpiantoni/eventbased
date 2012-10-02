@@ -1,14 +1,14 @@
 function erp_subj(info, opt, subj)
-%ERP_SUBJ create subject-specific erp
+%ERP_SUBJ timelock-analysis for each subject
 %
 % INFO
 %  .derp: directory with ERP data
 %  .log: name of the file and directory to save log
 %
 % CFG.OPT
-%  .cond: cell with conditions (e.g. {'*cond1' '*cond2'})'
+%  .cond*: cell with conditions (e.g. {'*cond1' '*cond2'})'
 %  .source: read virtual electrode data (logical)
-%  .erp: a structure with cfg to pass to ft_timelockanalysis
+%  .erp*: a structure with cfg to pass to ft_timelockanalysis
 %
 % IN
 %  LOAD_DATA: data in /PROJ/subjects/SUBJ/MOD/NICK/
@@ -17,6 +17,8 @@ function erp_subj(info, opt, subj)
 % 
 % OUT
 %  [info.derp 'erp_SUBJ_COND'] 'erp_s': timelock analysis for single-subject
+%
+% * indicates obligatory parameter
 %
 % Part of EVENTBASED single-subject
 % see also ERP_SUBJ, ERP_GRAND, 
@@ -62,7 +64,7 @@ for k = 1:numel(opt.cond)
   erp_s = ft_timelockanalysis(cfg, data);
   %---------------------------%
   
-  save([cfg.derp outputfile], 'erp_s')
+  save([info.derp outputfile], 'erp_s')
   
 end
 %-------------------------------------%

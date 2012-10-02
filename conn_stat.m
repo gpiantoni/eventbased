@@ -58,7 +58,7 @@ if isfield(cfg.gconn, 'comp')
       
       %-------%
       %-conn over subj
-      [outtmp data1 data2] = load_subj(cfg, 'conn', cfg.gconn.comp{t});
+      [outtmp data1 data2] = load_subj(info, 'conn', cfg.gconn.comp{t});
       output = [output outtmp];
       if isempty(data1) || isempty(data2); continue; end
       
@@ -85,7 +85,7 @@ if isfield(cfg.gconn, 'comp')
       
     end
     
-    save([cfg.dpow 'pow_peak_' comp], 'pow_peak')
+    save([info.dpow 'pow_peak_' comp], 'pow_peak')
     output = [output outtmp];
     %---------------------------%
   end

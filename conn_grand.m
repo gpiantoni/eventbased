@@ -113,7 +113,7 @@ for k = 1:numel(cfg.conn.cond)
   
   %-----------------%
   %-file for each cond
-  [outtmp data] = load_subj(cfg, 'conn', cond);
+  [outtmp data] = load_subj(info, 'conn', cond);
   output = [output outtmp];
   if isempty(data); continue; end
   %-----------------%
