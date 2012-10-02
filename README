@@ -45,16 +45,16 @@ INFO
   LOAD_SUBJ, 
 
 .derp: directory with ERP data
-  ERP_SUBJ, LOAD_SUBJ, 
+  ERP_SUBJ, LOAD_SUBJ,
 
 .dpow: directory with POW data
-  LOAD_SUBJ, 
+  POW_SUBJ, LOAD_SUBJ, 
   
 .dsou: directory with SOURCE data
   LOAD_SOURCE,
 
 .log: name of the file and directory to save log
-  SELDATA, GCLEAN, REDEF, ERP_SUBJ, 
+  SELDATA, GCLEAN, REDEF, ERP_SUBJ, ERP_GRAND, POW_SUBJ, 
 
 .mod: modality, MOD in /data1/projects/PROJ/subjects/SUBJ/MOD/NICK/
   SELDATA, GCLEAN, REDEF, LOAD_DATA, 
@@ -87,7 +87,6 @@ INFO
 -----------------------------------------------------------
 CFG.OPT
 
-
 .bad_samples.MADs = 5;
   GCLEAN,
 
@@ -96,6 +95,15 @@ CFG.OPT
 
 .bad_samples.Percentile = [25 75];
   GCLEAN,
+  
+.bl: Baseline correction at the single-trial level. If empty, no baseline. Otherwise:
+  POW_SUBJ,
+  
+.bl.baseline: two scalars with baseline windows
+  POW_SUBJ,
+  
+.bl.baselinetype: type of baseline ('relchange')
+  POW_SUBJ,
 
 .clusterthr: threshold of the cluster
   REPORT_CLUSTER,
@@ -138,6 +146,12 @@ CFG.OPT
 
 .plot.chan(1).chan: cell with labels of channels of interest
   ERP_GRAND, 
+  
+.pow: a structure with cfg to pass to ft_freqanalysis
+  POW_SUBJ,
+
+.pow.planar: planar transformation, MEG-only (logical)
+  POW_SUBJ,
 
 .preproc1: struct to pass to ft_preprocessing before cutting trials (if empty, no preprocessing)
   REDEF,
@@ -161,7 +175,7 @@ CFG.OPT
   SELDATA, 
 
 .source: read virtual electrode data (logical)
-  ERP_SUBJ,
+  ERP_SUBJ, POW_SUBJ, 
 
 .stat.time: latency of interest (two scalar)
   REPORT_CLUSTER,

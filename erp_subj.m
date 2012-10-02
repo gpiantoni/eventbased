@@ -7,7 +7,7 @@ function erp_subj(info, opt, subj)
 %
 % CFG.OPT
 %  .source: read virtual electrode data (logical)
-%  .cond*: cell with conditions (e.g. {'*cond1' '*cond2'})'
+%  .cond*: cell with conditions (e.g. {'*cond1' '*cond2'})
 %  .erp*: a structure with cfg to pass to ft_timelockanalysis
 %
 % IN
@@ -42,7 +42,7 @@ for k = 1:numel(opt.cond)
   
   %---------------------------%
   %-read data
-  if ~isfield(opt, 'source') || ~info.source
+  if ~isfield(opt, 'source') || ~opt.source
     [data] = load_data(info, subj, cond);
   else
     [data] = load_source(info, subj, cond);

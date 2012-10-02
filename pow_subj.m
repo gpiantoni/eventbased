@@ -1,33 +1,30 @@
 function pow_subj(info, opt, subj)
-%POW_SUBJ create subject-specific pow
+%POW_SUBJ power-analysis for each subject
 %
-% CFG
-%  .data: path of /data1/projects/PROJ/subjects/
-%  .rec: REC in /data1/projects/PROJ/recordings/REC/
-%  .nick: NICK in /data1/projects/PROJ/subjects/0001/MOD/NICK/
-%  .mod: modality, MOD in /data1/projects/PROJ/subjects/0001/MOD/NICK/
-%  .endname: includes preprocessing steps (e.g. '_seldata_gclean_redef')
-%
-%  .log: name of the file and directory to save log
+% INFO
 %  .dpow: directory for POW data
-%  .pow.cond: cell with conditions (e.g. {'*cond1' '*cond2'})'
-%  .pow.source: read virtual electrode data (logical)
+%  .log: name of the file and directory to save log
 %
-%  .pow: a structure with cfg to pass to ft_freqanalysis
-%  .pow.planar: planar transformation, MEG-only (logical)
+% CFG.OPT
+%  .source: read virtual electrode data (logical)
+%  .cond*: cell with conditions (e.g. {'*cond1' '*cond2'})
+%  .pow*: a structure with cfg to pass to ft_freqanalysis
+%  .planar: planar transformation, MEG-only (logical)
 %
 %  Baseline correction at the single-trial level:
-%  .pow.bl: if empty, no baseline. Otherwise:
-%  .pow.bl.baseline: two scalars with baseline windows
-%  .pow.bl.baselinetype: type of baseline ('relchange')
+%  .bl: if empty, no baseline. Otherwise:
+%  .bl.baseline: two scalars with baseline windows
+%  .bl.baselinetype: type of baseline ('relchange')
 %
-% IN:
-%  data in /PROJ/subjects/SUBJ/MOD/NICK/
-% OR if cfg.erp.source
-%  source in cfg.dsou from SOURCE_SUBJ
+% IN
+%  LOAD_DATA: data in /PROJ/subjects/SUBJ/MOD/NICK/
+% OR if cfg.opt.source
+%  LOAD_SOURCE: source in info.dsou after SOURCE_SUBJ
 %
 % OUT
 %  [info.dpow 'pow_SUBJ_COND'] 'pow_s': power analysis for single-subject
+%
+% * indicates obligatory parameter
 %
 % Part of EVENTBASED single-subject
 % see also ERP_SUBJ, ERP_GRAND,
@@ -43,15 +40,17 @@ output = sprintf('%s (%04d) began at %s on %s\n', ...
 tic_t = tic;
 %---------------------------%
 
+if ~isfield(opt, 'planar'); opt.planar = []; end
+
 %-------------------------------------%
 %-loop over conditions
-for k = 1:numel(cfg.pow.cond)
-  cond     = cfg.pow.cond{k};
+for k = 1:numel(opt.cond)
+  cond     = opt.cond{k};
   condname = regexprep(cond, '*', '');
   
   %---------------------------%
   %-read data
-  if ~isfield(cfg.pow, 'source') || ~cfg.pow.source
+  if ~isfield(opt, 'source') || ~opt.source
     [data] = load_data(cfg, subj, cond);
   else
     [data] = load_source(cfg, subj, cond);
@@ -69,30 +68,30 @@ for k = 1:numel(cfg.pow.cond)
   %-calculate power
   %-----------------%
   %-planar
-  if isfield(data, 'grad') && cfg.pow.planar
+  if isfield(data, 'grad') && opt.planar
     
-    tmpcfg = [];
-    tmpcfg.grad = data.grad;
-    tmpcfg.method = 'distance';
-    tmpcfg.neighbourdist = cfg.sens.dist;
-    nbor = ft_prepare_neighbours(tmpcfg);
+    cfg = [];
+    cfg.grad = data.grad;
+    cfg.method = 'distance';
+    cfg.neighbourdist = info.sens.dist;
+    nbor = ft_prepare_neighbours(cfg);
     
-    tmpcfg = [];
-    tmpcfg.neighbours = nbor;
-    data = ft_megplanar(tmpcfg, data);
+    cfg = [];
+    cfg.neighbours = nbor;
+    data = ft_megplanar(cfg, data);
     
   end
   %-----------------%
   
   %-----------------%
   %-power
-  cfg2 = cfg.pow;
-  cfg2.feedback = 'etf';
-  cfg2.keeptrials = 'yes';
-  pow_s = ft_freqanalysis(cfg2, data);
+  cfg = opt.pow;
+  cfg.feedback = 'none';
+  cfg.keeptrials = 'yes';
+  pow_s = ft_freqanalysis(cfg, data);
   
-  if isfield(cfg.pow, 'toi')
-    pow_s.time = cfg.pow.toi;
+  if isfield(opt.pow, 'toi')
+    pow_s.time = opt.pow.toi;
   end
   %-----------------%
   
@@ -106,23 +105,23 @@ for k = 1:numel(cfg.pow.cond)
   
   %-----------------%
   %-baseline
-  if isfield(cfg.pow, 'bl') && ~isempty(cfg.pow.bl)
-    tmpcfg = cfg.pow.bl;
-    pow_s = ft_freqbaseline(tmpcfg, pow_s);
+  if isfield(opt, 'bl') && ~isempty(opt.bl)
+    cfg = opt.bl;
+    pow_s = ft_freqbaseline(cfg, pow_s);
   end
   %-----------------%
   
   %-----------------%
   %-average
   tmpcfg = [];
-  pow_s = ft_freqdescriptives(tmpcfg, pow_s);
+  pow_s = ft_freqdescriptives(cfg, pow_s);
   %-----------------%
   
   %-----------------%
   %-planar
-  if isfield(data, 'grad') && cfg.pow.planar
-    tmpcfg = [];
-    pow_s = ft_combineplanar(tmpcfg, pow_s);
+  if isfield(data, 'grad') && opt.planar
+    cfg = [];
+    pow_s = ft_combineplanar(cfg, pow_s);
   end
   %-----------------%
   %---------------------------%
