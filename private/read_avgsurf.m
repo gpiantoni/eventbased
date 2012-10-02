@@ -19,22 +19,22 @@ surf4plot = 'pial';
 %-------------------------------------%
 %-loop over hemisphere
 for h = 1:numel(hemi)
-
+  
   %-----------------%
-%-reduce one stat mesh
+  %-reduce one stat mesh
   surfbase = ft_read_headshape([sdir hemi{h} '.' surf4stat]);
   surfstat{h} = reducemesh(surfbase, ratio);
   [~, i_full, i_reduced] = intersect(surfbase.pnt, surfstat{h}.pnt, 'rows');
   surfstat{h}.inside = true(size(surfstat{h}.pnt,1),1);
   %-----------------%
-
-    %-----------------%
+  
+  %-----------------%
   %-create neighbor structure
   tri = surfstat{h}.tri;
   
   ndip = size(surfstat{h}.pnt,1);
   neigh = single(zeros(ndip, ndip));
-
+  
   % mark neighbours according to triangulation
   for i=1:size(tri, 1)
     neigh(tri(i, 1), tri(i, 2)) = 1;
