@@ -19,6 +19,7 @@ function [clpeak stat output] = report_cluster(cfg, gdat, gdat2, paired)
 %  .stat.time: latency of interest (two scalar)
 %  .stat.freq: frequency of interest (two scalar)
 %  .clusterthr: threshold of cluster
+%  .numrandomization: number of randomization (default: 1e5)
 %
 % GDAT, GDAT2
 %  One or two datasets obtained from ft_timelockgrandaverage or
@@ -51,9 +52,9 @@ function [clpeak stat output] = report_cluster(cfg, gdat, gdat2, paired)
 
 %-----------------%
 %-check CFG
-if ~isfield(cfg, 'clusterthr')
-  cfg.clusterthr = 0.05;
-end
+if ~isfield(cfg, 'clusterthr'); cfg.clusterthr = 0.05; end
+if ~isfield(cfg, 'numrandomization'); cfg.numrandomization = 1e5; end
+
 if nargin < 4
   paired = true;
 end
@@ -125,7 +126,7 @@ else
 end
 tmpcfg.alpha       = 0.05;
 tmpcfg.correctm    = 'cluster';
-tmpcfg.numrandomization = 100; 
+tmpcfg.numrandomization = cfg.numrandomization; 
 
 if paired
   tmpcfg.design = [ones(1,nsubj1) ones(1,nsubj2)*2; 1:nsubj1 1:nsubj2];
@@ -315,27 +316,6 @@ for i = 1:numel(negcl)
     
   end
   %-------%
-end
-%-----------------%
-
-%-----------------%
-%-add time window used for the calculation of power into clpeak
-% This time window is extremely tricky to work with: powpeak is
-% selected based on the significant time points of the TFR. However,
-% each of those points represents an FFT around that time window, with
-% length defined by cfg.pow.t_ftimwin. powpeak(f).wndw reports only the
-% significant timepoints (it can 0, if only one time point is
-% significant), so we add cfg.pow.t_ftimwin here (half in the beginning
-% and half in the end, but it's centered around powpeak(f).time anyway)
-if ~iserp
-  for f = 1:numel(clpeak)
-    ifreq = nearest(cfg.pow.foi, clpeak(f).freq); % length of cfg.pow.t_ftimwin depends on the frequency
-    if strcmp(cfg.pow.method, 'wavelet') || strcmp(cfg.pow.method, 'tfr');
-      clpeak(f).wndw = clpeak(f).wndw + cfg.pow.width/cfg.pow.foi(ifreq); 
-    elseif strcmp(cfg.pow.method, 'mtmconvol');
-      clpeak(f).wndw = clpeak(f).wndw + cfg.pow.t_ftimwin(ifreq); 
-    end
-  end
 end
 %-----------------%
 %-------------------------------------%
