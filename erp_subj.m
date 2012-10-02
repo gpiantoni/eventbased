@@ -1,27 +1,22 @@
-function erp_subj(cfg, subj)
+function erp_subj(info, opt, subj)
 %ERP_SUBJ create subject-specific erp
 %
-% CFG
-%  .data: path of /data1/projects/PROJ/subjects/
-%  .rec: REC in /data1/projects/PROJ/recordings/REC/
-%  .nick: NICK in /data1/projects/PROJ/subjects/0001/MOD/NICK/
-%  .mod: modality, MOD in /data1/projects/PROJ/subjects/0001/MOD/NICK/
-%  .endname: includes preprocessing steps (e.g. '_seldata_gclean_redef')
-%
-%  .log: name of the file and directory to save log
+% INFO
 %  .derp: directory with ERP data
-%  .erp.cond: cell with conditions (e.g. {'*cond1' '*cond2'})'
-%  .erp.source: read virtual electrode data (logical)
+%  .log: name of the file and directory to save log
 %
+% CFG.OPT
+%  .cond: cell with conditions (e.g. {'*cond1' '*cond2'})'
+%  .source: read virtual electrode data (logical)
 %  .erp: a structure with cfg to pass to ft_timelockanalysis
 %
-% IN:
-%  data in /PROJ/subjects/SUBJ/MOD/NICK/
-% OR if cfg.erp.source
-%  source in cfg.dsou from SOURCE_SUBJ
+% IN
+%  LOAD_DATA: data in /PROJ/subjects/SUBJ/MOD/NICK/
+% OR if cfg.opt.source
+%  LOAD_SOURCE: source in info.dsou after SOURCE_SUBJ
 % 
 % OUT
-%  [cfg.derp 'erp_SUBJ_COND'] 'erp_s': timelock analysis for single-subject
+%  [info.derp 'erp_SUBJ_COND'] 'erp_s': timelock analysis for single-subject
 %
 % Part of EVENTBASED single-subject
 % see also ERP_SUBJ, ERP_GRAND, 
@@ -39,16 +34,16 @@ tic_t = tic;
 
 %-------------------------------------%
 %-loop over conditions
-for k = 1:numel(cfg.erp.cond)
-  cond     = cfg.erp.cond{k};
+for k = 1:numel(opt.cond)
+  cond = opt.cond{k};
   condname = regexprep(cond, '*', '');
   
   %---------------------------%
   %-read data
-  if ~isfield(cfg.erp, 'source') || cfg.erp.source
-    [data] = load_data(cfg, subj, cond);
+  if ~isfield(opt, 'source') || ~info.source
+    [data] = load_data(info, subj, cond);
   else
-    [data] = load_source(cfg, subj, cond);
+    [data] = load_source(info, subj, cond);
   end
   if isempty(data)
     output = sprintf('%sCould not find any file for condition %s\n', ...
@@ -61,10 +56,10 @@ for k = 1:numel(cfg.erp.cond)
   
   %---------------------------%
   %-timelock analysis
-  tmpcfg = cfg.erp;
-  tmpcfg.feedback = 'none';
-  tmpcfg.preproc.feedback = 'none';
-  erp_s = ft_timelockanalysis(tmpcfg, data);
+  cfg = opt.erp;
+  cfg.feedback = 'none';
+  cfg.preproc.feedback = 'none';
+  erp_s = ft_timelockanalysis(cfg, data);
   %---------------------------%
   
   save([cfg.derp outputfile], 'erp_s')
@@ -82,7 +77,7 @@ output = [output outtmp];
 
 %-----------------%
 fprintf(output)
-fid = fopen([cfg.log '.txt'], 'a');
+fid = fopen([info.log '.txt'], 'a');
 fwrite(fid, output);
 fclose(fid);
 %-----------------%

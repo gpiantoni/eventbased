@@ -1,4 +1,4 @@
-function erpstat_grand(cfg)
+function erpstat_grand(info, opt)
 %POWSTAT_GRAND group-analysis of POW source data
 %
 % CFG
@@ -170,11 +170,11 @@ for t = 1:numel(cfg.powstat.comp) % DOC: cfg.powstat.comp
     
     %--------%
     pngname = sprintf('gpowstat_%s_%s', comp, powpeak(p).name);
-    saveas(gcf, [cfg.log filesep pngname '.png'])
+    saveas(gcf, [info.log filesep pngname '.png'])
     close(gcf); drawnow
     
-    [~, logfile] = fileparts(cfg.log);
-    system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
+    [~, logfile] = fileparts(info.log);
+    system(['ln ' info.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
     %--------%
     %-----------------%
     
@@ -204,7 +204,7 @@ output = [output outtmp];
 
 %-----------------%
 fprintf(output)
-fid = fopen([cfg.log '.txt'], 'a');
+fid = fopen([info.log '.txt'], 'a');
 fwrite(fid, output);
 fclose(fid);
 %-----------------%

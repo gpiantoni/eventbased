@@ -1,4 +1,4 @@
-function conn_subj(cfg, subj)
+function conn_subj(info, opt, subj)
 %CONN_SUBJ connectivity on single-subject data
 %
 % CFG
@@ -266,7 +266,7 @@ for k = 1:numel(cfg.conn.cond)
           output = sprintf('%s At time % 6.2f, model order estimated with %s is% 3d\n', ...
             output, cfg.conn.toi(t), cfg.conn.order, order);
           
-          csvfile = sprintf('%s/cca_modelorder_%s.csv', cfg.log, cfg.conn.order);
+          csvfile = sprintf('%s/cca_modelorder_%s.csv', info.log, cfg.conn.order);
           csvtext = sprintf('''%04d'',''%s'',%1.2f,%d\n', ...
             subj, condname, cfg.conn.toi(t), order);
           
@@ -316,7 +316,7 @@ for k = 1:numel(cfg.conn.cond)
         %-------%
         %-write to file
         % subj, condition, toi, ADF, KPSS, white residuals, consistency
-        csvfile = sprintf('%s/cca_modelcheck.csv', cfg.log);
+        csvfile = sprintf('%s/cca_modelcheck.csv', info.log);
         csvtext = sprintf('''%04d'',''%s'',%1.2f,%1.2f,%1.2f,%1.2f,%1.2f\n', ...
           subj, condname, cfg.conn.toi(t), adfr, khr, dwr, ret.cons);
         
@@ -358,7 +358,7 @@ output = [output outtmp];
 
 %-----------------%
 fprintf(output)
-fid = fopen([cfg.log '.txt'], 'a');
+fid = fopen([info.log '.txt'], 'a');
 fwrite(fid, output);
 fclose(fid);
 %-----------------%

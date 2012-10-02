@@ -1,34 +1,31 @@
-function gclean(cfg, subj)
+function gclean(info, opt, subj)
 %GCLEAN use German's toolbox to clean the data
 % Read the data from seldata (it assumes that the data is continuous), low
 % pass filter, reject bad channels and eye, ecg, emg activity with ICA.
 % It returns a fieldtrip structure made of trials of different length only
 % containing good data. Bad channels are interpolated.
 %
-% CFG
+% INFO
 %  .data: path of /data1/projects/PROJ/subjects/
 %  .nick: NICK in /data1/projects/PROJ/subjects/0001/MOD/NICK/
 %  .mod: modality, MOD in /data1/projects/PROJ/subjects/0001/MOD/NICK/
-%  .endname: includes preprocessing steps (e.g. '_seldata')
 %
 %  .log: name of the file and directory to save log
 %
 %  .sens.file: file with EEG sensors. It can be sfp or mat
 %  .sens.dist: distance between sensors to consider them neighbors (in the units of cfg.sens.file)
 %
-%  .step: all the analysis step (for cfg.clear)
-%  .clear: cell with the name of preprocessing steps to delete
-%
-%  .gclean.fsample: manually specify the frequency (very easily bug-prone, but in this way it does not read "data" all the time)
-%  .gclean.saveall: false
-%  .gclean.verbose: true
-%  .gclean.lpfreqn = [.3 / (cfg.gclean.fsample/2)]; % normalized by half of the sampling frequency!
-%  .gclean.bad_samples.MADs = 5;
-%  .gclean.bad_channels.MADs = 8;
-%  .gclean.bad_samples.Percentile = [25 75];
-%  .gclean.eog.correction = 50;
-%  .gclean.emg.correction = 30;
-%  .gclean.pwl.pca: if not empty, number of PC to work with in JADE
+% CFG.OPT
+%  .fsample: manually specify the frequency (very easily bug-prone, but in this way it does not read "data" all the time)
+%  .saveall: false
+%  .verbose: true
+%  .lpfreqn = [.3 / (opt.fsample/2)]; % normalized by half of the sampling frequency!
+%  .bad_samples.MADs = 5;
+%  .bad_channels.MADs = 8;
+%  .bad_samples.Percentile = [25 75];
+%  .eog.correction = 50;
+%  .emg.correction = 30;
+%  .pwl.pca: if not empty, number of PC to work with in JADE
 %
 % IN
 %  data in /data1/projects/PROJ/subjects/SUBJ/MOD/NICK/
@@ -36,7 +33,6 @@ function gclean(cfg, subj)
 % OUT
 %  data, after ICA rejection for eyes-blinks and movement, rejection and
 %  interpolation of bad electrodes, rejection of bad epochs
-%  It appends '_gclean' at the end of the filename
 %
 % Part of EVENTBASED preprocessing
 % see also SELDATA, GCLEAN, REDEF
@@ -50,26 +46,28 @@ tic_t = tic;
 
 %---------------------------%
 %-dir and files
-ddir = sprintf('%s%04d/%s/%s/', cfg.data, subj, cfg.mod, cfg.nick); % data dir
-allfile = dir([ddir '*' cfg.endname '.mat']); % files matching a preprocessing
+ddir = sprintf('%s%04d/%s/%s/', info.data, subj, info.mod, info.nick); % data dir
+allfile = dir([ddir '*_A.mat']); % files matching a preprocessing
+
+prepr_name = 'B'; % preprocessing name to append
 %---------------------------%
 
 %---------------------------%
 %-elec or grad
 haselec = false;
-if isfield(cfg.sens, 'file') && ~isempty(cfg.sens.file)
+if isfield(info.sens, 'file') && ~isempty(info.sens.file)
   haselec = true;
-  sens = ft_read_sens(cfg.sens.file);
+  sens = ft_read_sens(info.sens.file);
   sens.label = upper(sens.label);
   
-  cfg1 = [];
-  cfg1.elec = sens;
-  cfg1.method = 'distance';
-  cfg1.neighbourdist = cfg.sens.dist;
-  neigh = ft_prepare_neighbours(cfg1);
+  cfg = [];
+  cfg.elec = sens;
+  cfg.method = 'distance';
+  cfg.neighbourdist = info.sens.dist;
+  neigh = ft_prepare_neighbours(info, opt);
 end
 
-if strcmp(cfg.mod, 'meg')
+if strcmp(info.mod, 'meg')
   hasgrad = true;
 else
   hasgrad = false;
@@ -88,14 +86,13 @@ for i = 1:numel(allfile)
   output = [output outtmp];
   %-----------------%
   
-  
   %--------------------------%
   %-German toolbox parameters
   %------%
   %-PCA
-  if isfield(cfg.gclean, 'pwl') && ...
-      isfield(cfg.gclean.pwl, 'pca')
-    opt.pcapwl = spt.pca('MaxDimOut', cfg.gclean.pwl.pca);
+  if isfield(opt, 'pwl') && ...
+      isfield(opt.pwl, 'pca')
+    opt.pcapwl = spt.pca('MaxDimOut', opt.pwl.pca);
   else
     opt.pcapwl = [];
   end
@@ -103,19 +100,19 @@ for i = 1:numel(allfile)
   
   %------%
   %-JADE
-  opt.bsspwl          = spt.jade;
-  opt.bsseog          = spt.jade;
-  opt.bssecg          = spt.jade;
-  opt.bssemg          = spt.jade;
-  opt.bssrs           = spt.jade;
+  opt.bsspwl = spt.jade;
+  opt.bsseog = spt.jade;
+  opt.bssecg = spt.jade;
+  opt.bssemg = spt.jade;
+  opt.bssrs  = spt.jade;
   %------%
   
   %------%
   %-filter
-  if ~isempty(cfg.gclean.lpfreqn)
+  if ~isempty(opt.lpfreqn)
     filterNode1 = ...
-      bpfilt('fp', [cfg.gclean.lpfreqn 1], ...
-      'save', cfg.gclean.saveall);
+      bpfilt('fp', [opt.lpfreqn 1], ...
+      'save', opt.saveall);
   else
     filterNode1 = [];
   end
@@ -129,64 +126,64 @@ for i = 1:numel(allfile)
     ...  % Data importer
     physioset_import(...
     'Importer', pset.import.fieldtrip, ...
-    'Verbose', cfg.gclean.verbose), ...
+    'Verbose', opt.verbose), ...
     ...
     ... % Remove data mean
     center(...
-    'Save', cfg.gclean.saveall, ...
-    'Verbose', cfg.gclean.verbose), ...
+    'Save', opt.saveall, ...
+    'Verbose', opt.verbose), ...
     ...
     ... % Detrend
     detrend(...
-    'Save', cfg.gclean.saveall, ...
-    'Verbose', cfg.gclean.verbose), ...
+    'Save', opt.saveall, ...
+    'Verbose', opt.verbose), ...
     ...
     ... % Bad channel rejection: using raw data and HP-filtered data
     bad_channels(...
-    'MADs', cfg.gclean.bad_channels.MADs, ... % maybe [1 1] bc there are two filters
+    'MADs', opt.bad_channels.MADs, ... % maybe [1 1] bc there are two filters
     'Filter', {[], filter.hpfilt('fc', 0.5)}, ... % you can specify multiple filters
-    'Save', cfg.gclean.saveall, ...
-    'Verbose', cfg.gclean.verbose), ...
+    'Save', opt.saveall, ...
+    'Verbose', opt.verbose), ...
     ...
     ... % Bad sample rejection
     bad_samples(...
-    'MADs', cfg.gclean.bad_samples.MADs, ...
-    'Percentile', cfg.gclean.bad_samples.Percentile, ...
-    'Save', cfg.gclean.saveall, ...
-    'Verbose', cfg.gclean.verbose), ...
+    'MADs', opt.bad_samples.MADs, ...
+    'Percentile', opt.bad_samples.Percentile, ...
+    'Save', opt.saveall, ...
+    'Verbose', opt.verbose), ...
     ...
     ... % HP filter
     filterNode1, ...
     ...
     ... % PWL removal
-    bss_regression.pwl(cfg.gclean.fsample, ...
+    bss_regression.pwl(opt.fsample, ...
     'PCA', opt.pcapwl, ...
     'BSS', opt.bsspwl, ...
     'Chopper', chopper.dummy, ...
-    'Save', cfg.gclean.saveall, ...
-    'Verbose', cfg.gclean.verbose), ...
+    'Save', opt.saveall, ...
+    'Verbose', opt.verbose), ...
     ...
     ... % ECG removal
-    bss_regression.ecg(cfg.gclean.fsample, ...
+    bss_regression.ecg(opt.fsample, ...
     'BSS', opt.bssecg, ...
     'Chopper', chopper.dummy, ...
-    'Save', cfg.gclean.saveall, ...
-    'Verbose', cfg.gclean.verbose), ...
+    'Save', opt.saveall, ...
+    'Verbose', opt.verbose), ...
     ...
     ... % EOG removal
-    bss_regression.eog(cfg.gclean.fsample, ...
+    bss_regression.eog(opt.fsample, ...
     'BSS', opt.bsseog, ...
-    'Correction', cfg.gclean.eog.correction, ...
+    'Correction', opt.eog.correction, ...
     'Chopper', chopper.dummy, ...
-    'Save', cfg.gclean.saveall, ...
-    'Verbose', cfg.gclean.verbose), ...
+    'Save', opt.saveall, ...
+    'Verbose', opt.verbose), ...
     ...
     ... % EMG removal
-    bss_regression.emg(cfg.gclean.fsample, ...
+    bss_regression.emg(opt.fsample, ...
     'BSS', opt.bssecg, ...
-    'Correction', cfg.gclean.emg.correction, ...
-    'Save', cfg.gclean.saveall, ...
-    'Verbose', cfg.gclean.verbose), ...
+    'Correction', opt.emg.correction, ...
+    'Save', opt.saveall, ...
+    'Verbose', opt.verbose), ...
     ...
     ... % Extra arguments to pipeline constructor
     'OGE', false, ...
@@ -218,39 +215,39 @@ for i = 1:numel(allfile)
     badsmp = 0;
   end
   
-  cfg1 = [];
-  cfg1.artfctdef.gclean.artifact = artmat;
-  cfg1.artfctdef.reject = 'partial';
-  [data] = ft_rejectartifact(cfg1, data);
+  cfg = [];
+  cfg.artfctdef.gclean.artifact = artmat;
+  cfg.artfctdef.reject = 'partial';
+  [data] = ft_rejectartifact(cfg, data);
   %-----------------%
   
   %-----------------%
   %-repair channels
-  cfg2 = [];
-  cfg2.badchannel = data.label(gdata.BadChan);
+  cfg = [];
+  cfg.badchannel = data.label(gdata.BadChan);
   if haselec
-    cfg2.neighbours = neigh;
+    cfg.neighbours = neigh;
   elseif hasgrad
-    cfg1 = [];
-    cfg1.grad = grad;
-    cfg1.method = 'distance';
-    cfg1.neighbourdist = cfg.sens.dist;
-    neigh = ft_prepare_neighbours(cfg1);
-    cfg2.neighbours = neigh;
+    tmpcfg = [];
+    tmpcfg.grad = grad;
+    tmpcfg.method = 'distance';
+    tmpcfg.neighbourdist = info.sens.dist;
+    neigh = ft_prepare_neighbours(tmpcfg);
+    cfg.neighbours = neigh;
   end
-  cfg2.feedback = 'none';
+  cfg.feedback = 'none';
   
   [~, filename] = fileparts(allfile(i).name);
-  cfg2.outputfile = [ddir filename '_' mfilename];
+  cfg.outputfile = [ddir filename '_' prepr_name];
   
-  ft_channelrepair(cfg2, data)
+  ft_channelrepair(cfg, data)
   %-----------------%
   %--------------------------%
   
   %--------------------------%
   %-save event
   load([ddir allfile(i).name], 'event')
-  save(cfg2.outputfile, 'event', '-append')
+  save(cfg.outputfile, 'event', '-append')
   %--------------------------%
   
   %--------------------------%
@@ -261,14 +258,6 @@ for i = 1:numel(allfile)
   output = sprintf('%s   N bad samples: %0.3f percent\n', ...
     output, numel(badsmp)/length(gdata));
   %--------------------------%
-  
-  %-----------------%
-  %-clear
-  previousstep = cfg.step{find(strcmp(cfg.step, mfilename))-1};
-  if any(strcmp(cfg.clear, previousstep))
-    delete([ddir allfile(i).name])
-  end
-  %-----------------%
   
 end
 %------------------------------------%
@@ -283,7 +272,7 @@ output = [output outtmp];
 
 %-----------------%
 fprintf(output)
-fid = fopen([cfg.log '.txt'], 'a');
+fid = fopen([info.log '.txt'], 'a');
 fwrite(fid, output);
 fclose(fid);
 %-----------------%

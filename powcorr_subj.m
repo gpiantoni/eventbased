@@ -1,4 +1,4 @@
-function powcorr_subj(cfg, subj)
+function powcorr_subj(info, opt, subj)
 %POWCORR_SUBJ correlate power with trialinfo
 %
 % CFG
@@ -132,7 +132,7 @@ output = [output outtmp];
 
 %-----------------%
 fprintf(output)
-fid = fopen([cfg.log '.txt'], 'a');
+fid = fopen([info.log '.txt'], 'a');
 fwrite(fid, output);
 fclose(fid);
 %-----------------%

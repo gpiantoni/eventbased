@@ -1,4 +1,4 @@
-function pow_subj(cfg, subj)
+function pow_subj(info, opt, subj)
 %POW_SUBJ create subject-specific pow
 %
 % CFG
@@ -142,7 +142,7 @@ output = [output outtmp];
 
 %-----------------%
 fprintf(output)
-fid = fopen([cfg.log '.txt'], 'a');
+fid = fopen([info.log '.txt'], 'a');
 fwrite(fid, output);
 fclose(fid);
 %-----------------%

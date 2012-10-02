@@ -1,4 +1,4 @@
-function powsource_subj(cfg, subj)
+function powsource_subj(info, opt, subj)
 %POWSOURCE_SUBJ: identify sources from pow peaks using DICS
 %
 % CFG
@@ -75,7 +75,7 @@ end
 
 %---------------------------%
 %-dir and files
-[vol, lead, sens] = load_headshape(cfg, subj);
+[vol, lead, sens] = load_headshape(info, opt, subj);
 %---------------------------%
 
 pow_peak = get_peak(cfg, 'pow');
@@ -223,7 +223,7 @@ output = [output outtmp];
 
 %-----------------%
 fprintf(output)
-fid = fopen([cfg.log '.txt'], 'a');
+fid = fopen([info.log '.txt'], 'a');
 fwrite(fid, output);
 fclose(fid);
 %-----------------%

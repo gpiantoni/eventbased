@@ -1,4 +1,4 @@
-function erpstat_subj(cfg, subj)
+function erpstat_subj(info, opt, subj)
 %ERPSTAT_SUBJ: use LCMV common filters for each condition
 %
 % CFG
@@ -66,7 +66,7 @@ tic_t = tic;
 
 %---------------------------%
 %-dir and files
-[vol, lead, sens] = load_headshape(cfg, subj);
+[vol, lead, sens] = load_headshape(info, opt, subj);
 
 %-----------------%
 %-load source
@@ -209,7 +209,7 @@ output = [output outtmp];
 
 %-----------------%
 fprintf(output)
-fid = fopen([cfg.log '.txt'], 'a');
+fid = fopen([info.log '.txt'], 'a');
 fwrite(fid, output);
 fclose(fid);
 %-----------------%

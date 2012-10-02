@@ -1,4 +1,4 @@
-function conn_grand(cfg)
+function conn_grand(info, opt)
 %CONN_GRAND connectivity analysis across subjects
 %
 % CFG
@@ -289,11 +289,11 @@ if isfield(cfg.gconn, 'comp')
     %-----------------%
     %-save and link
     pngname = sprintf('gtrs_%s_%s', cfg.conn.method, comp);
-    saveas(gcf, [cfg.log filesep pngname '.png'])
+    saveas(gcf, [info.log filesep pngname '.png'])
     close(gcf); drawnow
     
-    [~, logfile] = fileparts(cfg.log);
-    system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
+    [~, logfile] = fileparts(info.log);
+    system(['ln ' info.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
     %-----------------%
     
   end % numel(gcomp)
@@ -312,7 +312,7 @@ output = [output outtmp];
 
 %-----------------%
 fprintf(output)
-fid = fopen([cfg.log '.txt'], 'a');
+fid = fopen([info.log '.txt'], 'a');
 fwrite(fid, output);
 fclose(fid);
 %-----------------%

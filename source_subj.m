@@ -1,4 +1,4 @@
-function source_subj(cfg, subj)
+function source_subj(info, opt, subj)
 %SOURCE_SUBJ create virtual electrode, to be used for connectivity analysis
 %
 % Check that when you use freesurfer, you need to check which dipoles are
@@ -84,7 +84,7 @@ tic_t = tic;
 switch cfg.source.areas
   
   case 'channel'
-    [mont outtmp] = prepare_montage(cfg);
+    [mont outtmp] = prepare_montage(info, opt);
     
   case 'erp'
     condname = regexprep(cfg.source.refcond, '*', '');
@@ -167,7 +167,7 @@ output = [output outtmp];
 
 %-----------------%
 fprintf(output)
-fid = fopen([cfg.log '.txt'], 'a');
+fid = fopen([info.log '.txt'], 'a');
 fwrite(fid, output);
 fclose(fid);
 %-----------------%

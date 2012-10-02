@@ -1,4 +1,4 @@
-function pow_grand(cfg)
+function pow_grand(info, opt)
 %POW_GRAND grand power average
 % 1) read single subject-data and create gpow in cfg.dpow
 % 2) do statistics for condition indicated by cfg.gpow.comp
@@ -47,7 +47,7 @@ function pow_grand(cfg)
 %  [cfg.dpow 'pow_COND'] 'pow': power analysis for all subjects
 %  [cfg.dpow 'pow_peak_COMP'] 'pow_peak': significant peaks in the POW for the comparison
 %
-% FIGURES (saved in cfg.log and, if not empty, cfg.rslt)
+% FIGURES (saved in info.log and, if not empty, cfg.rslt)
 %  gpow_tfr_COMP_CHAN: time-frequency plot POW, for each condition, for one channel group
 %  gpow_val_CHAN_FREQ: singleplot POW, all conditions, for one channel group, one frequency % TODO: does it re-write files
 %  gpow_topo_COMP_FREQ: topoplot POW for each frequency, over time
@@ -226,11 +226,11 @@ if isfield(cfg.gpow, 'comp')
       %-----------------%
       %-save and link
       pngname = sprintf('gpow_tfr_%s_%s', comp, cfg.gpow.chan(c).name);
-      saveas(gcf, [cfg.log filesep pngname '.png'])
+      saveas(gcf, [info.log filesep pngname '.png'])
       close(gcf); drawnow
       
-      [~, logfile] = fileparts(cfg.log);
-      system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
+      [~, logfile] = fileparts(info.log);
+      system(['ln ' info.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
       %-----------------%
       
     end
@@ -282,11 +282,11 @@ if isfield(cfg.gpow, 'comp')
         %-----------------%
         %-save and link
         pngname = sprintf('gpow_topo_%s_%s', condname, cfg.gpow.freq(f).name);
-        saveas(gcf, [cfg.log filesep pngname '.png'])
+        saveas(gcf, [info.log filesep pngname '.png'])
         close(gcf); drawnow
         
-        [~, logfile] = fileparts(cfg.log);
-        system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
+        [~, logfile] = fileparts(info.log);
+        system(['ln ' info.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
         %-----------------%
         
       end
@@ -324,11 +324,11 @@ if isfield(cfg.gpow, 'comp')
         %-----------------%
         %-save and link
         pngname = sprintf('gpow_val_%s_%s_%s', comp, cfg.gpow.chan(c).name, cfg.gpow.freq(f).name);
-        saveas(gcf, [cfg.log filesep pngname '.png'])
+        saveas(gcf, [info.log filesep pngname '.png'])
         close(gcf); drawnow
         
-        [~, logfile] = fileparts(cfg.log);
-        system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
+        [~, logfile] = fileparts(info.log);
+        system(['ln ' info.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
         %-----------------%
         
       end
@@ -353,7 +353,7 @@ output = [output outtmp];
 
 %-----------------%
 fprintf(output)
-fid = fopen([cfg.log '.txt'], 'a');
+fid = fopen([info.log '.txt'], 'a');
 fwrite(fid, output);
 fclose(fid);
 %-----------------%

@@ -1,4 +1,4 @@
-function powstat_subj(cfg, subj)
+function powstat_subj(info, opt, subj)
 %POWSTAT_SUBJ: use DICS common filters for each condition
 % Notice that this function reuses the same filters for all the conditions
 % but the beamforming depends on the CSD, which is different across
@@ -68,7 +68,7 @@ tic_t = tic;
 
 %---------------------------%
 %-dir and files
-[vol, lead, sens] = load_headshape(cfg, subj);
+[vol, lead, sens] = load_headshape(info, opt, subj);
 
 %-----------------%
 %-load source
@@ -279,7 +279,7 @@ output = [output outtmp];
 
 %-----------------%
 fprintf(output)
-fid = fopen([cfg.log '.txt'], 'a');
+fid = fopen([info.log '.txt'], 'a');
 fwrite(fid, output);
 fclose(fid);
 %-----------------%

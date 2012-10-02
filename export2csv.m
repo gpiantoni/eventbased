@@ -1,4 +1,4 @@
-function export2csv(cfg)
+function export2csv(info, opt)
 %EXPORT2CSV write results in csv file
 % It will write the cfg, erppeak (and soupeak), powpeak (and soupeak), and
 % results from connectivity analysis.
@@ -6,7 +6,7 @@ function export2csv(cfg)
 % You add columns with specific results. You need to specify:
 %   .export2csv.extrainfo = 'functionname'
 % where 'functionname' is as:
-%   [output] = functionname(cfg)
+%   [output] = functionname(info, opt)
 % and output should contain no new lines but commas to separate values
 %
 % Part of EVENTBASED group-analysis
@@ -22,7 +22,7 @@ npeaks = 2; % max # of peaks to plot
 
 %---------------------------%
 %-get log file name and steps which were run
-[~, logfile] = fileparts(cfg.log);
+[~, logfile] = fileparts(info.log);
 output = [logfile ','];
 output = [output sprintf(' %s', cfg.step{cfg.run}) ','];
 %---------------------------%

@@ -1,4 +1,4 @@
-function erpsource_subj(cfg, subj)
+function erpsource_subj(info, opt, subj)
 %ERPSOURCE_SUBJ: identify sources from erp peaks using LCMV
 %
 % CFG
@@ -76,7 +76,7 @@ end
 
 %---------------------------%
 %-dir and files
-[vol, lead, sens] = load_headshape(cfg, subj);
+[vol, lead, sens] = load_headshape(info, opt, subj);
 %---------------------------%
 
 erp_peak = get_peak(cfg, 'erp');
@@ -210,7 +210,7 @@ output = [output outtmp];
 
 %-----------------%
 fprintf(output)
-fid = fopen([cfg.log '.txt'], 'a');
+fid = fopen([info.log '.txt'], 'a');
 fwrite(fid, output);
 fclose(fid);
 %-----------------%

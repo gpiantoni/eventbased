@@ -1,4 +1,4 @@
-function conn_stat(cfg)
+function conn_stat(info, opt)
 %CONN_STAT statistics on connectivity analysis
 % Attention: this does not handle one single condition case 
 % 
@@ -17,7 +17,7 @@ function conn_stat(cfg)
 %  .statconn.time: cell with two scalars. Each cell gives the time window to test the t-test between conditions
 % 
 % OUT
-%  [cfg.log connsum]: values from the plots to report in csv
+%  [info.log connsum]: values from the plots to report in csv
 % 
 % FIGURES
 %  gtrs_LABEL1_LABEL2_CONNMETHOD: connectivity over time, with one subplot per frequency
@@ -195,11 +195,11 @@ for chan1 = 1:numel(gconn.label)
       %--------%
       %-save and link
       pngname = sprintf('gtrs_%s_%s_%s', gconn.label{chan1}, gconn.label{chan2}, cfg.conn.method);
-      saveas(gcf, [cfg.log filesep pngname '.png'])
+      saveas(gcf, [info.log filesep pngname '.png'])
       close(gcf); drawnow
       
-      [~, logfile] = fileparts(cfg.log);
-      system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
+      [~, logfile] = fileparts(info.log);
+      system(['ln ' info.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
       %--------%
       
     end
@@ -218,7 +218,7 @@ output = [output outtmp];
 
 %-----------------%
 fprintf(output)
-fid = fopen([cfg.log '.txt'], 'a');
+fid = fopen([info.log '.txt'], 'a');
 fwrite(fid, output);
 fclose(fid);
 %-----------------%

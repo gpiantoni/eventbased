@@ -1,4 +1,4 @@
-function powsource_grand(cfg)
+function powsource_grand(info, opt)
 %POWSOURCE_GRAND group-analysis of POW source data
 %
 % CFG
@@ -182,11 +182,11 @@ for k = 1:numel(cfg.powsource.cond)
     
     %--------%
     pngname = sprintf('gpow_peak_%s_%s', condname, pow_peak(p).name);
-    saveas(h, [cfg.log filesep pngname '.png'])
+    saveas(h, [info.log filesep pngname '.png'])
     close(h); drawnow
     
-    [~, logfile] = fileparts(cfg.log);
-    system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
+    [~, logfile] = fileparts(info.log);
+    system(['ln ' info.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
     %--------%
     %-----------------%
     %---------------------------%
@@ -218,7 +218,7 @@ output = [output outtmp];
 
 %-----------------%
 fprintf(output)
-fid = fopen([cfg.log '.txt'], 'a');
+fid = fopen([info.log '.txt'], 'a');
 fwrite(fid, output);
 fclose(fid);
 %-----------------%

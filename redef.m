@@ -1,22 +1,20 @@
-function redef(cfg, subj)
+function redef(info, opt, subj)
 %REDEF redefine trials
 % This function should be as flexible bc it uses ft_redefinetrial
 % Therefore, it does not do much, but it calls a function "event2trl_xxx"
 % and then it calls ft_redefinetrial. It creates a separate dataset for
 % each condition. It only keeps trials which are in the good part of the data.
 %
-% CFG
+% INFO
 %  .data: path of /data1/projects/PROJ/subjects/
 %  .nick: NICK in /data1/projects/PROJ/subjects/0001/MOD/NICK/
 %  .mod: modality, MOD in /data1/projects/PROJ/subjects/0001/MOD/NICK/
-%  .endname: includes preprocessing steps (e.g. '_seldata_gclean')
 %
 %  .log: name of the file and directory to save log
 %
-%  .step: all the analysis step (for cfg.clear)
-%  .clear: cell with the name of preprocessing steps to delete
-%
-%  .redef.event2trl: function name in NICK_private which creates the correct trl based on events
+% CFG.OPT
+%  .event2trl: function name in NICK_private which creates the correct trl based on events
+%  .redef: options to pass to event2trl 
 %
 %  .preproc1: struct to pass to ft_preprocessing before cutting trials (if empty, no preprocessing)
 %  .preproc2: struct to pass to ft_preprocessing after cutting trials (if empty, no preprocessing)
@@ -27,14 +25,14 @@ function redef(cfg, subj)
 %
 % OUT
 %  data, after preprocessing, rereferencing and cut in short trials
-%  It adds the condition name in the middle of the file, before cfg.endname
-%  and it appends '_redef' at the end of the filename
+%  It adds the condition name in the middle of the file and it appends '_C'
+%  at the end of the filename
 %
 % You need to write your own function to create trials. Call the function
 % something like "event2trl_XXX" and use as
 %   [cond output] = event2trl_gosdtrl(cfg, event)
 % where
-%   cfg is cfg.redef (it also includes cfg.fsample with the sampling
+%   cfg is opt.redef (it also includes opt.fsample with the sampling
 %   frequency of that specific dataset)
 %
 %   cond is a struct with
@@ -55,8 +53,8 @@ tic_t = tic;
 
 %---------------------------%
 %-dir and files
-ddir = sprintf('%s%04d/%s/%s/', cfg.data, subj, cfg.mod, cfg.nick); % data dir
-allfile = dir([ddir '*' cfg.endname '.mat']); % files matching a preprocessing
+ddir = sprintf('%s%04d/%s/%s/', info.data, subj, info.mod, info.nick); % data dir
+allfile = dir([ddir '*_B_A.mat']); % files matching a preprocessing
 
 %-------%
 %-for CSD
@@ -65,6 +63,8 @@ if isfield(cfg.sens, 'file') && ~isempty(cfg.sens.file)
   sens.label = upper(sens.label);
 end
 %-------%
+
+prepr_name = 'C'; % preprocessing name to append
 %---------------------------%
 
 %-------------------------------------%
@@ -83,17 +83,17 @@ for i = 1:numel(allfile)
   
   %-----------------%
   %-preprocessing on the full file
-  if isfield(cfg, 'preproc1') && ~isempty(cfg.preproc1)
-    cfg1 = cfg.preproc1;
-    cfg1.feedback = 'none';
-    data = ft_preprocessing(cfg1, data);
+  if isfield(opt, 'preproc1') && ~isempty(opt.preproc1)
+    cfg = opt.preproc1;
+    cfg.feedback = 'none';
+    data = ft_preprocessing(cfg, data);
   end
   %-----------------%
   
   %-----------------%
   %-define the new trl
-  cfg.redef.fsample = data.fsample; % pass the sampling frequency as well
-  [cond outtmp] = feval(cfg.redef.event2trl, cfg.redef, event);
+  opt.fsample = data.fsample; % pass the sampling frequency as well
+  [cond outtmp] = feval(opt.event2trl, opt.redef, event);
   output = [output outtmp];
   %-----------------%
   
@@ -107,8 +107,8 @@ for i = 1:numel(allfile)
       %-redefine trials
       %---------%
       %-insert condition name into the condition field
-      basicname = allfile(i).name(1:strfind(allfile(i).name, cfg.endname)-1); % name without cfg.endname
-      outputfile = [basicname '-' cond(c).name cfg.endname '_' mfilename];
+      basicname = allfile(i).name(1:strfind(allfile(i).name, '_B_A')-1); % name without last part of the name
+      outputfile = [basicname '-' cond(c).name '_B_A' '_' prepr_name];
       %---------%
       
       %---------%
@@ -173,14 +173,6 @@ for i = 1:numel(allfile)
     
   end
   %---------------------------%
-  
-  %-----------------%
-  %-clear
-  previousstep = cfg.step{find(strcmp(cfg.step, mfilename))-1};
-  if any(strcmp(cfg.clear, previousstep))
-    delete([ddir allfile(i).name])
-  end
-  %-----------------%
   
 end
 %-------------------------------------%

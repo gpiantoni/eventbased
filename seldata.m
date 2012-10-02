@@ -1,24 +1,27 @@
-function seldata(cfg, subj)
+function seldata(info, opt, subj)
 %SELDATA get data from recordings and put them in subject directory
-% it recreates the "cfg.nick" folder for each subject
+% it recreates the "info.nick" folder for each subject
 %
-% CFG
+% INFO
 %  .recs: path of /data1/projects/PROJ/recordings/REC/subjects/
 %  .mod: modality, MOD in /data1/projects/PROJ/subjects/SUBJ/MOD/NICK/
-%  .rcnd: specific name of the condition of interest in the raw recording folder
+%
 %  .data: name of projects/PROJ/subjects/
 %  .nick: NICK in /data1/projects/PROJ/subjects/SUBJ/MOD/NICK/
 %  .log: name of the file and directory to save log
 % 
 %  .sens.file: file with EEG sensors. It can be sfp or mat. It's included
 %              in data struct. If empty, it does not read the sensors.
+%
+% opt.OPT
+%  .rcnd: specific name of the condition of interest in the raw recording folder
 % 
-%  .seldata.trialfun: name of the trialfun used to read the data, see below.
+%  .trialfun: name of the trialfun used to read the data, see below.
 %                     The function should be in NICK_private/ 
-%  .seldata.selchan: channels to read. It can be a vector or a cell of
+%  .selchan: channels to read. It can be a vector or a cell of
 %                    strings with the elec names on file (Micromed elec
 %                    names are '  1' '  2'  '  3') 
-%  .seldata.label: if not empty, labels of electrodes to rename (same
+%  .label: if not empty, labels of electrodes to rename (same
 %                  length as seldata.selchan) 
 %
 % IN
@@ -30,7 +33,7 @@ function seldata(cfg, subj)
 %
 % You need to write your own function to read the data and the events.
 % Call the function something like "trialfun_XXX" and use as:
-%   [trl, event] = trialfun_XXX(cfg)
+%   [trl, event] = trialfun_XXX(opt)
 % where trl is 1x3 vector (as in ft_definetrial) and event is the structure
 % which can be used later on in redef.m to prepare the actual trials.
 % It's better if you prepare only one big trial. gclean will clean the
@@ -49,25 +52,27 @@ tic_t = tic;
 
 %---------------------------%
 %-dir and files
-rdir = sprintf('%s%04d/%s/%s/', cfg.recs, subj, cfg.mod, 'raw'); % recording raw
-ddir = sprintf('%s%04d/%s/%s/', cfg.data, subj, cfg.mod, cfg.nick); % data dir
+rdir = sprintf('%s%04d/%s/%s/', info.recs, subj, info.mod, 'raw'); % recording raw
+ddir = sprintf('%s%04d/%s/%s/', info.data, subj, info.mod, info.nick); % data dir
 if isdir(ddir); rmdir(ddir, 's'); end
 mkdir(ddir)
 
 %-----------------%
 %-read sensors (can be sfp or mat)
 hassens = false;
-if isfield(cfg.sens, 'file') && ~isempty(cfg.sens.file)
+if isfield(info.sens, 'file') && ~isempty(info.sens.file)
   hassens = true;
-  sens = ft_read_sens(cfg.sens.file);
+  sens = ft_read_sens(info.sens.file);
   sens.label = upper(sens.label); % <- EGI labels are uppercase, but the elec file is lowercase
 end
 %-----------------%
+
+prepr_name = 'A'; % preprocessing name to append
 %---------------------------%
 
 %---------------------------%
 %-find raw data
-allfile = dir([rdir '*' cfg.rcnd '*']);
+allfile = dir([rdir '*' opt.rcnd '*']);
 
 for i = 1:numel(allfile)
   
@@ -75,15 +80,15 @@ for i = 1:numel(allfile)
   
   %-----------------%
   %-definetrials
-  cfg1 = [];
-  cfg1.trialfun = cfg.seldata.trialfun;
-  cfg1.dataset = dataset;
+  cfg = [];
+  cfg.trialfun = opt.trialfun;
+  cfg.dataset = dataset;
   
-  cfg2 = ft_definetrial(cfg1);
+  cfg = ft_definetrial(info, opt);
   
   %--------%
   %-ignore files with no events
-  if all(cfg2.trl(1,1:3) == [0 0 0])
+  if all(cfg.trl(1,1:3) == [0 0 0])
     continue
   end
   %--------%
@@ -91,16 +96,16 @@ for i = 1:numel(allfile)
     
   %-----------------%
   %-preprocessing
-  cfg2.feedback = 'off';
-  if iscell(cfg.seldata.selchan)
-    cfg2.channel = cfg.seldata.selchan{subj};
+  cfg.feedback = 'off';
+  if iscell(opt.seldata.selchan)
+    cfg.channel = opt.seldata.selchan{subj};
   else
-    cfg2.channel = cfg.seldata.selchan;
+    cfg.channel = opt.seldata.selchan;
   end
   
-  cfg2.continuous = 'yes'; % necessary for MEG data over trials
-  data = ft_preprocessing(cfg2);
-  event = ft_findcfg(data.cfg, 'event');
+  cfg.continuous = 'yes'; % necessary for MEG data over trials
+  data = ft_preprocessing(info, opt);
+  event = ft_findopt(data.opt, 'event');
   
   if ischar(event) && ...
       strcmp(event, 'empty - this was cleared by checkconfig')
@@ -110,8 +115,8 @@ for i = 1:numel(allfile)
   
   %-----------------%
   %-fix channels
-  if ~isempty(cfg.seldata.label)
-    data.label = cfg.seldata.label;
+  if ~isempty(opt.label)
+    data.label = opt.label;
   end
   
   if hassens
@@ -122,7 +127,7 @@ for i = 1:numel(allfile)
   %-----------------%
   %-save data
   [~, filename] = fileparts(allfile(i).name);
-  savename = [cfg.proj '_' filename '_' mfilename]; % <-- add proj name
+  savename = [info.proj '_' filename '_' prepr_name]; % <-- add proj name
   save([ddir savename], 'data', 'event');
   clear data
   %-----------------%
@@ -140,7 +145,7 @@ output = [output outtmp];
 
 %-----------------%
 fprintf(output)
-fid = fopen([cfg.log '.txt'], 'a');
+fid = fopen([info.log '.txt'], 'a');
 fwrite(fid, output);
 fclose(fid);
 %-----------------%

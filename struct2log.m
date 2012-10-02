@@ -1,7 +1,7 @@
 function [log] = struct2log(cfg, outtype, lvl)
 %STRUCT2LOG get field structure and write log
 % use as:
-%  [log] = struct2log(cfg)
+%  [log] = struct2log(info, opt)
 % where cfg is the normal fieldtrip cfg structure
 % There is one optional argument, which can be 
 %   'email' log for the emails with newlines (default)
@@ -36,9 +36,9 @@ log = '';
 
 %---------------------------%
 %-if cfg contains multiple cfg(1), cfg(2), cfg(3)
-if numel(cfg) ~= 1
+if numel(info, opt) ~= 1
   
-  for c = 1:numel(cfg)
+  for c = 1:numel(info, opt)
     flog = struct2log(cfg(c), outtype, lvl);
     log = sprintf('%s%s%s', log, flog, sep);
   end
@@ -50,7 +50,7 @@ end
 %-loop over fieldnames
 %-----------------%
 %-define fieldnames
-fn = fieldnames(cfg);
+fn = fieldnames(info, opt);
 
 %-------%
 %-sort fields for csv (less meaningful, but more consistent)

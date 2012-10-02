@@ -1,9 +1,9 @@
-function [source output] = load_source(cfg, subj, cond)
+function [source] = load_source(info, subj, cond)
 %LOAD_SOURCE load source data from virtual electrode
 % Use as:
 %   [data] = load_source(cfg, subj, cond)
 %
-% CFG
+% INFO
 %   .dsou: directory with SOURCE data
 %  
 % SUBJ
@@ -24,8 +24,8 @@ type = 'source';
 condname = regexprep(cond, '*', '');
 subjfile = sprintf('%s_%04d_%s.mat', type, subj, condname);
 
-if exist([cfg.dsou subjfile], 'file')
-  load([cfg.dsou subjfile], type)
+if exist([info.dsou subjfile], 'file')
+  load([info.dsou subjfile], type)
   
 else
   source = [];

@@ -1,4 +1,4 @@
-function erp_grand(cfg)
+function erp_grand(info, opt)
 %ERP_GRAND grand time lock analysis.
 % 1) read single subject-data and create gerp in cfg.derp
 % 2) do statistics for condition indicated by cfg.gerp.comp
@@ -39,7 +39,7 @@ function erp_grand(cfg)
 %  [cfg.derp 'erp_COND'] 'erp': the ERP for all subjects
 %  [cfg.derp 'erp_peak_COMP'] 'erp_peak': significant peaks in the ERP for the comparison
 %
-% FIGURES (saved in cfg.log and, if not empty, cfg.rslt)
+% FIGURES (saved in info.log and, if not empty, cfg.rslt)
 %  gerp_erp_COMP_CHAN: singleplot ERP, all conditions, for one channel group
 %  gerp_topo_COMP: topoplot ERP for each comparison, over time
 %
@@ -197,11 +197,11 @@ if isfield(cfg.gerp, 'comp')
       %-----------------%
       %-save and link
       pngname = sprintf('gerp_erp_%s_%s', comp, cfg.gerp.chan(c).name);
-      saveas(gcf, [cfg.log filesep pngname '.png'])
+      saveas(gcf, [info.log filesep pngname '.png'])
       close(gcf); drawnow
       
-      [~, logfile] = fileparts(cfg.log);
-      system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
+      [~, logfile] = fileparts(info.log);
+      system(['ln ' info.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
       %-----------------%
       
     end
@@ -243,11 +243,11 @@ if isfield(cfg.gerp, 'comp')
       %-----------------%
       %-save and link
       pngname = sprintf('gerp_topo_%s', comp);
-      saveas(gcf, [cfg.log filesep pngname '.png'])
+      saveas(gcf, [info.log filesep pngname '.png'])
       close(gcf); drawnow
       
-      [~, logfile] = fileparts(cfg.log);
-      system(['ln ' cfg.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
+      [~, logfile] = fileparts(info.log);
+      system(['ln ' info.log filesep pngname '.png ' cfg.rslt pngname '_' logfile '.png']);
       %-----------------%
       
     end
@@ -269,7 +269,7 @@ output = [output outtmp];
 
 %-----------------%
 fprintf(output)
-fid = fopen([cfg.log '.txt'], 'a');
+fid = fopen([info.log '.txt'], 'a');
 fwrite(fid, output);
 fclose(fid);
 %-----------------%

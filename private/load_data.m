@@ -1,14 +1,13 @@
-function [data badchan] = load_data(cfg, subj, cond)
+function [data badchan] = load_data(info, subj, cond)
 %LOAD_DATA load data, and optionally get bad channels
 % Use as:
-%   [data badchan] = load_data(cfg, subj, cond)
+%   [data badchan] = load_data(info, subj, cond)
 %
-% CFG
+% INFO
 %  .data: path of /data1/projects/PROJ/subjects/
 %  .rec: REC in /data1/projects/PROJ/recordings/REC/
 %  .nick: NICK in /data1/projects/PROJ/subjects/SUBJCODE/MOD/NICK/
 %  .mod: modality, MOD in /data1/projects/PROJ/subjects/SUBJCODE/MOD/NICK/
-%  .endname: includes preprocessing steps (e.g. '_seldata_gclean_preproc_redef')
 %
 % SUBJ
 %   number indicating the subject number
@@ -24,16 +23,17 @@ function [data badchan] = load_data(cfg, subj, cond)
 % 
 % BADCHANNEL
 %   if gclean has been run, it'll return the labels of the channels
-%   labelled as bad
+%   labeled as bad
 % 
 % Part of EVENTBASED/PRIVATE
 
 %-----------------%
 %-input and output for each condition
-ddir = sprintf('%s%04d/%s/%s/', cfg.data, subj, cfg.mod, cfg.nick); % data
-beginname = sprintf('%s_%s_%04d_%s_', cfg.nick, cfg.rec, subj, cfg.mod); % beginning of datafile
+ddir = sprintf('%s%04d/%s/%s/', info.data, subj, info.mod, info.nick); % data
+beginname = sprintf('%s_%s_%04d_%s_', info.nick, info.rec, subj, info.mod); % beginning of datafile
 
-dnames = dir([ddir beginname cond cfg.endname '.mat']); % files matching a preprocessing
+prepr_name = '_A_B_C';
+dnames = dir([ddir beginname cond prepr_name '.mat']); % files matching a preprocessing
 %-----------------%
 
 %-----------------%
@@ -42,9 +42,9 @@ if numel(dnames) > 1
   spcell = @(name) sprintf('%s%s', ddir, name);
   allname = cellfun(spcell, {dnames.name}, 'uni', 0);
   
-  cfg1 = [];
-  cfg1.inputfile = allname;
-  data = ft_appenddata(cfg1);
+  cfg = [];
+  cfg.inputfile = allname;
+  data = ft_appenddata(cfg);
   
 elseif numel(dnames) == 1
   load([ddir dnames(1).name], 'data')
@@ -66,13 +66,13 @@ end
 %-----------------%
 %-find bad channels (bad channel if bad in at least one dataset)
 if ~isfield(data.cfg, 'previous') || ~iscell(data.cfg.previous) % not appenddata
-  badchan = ft_findcfg(data.cfg, 'badchannel');
+  badchan = ft_findinfo(data.cfg, 'badchannel');
   
 else
   
   badchan = {};
   for i = 1:numel(data.cfg.previous)
-    badtemp = ft_findcfg(data.cfg.previous{i}, 'badchannel');
+    badtemp = ft_findinfo(data.cfg.previous{i}, 'badchannel');
     badchan = union(badchan, badtemp);
   end
   
