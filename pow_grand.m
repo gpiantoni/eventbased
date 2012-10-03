@@ -275,7 +275,7 @@ if isfield(opt, 'comp')
         
         %-----------------%
         %-save and link
-        pngname = sprintf('gpow_topo_%s_%s', condname, opt.plot.freq(f).name);
+        pngname = sprintf('gpow_topo_%s_%s', comp, opt.plot.freq(f).name);
         saveas(gcf, [info.log filesep pngname '.png'])
         close(gcf); drawnow
         

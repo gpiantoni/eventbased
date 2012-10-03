@@ -76,6 +76,14 @@ for k = 1:numel(opt.cond)
   if isfield(opt.pow, 'toi')
     powcorr_s.time = opt.pow.toi;
   end
+  
+  %-----------------%
+  %-when no time info (mtmfft), create empty time
+  if ~isfield(powcorr_s, 'time')
+    powcorr_s.time = 0;
+    powcorr_s.dimord = [powcorr_s.dimord '_time'];
+  end
+  %-----------------%
   %---------------------------%
   
   %---------------------------%
@@ -88,7 +96,7 @@ for k = 1:numel(opt.cond)
   
   %---------------------------%
   %-regression at each point
-  if cfg.powcorr.log
+  if opt.powlog
     powcorr_s.powspctrm = log(powcorr_s.powspctrm);
   end
   

@@ -68,7 +68,7 @@ for k = 1:numel(opt.cond)
   
   %-----------------%
   %-pow over subj
-  [outtmp data] = load_subj(info, 'pow', cond);
+  [outtmp data] = load_subj(info, 'powcorr', cond);
   output = [output outtmp];
   if isempty(data); continue; end
   %-----------------%
@@ -119,6 +119,7 @@ if isfield(opt, 'comp')
   %-------------------------------------%
   %-loop over statistics conditions
   for t = 1:numel(opt.comp)
+    clear powcorr
     
     %---------------------------%
     %-statistics for effects of interest
@@ -273,7 +274,7 @@ if isfield(opt, 'comp')
         
         %-----------------%
         %-save and link
-        pngname = sprintf('gpowcorr_topo_%s_%s', opt.plot.chan(c).name, opt.plot.freq(f).name);
+        pngname = sprintf('gpowcorr_topo_%s_%s', comp, opt.plot.freq(f).name);
         saveas(gcf, [info.log filesep pngname '.png'])
         close(gcf); drawnow
         
