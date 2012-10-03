@@ -1,17 +1,13 @@
 function [log] = struct2log(cfg, outtype, lvl)
 %STRUCT2LOG get field structure and write log
 % use as:
-%  [log] = struct2log(info, opt)
+%  [log] = struct2log(cfg)
 % where cfg is the normal fieldtrip cfg structure
 % There is one optional argument, which can be 
 %   'email' log for the emails with newlines (default)
 %   'csv' log for csv file, in one line, separated by commas.
 % Other differences between the two is that csv does not include paths,
 % cuts values longer than 30 characters and fields are sorted alphabetically
-
-% 11/12/21 added csv option
-% 11/07/22 also for function_handle
-% 11/07/20 created
 
 %-----------------%
 %-input check
@@ -36,9 +32,9 @@ log = '';
 
 %---------------------------%
 %-if cfg contains multiple cfg(1), cfg(2), cfg(3)
-if numel(info, opt) ~= 1
+if numel(cfg) ~= 1
   
-  for c = 1:numel(info, opt)
+  for c = 1:numel(cfg)
     flog = struct2log(cfg(c), outtype, lvl);
     log = sprintf('%s%s%s', log, flog, sep);
   end
@@ -50,7 +46,7 @@ end
 %-loop over fieldnames
 %-----------------%
 %-define fieldnames
-fn = fieldnames(info, opt);
+fn = fieldnames(cfg);
 
 %-------%
 %-sort fields for csv (less meaningful, but more consistent)
@@ -80,11 +76,7 @@ for i = 1:numel(fn)
     %-------%
     %-get val
     if iscell(cfg.(fn{i}))
-      val = [];
-      for k = 1:numel(cfg.(fn{i}))
-        val = [val tochar(cfg.(fn{i}){k})];
-      end
-      
+      val = cell2log(cfg.(fn{i}));
     else
       val = tochar(cfg.(fn{i}));
     end
@@ -108,6 +100,20 @@ for i = 1:numel(fn)
   
 end
 %-----------------%
+%-------------------------------------%
+
+%-------------------------------------%
+%-subfunction: deals with nested cells
+function [val] = cell2log(fld)
+val = [];
+for k = 1:numel(fld)
+  if iscell(fld{k})
+    val = [val ' {' cell2log(fld{k}) '} '];
+  else
+    val = [val tochar(fld{k})];
+  end
+  
+end
 %-------------------------------------%
 
 %-------------------------------------%
