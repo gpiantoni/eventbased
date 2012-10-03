@@ -38,6 +38,12 @@ SUBFUNCTIONS
 - LOAD_SOURCE: load source data from virtual electrode
   ERP_SUBJ, POW_SUBJ, POWCORR_SUBJ,
   
+- PREPARE_LEADCHAN: only use good channels in leadfield
+  ERPSOURCE_SUBJ,
+  
+- REALIGN_SOURCE: realign to MNI space or to freesurfer sphere
+  ERPSOURCE_SUBJ,
+  
 - REPORT_CLUSTER: report which clusters are significant
   ERP_GRAND, POW_GRAND, POWCORR_GRAND,
 -----------------------------------------------------------
@@ -104,7 +110,7 @@ CFG.OPT
 
 .bad_samples.Percentile = [25 75];
   GCLEAN,
-  
+
 .bl: Baseline correction at the single-trial level. If empty, no baseline. Otherwise:
   POW_SUBJ,
   
@@ -114,6 +120,9 @@ CFG.OPT
 .bl.baselinetype: type of baseline ('relchange')
   POW_SUBJ,
 
+.bline: one number in s, the center of the covariance window of the baseline (the window length depends on erp_peak). If empty, no baseline.  
+  ERPSOURCE_SUBJ,
+  
 .clusterthr: threshold of the cluster
   REPORT_CLUSTER,
   
@@ -146,6 +155,9 @@ CFG.OPT
   
 .label: if not empty, labels of electrodes to rename (same length as seldata.selchan) 
   SELDATA, 
+  
+.lcmv: options that will be passed to beamformer.
+  ERPSOURCE_SUBJ, 
 
 .lpfreqn = [.3 / (cfg.gclean.fsample/2)]; % normalized by half of the sampling frequency!
   GCLEAN,
@@ -153,8 +165,8 @@ CFG.OPT
 .numrandomization: number of randomization
   REPORT_CLUSTER, 
   
-.peak: description of the peaks
-  GET_PEAK
+.peak: peaks of interest (see GET_PEAK)
+  GET_PEAK, ERPSOURCE_SUBJ
   
 .plot.bline: two scalars indicating the time window for baseline in s (only for plotting, TODO: check if necessary for normal analysis as well)
   ERP_GRAND,

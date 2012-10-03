@@ -7,24 +7,17 @@ function erpsource_subj(info, opt, subj)
 %
 % CFG.OPT
 %  .cond*: cell with conditions (e.g. {'*cond1' '*cond2'})
-%  .erp: a structure with cfg to pass to ft_timelockanalysis 
-%  .keepfilter: keep filters or not, keep them only if you plan to use erpstat or conn analyses (logical)
-
-%
-%  .erpsource.refcomp: cell of string(s) of the comparison whose peaks
-%                     will be localized (one of the cells of cfg.gerp.comp)
-%
-
-%  .erpsource.bline: one number in s, the center of the covariance window
-%                    of the baseline (the window length depends on erp_peak) 
-%                    If empty, no baseline.
-%
-%  .erpsource.lcmv: options that will be passed to beamformer. Examples:
+%  .erp*: a structure with cfg to pass to ft_timelockanalysis 
+%  .peak*: peak of interest (see GET_PEAK)
+%  .lcmv: options that will be passed to beamformer. Examples:
 %     .lambda: regularization parameter of beamformer ('25%')
 %     .powmethod: power method of beamformer ('trace' or 'lambda1')
 %     .refdip: location of the dipole for computing coherence to.
-%
-
+%  .keepfilter: keep filters or not, keep them only if you plan to use
+%               erpstat or conn analyses (logical) 
+%  .bline: one number in s, the center of the covariance window of the
+%          baseline (the window length depends on erp_peak). If empty, no
+%          baseline.  
 %
 % IN:
 %  data in /PROJ/subjects/SUBJ/MOD/NICK/
@@ -64,13 +57,13 @@ erp_peak = get_peak(info, opt.peak, 'erp');
 
 %-------------------------------------%
 %-loop over conditions
-for k = 1:numel(cfg.erpsource.cond)
-  cond     = cfg.erpsource.cond{k};
+for k = 1:numel(opt.cond)
+  cond = opt.cond{k};
   condname = regexprep(cond, '*', '');
   
   %---------------------------%
   %-read data
-  [data badchan] = load_data(cfg, subj, cond);
+  [data badchan] = load_data(info, subj, cond);
   if isempty(data)
     output = sprintf('%sCould not find any file for condition %s\n', ...
       output, cond);
@@ -95,7 +88,7 @@ for k = 1:numel(cfg.erpsource.cond)
     %-parameters
     %-----------------%
     %-covariance window
-    cfgerp = cfg.erpsource.erp;
+    cfgerp = opt.erp;
     cfgerp.covariance = 'yes';
     cfgerp.feedback = 'none';
     cfgerp.channel = datachan;
@@ -106,13 +99,14 @@ for k = 1:numel(cfg.erpsource.cond)
     cfgsou = [];
     
     cfgsou.method = 'lcmv';
-    cfgsou.lcmv = cfg.erpsource.lcmv;
+    cfgsou.lcmv = opt.lcmv;
     cfgsou.lcmv.feedback = 'none';
     
     cfgsou.vol = vol;
     cfgsou.grid = leadchan;
     cfgsou.elec = sens;
     cfgsou.feedback = 'none';
+    
     cfgsou.lcmv.keepmom = 'no';
     if cfg.erpsource.keepfilter
       cfgsou.lcmv.keepfilter   = 'yes';
@@ -123,7 +117,7 @@ for k = 1:numel(cfg.erpsource.cond)
     
     %---------------------------%
     %-baseline
-    if isfield(cfg.erpsource, 'bline') && ~isempty(cfg.erpsource.bline)
+    if isfield(opt, 'bline') && ~isempty(opt.bline)
       
       %-----------------%
       %-covariance window
