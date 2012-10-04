@@ -63,7 +63,7 @@ INFO
   LOAD_SOURCE,
 
 .log: name of the file and directory to save log
-  SELDATA, GCLEAN, REDEF, ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, POW_SUBJ, POW_GRAND, POWCORR_SUBJ, POWCORR_GRAND,
+  SELDATA, GCLEAN, REDEF, ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, POW_SUBJ, POW_GRAND, POWCORR_SUBJ, POWCORR_GRAND, R_GRAND
 
 .mod: modality, MOD in /data1/projects/PROJ/subjects/SUBJ/MOD/NICK/
   SELDATA, GCLEAN, REDEF, LOAD_DATA, 
@@ -207,8 +207,20 @@ CFG.OPT
 .rcnd: specific name of the condition of interest in the raw recording folder
   SELDATA, 
   
+.rdir: directory with R functions
+  R_GRAND, 
+  
 .redef: options to pass to event2trl 
   REDEF, 
+
+.rfun(1).args{1}: arguments for R function
+  R_GRAND, 
+
+.rfun(1).name: name of the R function
+  R_GRAND, 
+
+.rfun(1).tolog: do you want the output into the log file? (logical)
+  R_GRAND, 
 
 .saveall: false
   GCLEAN,
