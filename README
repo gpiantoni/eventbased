@@ -222,9 +222,6 @@ CFG.OPT
 .rfun(1).tolog: do you want the output into the log file? (logical)
   R_GRAND, 
 
-.saveall: false
-  GCLEAN,
-
 .selchan: channels to read. It can be a vector or a cell of strings with the elec names on file (Micromed elec names are '  1' '  2'  '  3') 
   SELDATA, 
 
@@ -239,9 +236,6 @@ CFG.OPT
   
 .trialfun: name of the trialfun used to read the data, see below. The function should be in NICK_private/ 
   SELDATA, 
-
-.verbose: true
-  GCLEAN,
 -----------------------------------------------------------
 
  
