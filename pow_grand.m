@@ -15,13 +15,15 @@ function pow_grand(info, opt)
 %  .cond*: cell with conditions (e.g. {'*cond1' '*cond2'})'
 %  .comp*: comparisons to test (cell within cell, e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}})
 %        but you cannot have more than 2 conditions (it's always a t-test). If empty, not statistics and no plots
+%  
+%  .bl: Baseline correction at the single-subject level. If empty, no baseline.
+%  .bl.baseline: two scalars with baseline windows
+%  .bl.baselinetype: type of baseline ('relchange')
 %
 %  .plot.chan(1).name: 'name_of_channels'
 %  .plot.chan(1).chan: cell with labels of channels of interest
 %  .plot.freq(1).name: 'name_of_frequency'
 %  .plot.freq(1).freq: two scalars with the frequency limits
-%
-% TODO: Baseline correction at the single-subject level
 %
 % IN
 %  [info.dpow 'pow_SUBJ_COND'] 'pow_subj': timelock analysis for single-subject
@@ -71,6 +73,22 @@ for k = 1:numel(opt.cond)
   [outtmp data] = load_subj(info, 'pow', cond);
   output = [output outtmp];
   if isempty(data); continue; end
+  %-----------------%
+  
+  %-----------------%
+  %-baseline correction
+  if isfield(opt, 'bl') && ~isempty(opt.bl)
+    for i = 1:numel(data)
+      cfg = [];
+      cfg.baseline = opt.bl.baseline;
+      cfg.baselinetype = opt.bl.baselinetype;
+      data{i} = ft_freqbaseline(cfg, data{i});
+      
+      if strcmp(opt.bl.baselinetype, 'relative')
+        data{i}.powspctrm = 10*log10(data{i}.powspctrm);
+      end
+    end
+  end
   %-----------------%
   
   %-----------------%
@@ -133,11 +151,30 @@ if isfield(opt, 'comp')
       output = sprintf('%s\n   COMPARISON %s\n', output, cond);
       
       %-------%
-      %-pow over subj
+      %-load data
       [outtmp data] = load_subj(info, 'pow', cond);
       output = [output outtmp];
       if isempty(data); continue; end
+      %-------%
       
+      %-------%
+      %-baseline correction
+      if isfield(opt, 'bl') && ~isempty(opt.bl)
+        for i = 1:numel(data)
+          cfg = [];
+          cfg.baseline = opt.bl.baseline;
+          cfg.baselinetype = opt.bl.baselinetype;
+          data{i} = ft_freqbaseline(cfg, data{i});
+          
+          if strcmp(opt.bl.baselinetype, 'relative')
+            data{i}.powspctrm = 10*log10(data{i}.powspctrm);
+          end
+        end
+      end
+      %-------%
+      
+      %-------%
+      %-average
       cfg = [];
       pow{1} = ft_freqgrandaverage(cfg, data{:});
       cfg.keepindividual = 'yes';
@@ -166,6 +203,33 @@ if isfield(opt, 'comp')
       [outtmp data1 data2] = load_subj(info, 'pow', opt.comp{t});
       output = [output outtmp];
       if isempty(data1) || isempty(data2); continue; end
+      
+      %-------%
+      %-baseline correction
+      if isfield(opt, 'bl') && ~isempty(opt.bl)
+        for i = 1:numel(data1)
+          cfg = [];
+          cfg.baseline = opt.bl.baseline;
+          cfg.baselinetype = opt.bl.baselinetype;
+          data1{i} = ft_freqbaseline(cfg, data1{i});
+          
+          if strcmp(opt.bl.baselinetype, 'relative')
+            data1{i}.powspctrm = 10*log10(data1{i}.powspctrm);
+          end
+        end
+        
+        for i = 1:numel(data2)
+          cfg = [];
+          cfg.baseline = opt.bl.baseline;
+          cfg.baselinetype = opt.bl.baselinetype;
+          data2{i} = ft_freqbaseline(cfg, data2{i});
+          
+          if strcmp(opt.bl.baselinetype, 'relative')
+            data2{i}.powspctrm = 10*log10(data2{i}.powspctrm);
+          end
+        end
+      end
+      %-------%
       
       cfg = [];
       pow{1} = ft_freqgrandaverage(cfg, data1{:});

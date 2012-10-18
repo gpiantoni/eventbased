@@ -111,14 +111,14 @@ CFG.OPT
 .bad_samples.Percentile = [25 75];
   GCLEAN,
 
-.bl: Baseline correction at the single-trial level. If empty, no baseline. Otherwise:
-  POW_SUBJ,
+.bl: Baseline correction at the single-trial/single-subject level. If empty, no baseline. Otherwise:
+  POW_SUBJ, POW_GRAND,
   
 .bl.baseline: two scalars with baseline windows
-  POW_SUBJ,
+  POW_SUBJ, POW_GRAND,
   
 .bl.baselinetype: type of baseline ('relchange')
-  POW_SUBJ,
+  POW_SUBJ, POW_GRAND,
 
 .bline: one number in s, the center of the covariance window of the baseline (the window length depends on erp_peak). If empty, no baseline.  
   ERPSOURCE_SUBJ,
