@@ -134,7 +134,7 @@ for i = 1:numel(info.subjall)
       dataout{i} = powcorr_s;
       
     case 'conn'
-      dataout{i} = stat;
+      dataout{i} = conn_s;
       
     case 'erpsource'
       for p = 1:numel(erpsource_s_A) % n of peaks

@@ -50,7 +50,7 @@ function conn_subj(info, opt, subj)
 %  LOAD_SOURCE: source in info.dsou after SOURCE_SUBJ
 %
 % OUT
-%  [info.dcon 'conn_CONNMETHOD_SUBJ_COND']: connectivty analysis for each subject
+%  [info.dcon 'conn_CONNMETHOD_SUBJ_COND'] 'conn_s' connectivty analysis for each subject
 %  If .conn.type is 'cca', it also returns the model check. The file has
 %    subj, condition, toi, ADF, KPSS, residuals, consistency
 %  where
@@ -208,11 +208,11 @@ for k = 1:numel(opt.cond)
       
       %-----------------%
       %-connectivity
-      cfg4         = [];
-      cfg4.method  = opt.conn.method;
-      cfg4.channelcmb = {'all', 'all'};
-      cfg4.outputfile = [info.dcon outputfile];
-      ft_connectivityanalysis(cfg4, data);
+      cfg = [];
+      cfg.method  = opt.conn.method;
+      cfg.channelcmb = {'all', 'all'};
+      conn_s = ft_connectivityanalysis(cfg, data);
+      save([info.dcon outputfile], 'conn_s')
       %-----------------%
       %---------------------------%
       
@@ -323,18 +323,18 @@ for k = 1:numel(opt.cond)
       
       %-----------------%
       %-convert into fieldtrip format
-      stat = [];
-      stat.dimord = 'chan_chan_freq_time';
-      stat.label = data.label;
-      stat.gc = gcmat;
-      stat.freq = Inf; % only one frequency
-      stat.time = opt.conn.toi;
-      stat.cfg.previous = data.cfg;
-      stat.cfg.method = 'cca';
-      stat.cfg.order = opt.conn.order;
+      conn_s = [];
+      conn_s.dimord = 'chan_chan_freq_time';
+      conn_s.label = data.label;
+      conn_s.gc = gcmat;
+      conn_s.freq = Inf; % only one frequency
+      conn_s.time = opt.conn.toi;
+      conn_s.cfg.previous = data.cfg;
+      conn_s.cfg.method = 'cca';
+      conn_s.cfg.order = opt.conn.order;
       %-----------------%
       
-      save([info.dcon outputfile], 'stat')
+      save([info.dcon outputfile], 'conn_s')
       %---------------------------%
   end
   

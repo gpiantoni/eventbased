@@ -1,27 +1,39 @@
 function conn_grand(info, opt)
 %CONN_GRAND connectivity analysis across subjects
 %
-% CFG
-%  .cond: name to be used in projects/PROJNAME/subjects/0001/MOD/CONDNAME/
-%  .dcon: directory with connectivity data
+% INFO
 %  .log: name of the file and directory with analysis log
-%  .conn.test: a cell with the condition defined by redef.
-%              It can, but need not, be identical to cfg.test
-%  .conn.method: method used for connectivity
-%  .conn.toi: vector with time points to run connectivity on
-%  .gconn.freq:
+%  .dcon: directory with CONN data
+%  .sens.layout: file with layout. It should be a mat containing 'layout'
+%                If empty, it does not plot topo.
+%  .rslt: directory images are saved into
+%
+% CFG.OPT
+%  .conn.method*: (if .conn.type == 'cca') 'gc'; (if .conn.type == 'ft')
+%                'coh', 'csd', 'plv', 'powcorr', 'amplcorr', 'ppc', 'psi'
+%                (symmetric) or 'granger', 'dtf', 'pdc' (asymmetric)
+%  .cond*: cell with conditions (e.g. {'*cond1' '*cond2'})'
+%  .comp*: comparisons to test (cell within cell, e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}})
+%        but you cannot have more than 2 conditions (it's always a t-test). If empty, not statistics and no plots
+%  .avgfreq*: how you want to average frequency bands
 %    if 'all': it takes all the frequency in the data (one value)
 %    if 'any': it takes each frequency in the data (can be alot alot)
 %    if two scalar: it takes each frequency between the extremes ([8 12], means each frequency between 8 and 12, so 8 9 10 11 12, five values)
 %    if a cell with scalar: it takes the average between the two limits ({[8 12]}, means average of all the frequencies between 8 and 12, one value)
+%  .conn.toi*: vector with time points to run connectivity on
 %
 %  Baseline correction at the single-subject level:
 %  .conn.bl: if empty, no baseline. Otherwise:
 %  .conn.bl.baseline: two scalars with baseline windows
 %  .conn.bl.baselinetype: type of baseline ('relchange')
 %
+% IN
+%  [info.dcon 'conn_SUBJ_COND'] 'conn_subj': power analysis for single-subject
+%
 % OUT
-%  [cfg.dcon COND_CONNMETHOD_GRANDCONN]: a matrix with all connectivity measures (chan X chan X time X freq X test X subj)
+%  [info.dcon COND_CONNMETHOD_GRANDCONN]: a matrix with all connectivity measures (chan X chan X time X freq X test X subj)
+%
+% * indicates obligatory parameter
 %
 % Part of EVENTBASED group-analysis
 % see also ERP_SUBJ, ERP_GRAND,
@@ -41,7 +53,7 @@ tic_t = tic;
 %-preparation
 %-----------------%
 %-define name of spectrum
-switch cfg.conn.method
+switch opt.conn.method
   
   %-symmetric
   case 'coh'
@@ -77,26 +89,26 @@ end
 %-freq info
 %-------%
 %-load one example
-condname = regexprep(cfg.conn.cond{1}, '*', ''); % it does not matter
+condname = regexprep(opt.cond{1}, '*', ''); % it does not matter
 outputfile = sprintf('conn_*_%s.mat', condname);
 
-allsub = dir([cfg.dcon outputfile]);
-load([cfg.dcon allsub(1).name], 'stat')
+allsub = dir([info.dcon outputfile]);
+load([info.dcon allsub(1).name], 'conn_s')
 %-------%
 
-if ischar(cfg.gconn.freq) && strcmp(cfg.gconn.freq, 'all')
-  connfreq = [stat.freq(1) stat.freq(end)];
+if ischar(opt.avgfreq) && strcmp(opt.avgfreq, 'all')
+  connfreq = [conn_s.freq(1) conn_s.freq(end)];
   
-elseif ischar(cfg.gconn.freq) && strcmp(cfg.gconn.freq, 'any')
-  connfreq = [stat.freq' stat.freq'];
+elseif ischar(opt.avgfreq) && strcmp(opt.avgfreq, 'any')
+  connfreq = [conn_s.freq' conn_s.freq'];
   
-elseif isnumeric(cfg.gconn.freq)
-  freq1 = nearest(stat.freq, cfg.gconn.freq(1));
-  freq2 = nearest(stat.freq, cfg.gconn.freq(2));
-  connfreq = [stat.freq(freq1:freq2)' stat.freq(freq1:freq2)'];
+elseif isnumeric(opt.avgfreq)
+  freq1 = nearest(conn_s.freq, opt.avgfreq(1));
+  freq2 = nearest(conn_s.freq, opt.avgfreq(2));
+  connfreq = [conn_s.freq(freq1:freq2)' conn_s.freq(freq1:freq2)'];
   
-elseif iscell(cfg.gconn.freq)
-  connfreq = cell2mat(cfg.gconn.freq');
+elseif iscell(opt.avgfreq)
+  connfreq = cell2mat(opt.avgfreq');
   
 end
 %-----------------%
@@ -106,9 +118,9 @@ end
 %-read the data
 %---------------------------%
 %-loop over conditions
-for k = 1:numel(cfg.conn.cond)
+for k = 1:numel(opt.cond)
   
-  cond     = cfg.conn.cond{k};
+  cond     = opt.cond{k};
   condname = regexprep(cond, '*', '');
   
   %-----------------%
@@ -121,10 +133,10 @@ for k = 1:numel(cfg.conn.cond)
   %---------------------------%
   %-prepare conn structure
   % MAT is chan X chan X time X freq X subj
-  conn.label = stat.label;
-  conn.time = cfg.conn.toi;
+  conn.label = conn_s.label;
+  conn.time = opt.conn.toi;
   conn.freq = mat2cell(connfreq, ones(size(connfreq,1),1), [2]);
-  conn.mat = nan(numel(conn.label), numel(conn.label), numel(conn.time), size(conn.freq,1), numel(cfg.subjall));
+  conn.mat = nan(numel(conn.label), numel(conn.label), numel(conn.time), size(conn.freq,1), numel(info.subjall));
   %---------------------------%
   
   %---------------------------%
@@ -153,7 +165,7 @@ for k = 1:numel(cfg.conn.cond)
   
   %-----------------%
   %-save
-  save([cfg.dcon 'conn_' condname], 'conn')
+  save([info.dcon 'conn_' condname], 'conn')
   clear conn
   %-----------------%
   
@@ -164,7 +176,7 @@ end
 %-compare conditions
 sem = @(x) std(x,[],3) / sqrt(size(x,3));
 
-if isfield(cfg.gconn, 'comp')
+if isfield(opt, 'comp')
   
   %-------------------------------------%
   %-loop over statistics conditions
@@ -179,7 +191,7 @@ if isfield(cfg.gconn, 'comp')
       cond = regexprep(cfg.gconn.comp{t}{1}, '*', '');
       comp = cond;
       output = sprintf('%s\n   COMPARISON %s\n', output, cond);
-      load([cfg.dcon 'conn_' cond], 'conn')
+      load([info.dcon 'conn_' cond], 'conn')
       %-----------------%
       
     else
@@ -191,9 +203,9 @@ if isfield(cfg.gconn, 'comp')
       comp = [cond1 '_' cond2];
       output = sprintf('%s\n   COMPARISON %s vs %s\n', output, cond1, cond2);
       
-      load([cfg.dcon 'conn_' cond1], 'conn')
+      load([info.dcon 'conn_' cond1], 'conn')
       conn1 = conn;
-      load([cfg.dcon 'conn_' cond2], 'conn')
+      load([info.dcon 'conn_' cond2], 'conn')
       conn2 = conn;
       
       conn.mat = log(conn1.mat ./ conn2.mat);

@@ -54,7 +54,7 @@ INFO
   SELDATA, GCLEAN, REDEF, LOAD_DATA, LOAD_HEADSHAPE,
 
 .dcon: directory with CONN data
-CONN_SUBJ,
+CONN_SUBJ, CONN_GRAND, 
   
 .derp: directory with ERP data
   ERP_SUBJ, ERPSOURCE_SUBJ, LOAD_SUBJ, GET_PEAK
@@ -66,7 +66,7 @@ CONN_SUBJ,
   LOAD_SOURCE,
 
 .log: name of the file and directory to save log
-  SELDATA, GCLEAN, REDEF, ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, POW_SUBJ, POW_GRAND, POWCORR_SUBJ, POWCORR_GRAND, CONN_SUBJ, R_GRAND,
+  SELDATA, GCLEAN, REDEF, ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, POW_SUBJ, POW_GRAND, POWCORR_SUBJ, POWCORR_GRAND, CONN_SUBJ, CONN_GRAND, R_GRAND,
 
 .mod: modality, MOD in /data1/projects/PROJ/subjects/SUBJ/MOD/NICK/
   SELDATA, GCLEAN, REDEF, LOAD_DATA, 
@@ -84,7 +84,7 @@ CONN_SUBJ,
   SELDATA, 
   
 .rslt: directory images are saved into
-  ERP_GRAND, POW_GRAND, POWCORR_GRAND, 
+  ERP_GRAND, POW_GRAND, POWCORR_GRAND, CONN_GRAND, 
 
 .sens.dist: distance between sensors to consider them neighbors (in the units of cfg.sens.file)
   GCLEAN, REPORT_CLUSTER
@@ -93,7 +93,7 @@ CONN_SUBJ,
   SELDATA, GCLEAN,
 
 .sens.layout: file with layout. It should be a mat containing 'layout'. If empty, it does not plot topo.
-  ERP_GRAND, POW_GRAND, POWCORR_GRAND, 
+  ERP_GRAND, POW_GRAND, POWCORR_GRAND, CONN_GRAND, 
   
 .vol.type: 'template' or subject-specific ('dipoli' or 'openmeeg')
   LOAD_HEADSHAPE,
@@ -104,6 +104,9 @@ CONN_SUBJ,
   
 -----------------------------------------------------------
 CFG.OPT
+
+.avgfreq: how you want to average frequency bands
+  CONN_GRAND,
 
 .bad_samples.MADs = 5;
   GCLEAN,
@@ -148,7 +151,7 @@ CFG.OPT
   CONN_SUBJ, 
 
 .conn.method: (if .conn.type == 'cca') 'gc'; (if .conn.type == 'ft') 'coh', 'csd', 'plv', 'powcorr', 'amplcorr', 'ppc', 'psi' (symmetric) or 'granger', 'dtf', 'pdc' (asymmetric)
-  CONN_SUBJ, 
+  CONN_SUBJ, CONN_GRAND, 
 
 .conn.mvar: logical, estimate coefficients or not
   CONN_SUBJ, 
@@ -160,7 +163,7 @@ CFG.OPT
   CONN_SUBJ, 
 
 .conn.toi: vector with time points to run connectivity on
-  CONN_SUBJ, 
+  CONN_SUBJ, CONN_GRAND, 
 
 .conn.toolbox: 'biosig' or 'bsmart'
   CONN_SUBJ, 

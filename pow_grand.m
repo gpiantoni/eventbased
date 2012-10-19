@@ -26,7 +26,7 @@ function pow_grand(info, opt)
 %  .plot.freq(1).freq: two scalars with the frequency limits
 %
 % IN
-%  [info.dpow 'pow_SUBJ_COND'] 'pow_subj': timelock analysis for single-subject
+%  [info.dpow 'pow_SUBJ_COND'] 'pow_subj': power analysis for single-subject
 %
 % OUT
 %  [info.dpow 'pow_COND'] 'pow': power analysis for all subjects
