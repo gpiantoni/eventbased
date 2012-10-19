@@ -147,7 +147,7 @@ for k = 1:numel(opt.cond)
         %-no mvar
         cfg = [];
         
-        cfg.taper = 'hanning';
+        cfg.taper = 'hamming'; % 'hanning'
         cfg.feedback = 'none';
         cfg.keeptrials = 'yes';
         
