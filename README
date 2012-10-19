@@ -53,6 +53,9 @@ INFO
 .data: path of /data1/projects/PROJ/subjects/
   SELDATA, GCLEAN, REDEF, LOAD_DATA, LOAD_HEADSHAPE,
 
+.dcon: directory with CONN data
+CONN_SUBJ,
+  
 .derp: directory with ERP data
   ERP_SUBJ, ERPSOURCE_SUBJ, LOAD_SUBJ, GET_PEAK
 
@@ -63,7 +66,7 @@ INFO
   LOAD_SOURCE,
 
 .log: name of the file and directory to save log
-  SELDATA, GCLEAN, REDEF, ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, POW_SUBJ, POW_GRAND, POWCORR_SUBJ, POWCORR_GRAND, R_GRAND
+  SELDATA, GCLEAN, REDEF, ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, POW_SUBJ, POW_GRAND, POWCORR_SUBJ, POWCORR_GRAND, CONN_SUBJ, R_GRAND,
 
 .mod: modality, MOD in /data1/projects/PROJ/subjects/SUBJ/MOD/NICK/
   SELDATA, GCLEAN, REDEF, LOAD_DATA, 
@@ -130,7 +133,43 @@ CFG.OPT
   ERP_GRAND, POW_GRAND, POWCORR_GRAND, 
   
 .cond: cell with conditions (e.g. {'*cond1' '*cond2'})'
-  ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, POW_SUBJ, POW_GRAND, POWCORR_GRAND, 
+  ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, POW_SUBJ, POW_GRAND, POWCORR_GRAND, CONN_SUBJ,
+
+.conn.avgoverfreq: average power spectrum
+  CONN_SUBJ, 
+
+.conn.foi: frequency of interest
+  CONN_SUBJ, 
+
+.conn.foilim: two values for the frequency of interest
+  CONN_SUBJ, 
+
+.conn.freq: 'mtmconvol' or 'mtmfft'
+  CONN_SUBJ, 
+
+.conn.method: (if .conn.type == 'cca') 'gc'; (if .conn.type == 'ft') 'coh', 'csd', 'plv', 'powcorr', 'amplcorr', 'ppc', 'psi' (symmetric) or 'granger', 'dtf', 'pdc' (asymmetric)
+  CONN_SUBJ, 
+
+.conn.mvar: logical, estimate coefficients or not
+  CONN_SUBJ, 
+
+.conn.order: scalar indicating model order
+  CONN_SUBJ, 
+
+.conn.planar for MEG if you want to run planar (but does it make sense to do planar on fourier data?)
+  CONN_SUBJ, 
+
+.conn.toi: vector with time points to run connectivity on
+  CONN_SUBJ, 
+
+.conn.toolbox: 'biosig' or 'bsmart'
+  CONN_SUBJ, 
+
+.conn.type: 'cca' or 'ft'
+  CONN_SUBJ, 
+
+.conn.t_ftimwin: scalar with duration of time window
+  CONN_SUBJ, 
  
 .csd.method: method to do scalp current density ('finite' or 'spline' or 'hjorth')
   REDEF,
@@ -226,7 +265,7 @@ CFG.OPT
   SELDATA, 
 
 .source: read virtual electrode data (logical)
-  ERP_SUBJ, POW_SUBJ, 
+  ERP_SUBJ, POW_SUBJ, CONN_SUBJ,
 
 .stat.time: latency of interest (two scalar)
   REPORT_CLUSTER,

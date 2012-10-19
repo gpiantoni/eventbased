@@ -1,32 +1,27 @@
 function conn_subj(info, opt, subj)
 %CONN_SUBJ connectivity on single-subject data
 %
-% CFG
-%  .data: path of /data1/projects/PROJ/subjects/
-%  .rec: REC in /data1/projects/PROJ/recordings/REC/
-%  .nick: NICK in /data1/projects/PROJ/subjects/0001/MOD/NICK/
-%  .mod: modality, MOD in /data1/projects/PROJ/subjects/0001/MOD/NICK/
-%  .endname: includes preprocessing steps (e.g. '_seldata_gclean_redef')
-%
+% INFO
+%  .dcon: directory with CONN data
 %  .log: name of the file and directory to save log
-%  .dconn: directory for connectivity data
-%  .conn.cond: cell with conditions (e.g. {'*cond1' '*cond2'})
-%  .conn.source: read virtual electrode data (logical)
+% 
+% CFG.OPT
+%  .source: read virtual electrode data (logical)
+%  .cond*: cell with conditions (e.g. {'*cond1' '*cond2'})
 %
 %-Connectivity parameters
-%  .conn.type: 'cca' or 'ft'
+%  .conn.type*: 'cca' or 'ft'
 %    if 'cca' (use Anil Seth's implementation):
-%      .conn.method: 'gc' (only this method is available, it's time-domain based)
-%      .conn.order: scalar indicating model order or 'aic' or 'bic'
+%      .conn.method*: 'gc' (only this method is available, it's time-domain based)
+%      .conn.order*: scalar indicating model order or 'aic' or 'bic'
 %                   If 'aic' or 'bic', it estimates the model order and
 %                   writes it down estimated model order in csv in log dir.
-%      .conn.toi: vector with time points to run connectivity on
-%      .conn.t_ftimwin: scalar with duration of time window
+%      .conn.toi*: vector with time points to run connectivity on
+%      .conn.t_ftimwin*: scalar with duration of time window
 %
 %    if 'ft' (use Fieldtrip implementation):
-%      .conn.method: can be symmetric or asymmetric (a string of one of the below)
-%SYM:  'coh', 'csd', 'plv', 'powcorr', 'amplcorr', 'ppc', 'psi'
-%ASYM: 'granger', 'dtf', 'pdc'
+%      .conn.method: 'coh', 'csd', 'plv', 'powcorr', 'amplcorr', 'ppc',
+%      'psi' (symmetric) or 'granger', 'dtf', 'pdc' (asymmetric)
 %      .conn.mvar: logical, estimate coefficients or not
 %        if TRUE:
 %          .conn.toolbox: 'biosig' or 'bsmart'
@@ -47,17 +42,15 @@ function conn_subj(info, opt, subj)
 %        if 'mtmfft':
 %          .conn.foilim: two values for the frequency of interest
 %
-% IN:
-%  data in /PROJ/subjects/SUBJ/MOD/NICK/
-%  if .conn.areas == 'erppeak' or ('dip' and .conn.beamformer == 'erp')
-%     [info.derp 'erpsource_SUBJ_COND']: source data for period of interest for each subject
-%     [info.derp 'NICK_COND_soupeak']: significant source peaks in the ERP
-%  if .conn.areas == 'powpeak'  or ('dip' and .conn.beamformer == 'pow')
-%     [info.dpow 'powsource_SUBJ_COND']: source data for period of interest for each subject
-%     [info.dpow 'NICK_COND_soupeak']: significant source peaks in the POW
+% * indicates obligatory parameter
+%
+% IN
+%  LOAD_DATA: data in /PROJ/subjects/SUBJ/MOD/NICK/
+% OR if cfg.opt.source
+%  LOAD_SOURCE: source in info.dsou after SOURCE_SUBJ
 %
 % OUT
-%  [cfg.dcon 'conn_CONNMETHOD_SUBJ_COND']: connectivty analysis for each subject
+%  [info.dcon 'conn_CONNMETHOD_SUBJ_COND']: connectivty analysis for each subject
 %  If .conn.type is 'cca', it also returns the model check. The file has
 %    subj, condition, toi, ADF, KPSS, residuals, consistency
 %  where
@@ -81,16 +74,16 @@ tic_t = tic;
 
 %-------------------------------------%
 %-loop over conditions
-for k = 1:numel(cfg.conn.cond)
-  cond     = cfg.conn.cond{k};
+for k = 1:numel(opt.cond)
+  cond = opt.cond{k};
   condname = regexprep(cond, '*', '');
   
   %---------------------------%
   %-read data
-  if ~isfield(cfg.conn, 'source') || ~cfg.conn.source
-    [data] = load_data(cfg, subj, cond);
+  if ~isfield(opt, 'source') || ~opt.source
+    [data] = load_data(info, subj, cond);
   else
-    [data] = load_source(cfg, subj, cond);
+    [data] = load_source(info, subj, cond);
   end
   if isempty(data)
     output = sprintf('%sCould not find any file for condition %s\n', ...
@@ -101,31 +94,31 @@ for k = 1:numel(cfg.conn.cond)
   outputfile = sprintf('conn_%04d_%s', subj, condname);
   %---------------------------%
   
-  switch cfg.conn.type
+  switch opt.conn.type
     
     case 'ft'
 
-      if cfg.conn.mvar
+      if opt.conn.mvar
         
         %-----------------%
         %-mvar
-        cfg2 = [];
-        cfg2.order = cfg.conn.order;
-        cfg2.toolbox = cfg.conn.toolbox;
-        cfg2.feedback = 'none';
+        cfg = [];
+        cfg.order = opt.conn.order;
+        cfg.toolbox = opt.conn.toolbox;
+        cfg.feedback = 'none';
         
-        cfg2.toi = cfg.conn.toi;
-        cfg2.t_ftimwin = cfg.conn.t_ftimwin;
+        cfg.toi = opt.conn.toi;
+        cfg.t_ftimwin = opt.conn.t_ftimwin;
         
-        data = ft_mvaranalysis(cfg2, data); % ft_mvaranalysis can do it on multiple time points, but freqanalysis does not handle it anymore
+        data = ft_mvaranalysis(cfg, data); % ft_mvaranalysis can do it on multiple time points, but freqanalysis does not handle it anymore
         %-----------------%
         
         %-----------------%
         %-freq on mvar
-        tmpcfg = [];
-        tmpcfg.method    = 'mvar';
+        cfg = [];
+        cfg.method    = 'mvar';
         
-        data = ft_freqanalysis(tmpcfg, data);
+        data = ft_freqanalysis(cfg, data);
         %-----------------%
         
       else
@@ -135,68 +128,68 @@ for k = 1:numel(cfg.conn.cond)
         
         %-------%
         %-planar
-        if isfield(data, 'grad') && cfg.conn.planar
+        if isfield(data, 'grad') && opt.conn.planar
           
-          tmpcfg = [];
-          tmpcfg.grad = data.grad;
-          tmpcfg.method = 'distance';
-          tmpcfg.neighbourdist = cfg.sens.dist;
-          nbor = ft_prepare_neighbours(tmpcfg);
+          cfg = [];
+          cfg.grad = data.grad;
+          cfg.method = 'distance';
+          cfg.neighbourdist = info.sens.dist;
+          nbor = ft_prepare_neighbours(cfg);
           
-          tmpcfg = [];
-          tmpcfg.neighbours = nbor;
-          data = ft_megplanar(tmpcfg, data);
+          cfg = [];
+          cfg.neighbours = nbor;
+          data = ft_megplanar(cfg, data);
           
         end
         %-------%
         
         %-------%
         %-no mvar
-        tmpcfg = [];
+        cfg = [];
         
-        tmpcfg.taper = 'hanning';
-        tmpcfg.feedback = 'none';
-        tmpcfg.keeptrials = 'yes';
+        cfg.taper = 'hanning';
+        cfg.feedback = 'none';
+        cfg.keeptrials = 'yes';
         
-        if strcmp(cfg.conn.freq, 'mtmconvol') % multiple time window, but slow
-          tmpcfg.method = 'mtmconvol';
-          tmpcfg.toi = cfg.conn.toi;
-          tmpcfg.foi = cfg.conn.foi;
-          tmpcfg.t_ftimwin = cfg.conn.t_ftimwin .* ones(size(tmpcfg.foi));
+        if strcmp(opt.conn.freq, 'mtmconvol') % multiple time window, but slow
+          cfg.method = 'mtmconvol';
+          cfg.toi = opt.conn.toi;
+          cfg.foi = opt.conn.foi;
+          cfg.t_ftimwin = opt.conn.t_ftimwin .* ones(size(cfg.foi));
           
-        elseif strcmp(cfg.conn.freq, 'mtmfft') % one time window, faster
-          tmpcfg.method = 'mtmfft';
-          tmpcfg.foilim = [min(cfg.conn.foilim(:,1)) max(cfg.conn.foilim(:,2))]; % doc
+        elseif strcmp(opt.conn.freq, 'mtmfft') % one time window, faster
+          cfg.method = 'mtmfft';
+          cfg.foilim = [min(opt.conn.foilim(:,1)) max(opt.conn.foilim(:,2))]; % doc
           
         end
         
-        switch cfg.conn.method
+        switch opt.conn.method
           case {'granger'}
-            tmpcfg.output = 'fourier';
+            cfg.output = 'fourier';
           case {'powcorr'}
-            tmpcfg.output = 'pow';
+            cfg.output = 'pow';
         end
         
-        data = ft_freqanalysis(tmpcfg, data);
+        data = ft_freqanalysis(cfg, data);
         %-------%
         
         %-------%
         %-planar
-        if isfield(data, 'grad') && cfg.conn.planar
-          tmpcfg = [];
-          data = ft_combineplanar(tmpcfg, data);
+        if isfield(data, 'grad') && opt.conn.planar
+          cfg = [];
+          data = ft_combineplanar(cfg, data);
         end
         %-------%
         
         %-------%
         %-average over frequency
         % it doesn't average for mvar
-        if isfield(cfg.conn, 'avgoverfreq') && cfg.conn.avgoverfreq
+        if isfield(opt.conn, 'avgoverfreq') && opt.conn.avgoverfreq
 
-          if isfield(cfg.conn, 'foilim') && size(cfg.conn.foilim,1) > 1
+          if isfield(opt.conn, 'foilim') && size(opt.conn.foilim,1) > 1
             clear dat
-            for i = 1:size(cfg.conn.foilim,1)
-              dat(i) = ft_selectdata(data, 'avgoverfreq', 'yes', 'foilim', cfg.conn.foilim(i,:));
+            for i = 1:size(opt.conn.foilim,1)
+              dat(i) = ft_selectdata(data, 'avgoverfreq', 'yes', 'foilim', opt.conn.foilim(i,:));
             end
             
             data = dat(1);
@@ -216,9 +209,9 @@ for k = 1:numel(cfg.conn.cond)
       %-----------------%
       %-connectivity
       cfg4         = [];
-      cfg4.method  = cfg.conn.method;
+      cfg4.method  = opt.conn.method;
       cfg4.channelcmb = {'all', 'all'};
-      cfg4.outputfile = [cfg.dcon outputfile];
+      cfg4.outputfile = [info.dcon outputfile];
       ft_connectivityanalysis(cfg4, data);
       %-----------------%
       %---------------------------%
@@ -230,13 +223,13 @@ for k = 1:numel(cfg.conn.cond)
       %---------------------------%
       %-CCA calculate model
       nchan = numel(data.label);
-      gcmat = NaN(nchan, nchan, 1, numel(cfg.conn.toi));
+      gcmat = NaN(nchan, nchan, 1, numel(opt.conn.toi));
       
-      for t = 1:numel(cfg.conn.toi)
+      for t = 1:numel(opt.conn.toi)
         
         %-----------------%
         %-into cca format
-        dat = ft_selectdata(data, 'toilim', cfg.conn.toi(t)+[-.5 .5]*cfg.conn.t_ftimwin);
+        dat = ft_selectdata(data, 'toilim', opt.conn.toi(t)+[-.5 .5]*opt.conn.t_ftimwin);
         X = [dat.trial{:}]; % after ft_redefinetrial
         Nr = numel(dat.trial);
         Nl = numel(dat.time{1});
@@ -250,25 +243,25 @@ for k = 1:numel(cfg.conn.cond)
         
         %-------%
         %-model order
-        if ~ischar(cfg.conn.order)
-          order = cfg.conn.order;
+        if ~ischar(opt.conn.order)
+          order = opt.conn.order;
           
         else % estimate model order
           [bic, aic] = cca_find_model_order_mtrial(X,Nr, Nl, 2, 20);
           
-          if strcmpi(cfg.conn.order, 'bic')
+          if strcmpi(opt.conn.order, 'bic')
             order = bic;
-          elseif strcmpi(cfg.conn.order, 'aic')
+          elseif strcmpi(opt.conn.order, 'aic')
             order = aic;
           end
           
           %-output
           output = sprintf('%s At time % 6.2f, model order estimated with %s is% 3d\n', ...
-            output, cfg.conn.toi(t), cfg.conn.order, order);
+            output, opt.conn.toi(t), opt.conn.order, order);
           
-          csvfile = sprintf('%s/cca_modelorder_%s.csv', info.log, cfg.conn.order);
+          csvfile = sprintf('%s/cca_modelorder_%s.csv', info.log, opt.conn.order);
           csvtext = sprintf('''%04d'',''%s'',%1.2f,%d\n', ...
-            subj, condname, cfg.conn.toi(t), order);
+            subj, condname, opt.conn.toi(t), order);
           
           fid = fopen(csvfile, 'a+');
           fwrite(fid, csvtext);
@@ -318,7 +311,7 @@ for k = 1:numel(cfg.conn.cond)
         % subj, condition, toi, ADF, KPSS, white residuals, consistency
         csvfile = sprintf('%s/cca_modelcheck.csv', info.log);
         csvtext = sprintf('''%04d'',''%s'',%1.2f,%1.2f,%1.2f,%1.2f,%1.2f\n', ...
-          subj, condname, cfg.conn.toi(t), adfr, khr, dwr, ret.cons);
+          subj, condname, opt.conn.toi(t), adfr, khr, dwr, ret.cons);
         
         fid = fopen(csvfile, 'a+');
         fwrite(fid, csvtext);
@@ -335,13 +328,13 @@ for k = 1:numel(cfg.conn.cond)
       stat.label = data.label;
       stat.gc = gcmat;
       stat.freq = Inf; % only one frequency
-      stat.time = cfg.conn.toi;
+      stat.time = opt.conn.toi;
       stat.cfg.previous = data.cfg;
       stat.cfg.method = 'cca';
-      stat.cfg.order = cfg.conn.order;
+      stat.cfg.order = opt.conn.order;
       %-----------------%
       
-      save([cfg.dcon outputfile], 'stat')
+      save([info.dcon outputfile], 'stat')
       %---------------------------%
   end
   
