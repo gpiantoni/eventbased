@@ -201,7 +201,7 @@ for i = 1:numel(allfile)
     cfg.neighbours = neigh;
   elseif hasgrad
     tmpcfg = [];
-    tmpcfg.grad = grad;
+    tmpcfg.grad = data.grad;
     tmpcfg.method = 'distance';
     tmpcfg.neighbourdist = info.sens.dist;
     neigh = ft_prepare_neighbours(tmpcfg);
