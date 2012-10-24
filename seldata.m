@@ -17,7 +17,8 @@ function seldata(info, opt, subj)
 %  .rcnd: specific name of the condition of interest in the raw recording folder
 % 
 %  .trialfun: name of the trialfun used to read the data, see below.
-%                     The function should be in NICK_private/ 
+%                     The function should be in NICK_private/
+%  .trialopt: options to pass to trialfun_XXX
 %  .selchan: channels to read. It can be a vector or a cell of
 %                    strings with the elec names on file (Micromed elec
 %                    names are '  1' '  2'  '  3') 
@@ -80,7 +81,11 @@ for i = 1:numel(allfile)
   
   %-----------------%
   %-definetrials
-  cfg = [];
+  if isfield(opt, 'trialcfg')
+    cfg = opt.trialcfg;
+  else
+    cfg = [];
+  end
   cfg.trialfun = opt.trialfun;
   cfg.dataset = dataset;
   
