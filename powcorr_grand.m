@@ -217,8 +217,14 @@ if isfield(opt, 'comp')
       cfg.channel = opt.plot.chan(c).chan;
       cfg.zlim = [-4 4];
       cfg.parameter = 'tscore';
-      ft_singleplotTFR(cfg, gplot);
-      colorbar
+      if numel(gplot.time) > 1 % real TFR
+        ft_singleplotTFR(cfg, gplot);
+        colorbar
+      else
+        gplot.dimord = 'chan_freq'; % so it plots frequency on vertical axis
+        ft_singleplotER(cfg, gplot);
+        gplot.dimord = 'chan_freq_time';
+      end
       
       title([comp ' ' opt.plot.chan(c).name], 'Interpreter', 'none')
       %--------%
@@ -293,6 +299,15 @@ if isfield(opt, 'comp')
       
       %-loop over freq
       for f = 1:numel(opt.plot.freq)
+        
+        %-----------------%
+        %-reassign correct dimord to pow, for the last plot
+        for i = 1:numel(powcorr)
+          if numel(powcorr{i}.time) == 1
+            powcorr{i}.dimord = powcorr{i}.dimord(1:end-5);
+          end
+        end
+        %-----------------%
         
         %-----------------%
         %-figure

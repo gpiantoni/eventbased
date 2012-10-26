@@ -15,7 +15,7 @@ function pow_grand(info, opt)
 %  .cond*: cell with conditions (e.g. {'*cond1' '*cond2'})'
 %  .comp*: comparisons to test (cell within cell, e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}})
 %        but you cannot have more than 2 conditions (it's always a t-test). If empty, not statistics and no plots
-%  
+%
 %  .bl: Baseline correction at the single-subject level. If empty, no baseline.
 %  .bl.baseline: two scalars with baseline windows
 %  .bl.baselinetype: type of baseline ('relchange')
@@ -40,7 +40,7 @@ function pow_grand(info, opt)
 % * indicates obligatory parameter
 %
 % Part of EVENTBASED group-analysis
-% see also ERP_SUBJ, ERP_GRAND, 
+% see also ERP_SUBJ, ERP_GRAND,
 % ERPSOURCE_SUBJ, ERPSOURCE_GRAND, ERPSTAT_SUBJ, ERPSTAT_GRAND,
 % POW_SUBJ, POW_GRAND, POWCORR_SUBJ, POWCORR_GRAND,
 % POWSOURCE_SUBJ, POWSOURCE_GRAND, POWSTAT_SUBJ, POWSTAT_GRAND,
@@ -185,7 +185,7 @@ if isfield(opt, 'comp')
       %-data to plot
       gplot = pow{1};
       %-------%
-
+      
       [pow_peak stat outtmp] = report_cluster(opt, gpowall1);
       %-----------------%
       
@@ -273,8 +273,14 @@ if isfield(opt, 'comp')
       cfg.channel = opt.plot.chan(c).chan;
       cfg.zlim = 'maxabs';
       cfg.parameter = 'powspctrm';
-      ft_singleplotTFR(cfg, gplot);
-      colorbar
+      if numel(gplot.time) > 1 % real TFR
+        ft_singleplotTFR(cfg, gplot);
+        colorbar
+      else
+        gplot.dimord = 'chan_freq'; % so it plots frequency on vertical axis
+        ft_singleplotER(cfg, gplot);
+        gplot.dimord = 'chan_freq_time';
+      end
       
       title([comp ' ' opt.plot.chan(c).name], 'Interpreter', 'none')
       %--------%
@@ -358,6 +364,15 @@ if isfield(opt, 'comp')
       
       %-loop over freq
       for f = 1:numel(opt.plot.freq)
+        
+        %-----------------%
+        %-reassign correct dimord to pow, for the last plot
+        for i = 1:numel(pow)
+          if numel(pow{i}.time) == 1
+            pow{i}.dimord = pow{i}.dimord(1:end-5);
+          end
+        end
+        %-----------------%
         
         %-----------------%
         %-figure
