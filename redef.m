@@ -30,9 +30,9 @@ function redef(info, opt, subj)
 %
 % You need to write your own function to create trials. Call the function
 % something like "event2trl_XXX" and use as
-%   [cond output] = event2trl_gosdtrl(cfg, event)
+%   [cond output] = event2trl_XXX(cfg, event)
 % where
-%   cfg is opt.redef (it also includes opt.fsample with the sampling
+%   cfg is opt.redef (it also includes cfg.fsample with the sampling
 %   frequency of that specific dataset)
 %
 %   cond is a struct with
