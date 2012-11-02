@@ -30,17 +30,17 @@ function conn_subj(info, opt, subj)
 %          .conn.t_ftimwin: scalar with duration of time window
 %        if FALSE:
 %          .conn.foi: frequency of interest (best if identical to .pow.foi)
-%      .conn.freq: 'mtmconvol' or 'mtmfft'
-%        in either case,
-%          .conn.avgoverfreq: average power spectrum
-%          .conn.planar for MEG if you want to run planar
-%          (but does it make sense to do planar on fourier data?)
-%        if 'mtmconvol':
-%          .conn.foi: frequency of interest
-%          .conn.toi: vector with time points to run connectivity on
-%          .conn.t_ftimwin: scalar with duration of time window (same length as .conn.foi)
-%        if 'mtmfft':
-%          .conn.foilim: two values for the frequency of interest
+%          .conn.freq:  'mtmconvol' or 'mtmfft' 
+%            in either case,
+%              .conn.avgoverfreq: average power spectrum
+%              .conn.planar for MEG if you want to run planar
+%              (but does it make sense to do planar on fourier data?)
+%            if 'mtmconvol':
+%              .conn.foi: frequency of interest
+%              .conn.toi: vector with time points to run connectivity on
+%              .conn.t_ftimwin: scalar with duration of time window (same length as .conn.foi)
+%            if 'mtmfft':
+%              .conn.foilim: two values for the frequency of interest
 %
 % * indicates obligatory parameter
 %
@@ -70,6 +70,11 @@ function conn_subj(info, opt, subj)
 output = sprintf('%s (%04d) began at %s on %s\n', ...
   mfilename, subj, datestr(now, 'HH:MM:SS'), datestr(now, 'dd-mmm-yy'));
 tic_t = tic;
+%---------------------------%
+
+%---------------------------%
+%-load headshape if state-space solution
+[vol, lead, sens] = load_headshape(info, opt, subj);
 %---------------------------%
 
 %-------------------------------------%
