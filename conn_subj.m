@@ -24,10 +24,11 @@ function conn_subj(info, opt, subj)
 %      'psi' (symmetric) or 'granger', 'dtf', 'pdc' (asymmetric)
 %      .conn.mvar: logical, estimate coefficients or not
 %        if TRUE:
-%          .conn.toolbox: 'biosig' or 'bsmart'
 %          .conn.order: scalar indicating model order
-%          .conn.toi: vector with time points to run connectivity on
-%          .conn.t_ftimwin: scalar with duration of time window
+%          .conn.toolbox: 'biosig' or 'bsmart' or 'statespace'
+%          .conn.toi: vector with time points to run connectivity on (not for 'statespace')
+%          .conn.t_ftimwin: scalar with duration of time window (not for 'statespace')
+%          .conn.statespace: options to pass to statespace (see CONNECTIVITYANALYSIS_STATESPACE)
 %        if FALSE:
 %          .conn.foi: frequency of interest (best if identical to .pow.foi)
 %          .conn.freq:  'mtmconvol' or 'mtmfft' 
@@ -74,7 +75,9 @@ tic_t = tic;
 
 %---------------------------%
 %-load headshape if state-space solution
-[vol, lead, sens] = load_headshape(info, opt, subj);
+if isfield(opt.conn, 'toolbox') && strcmp(opt.conn.toolbox, 'statespace')
+  [vol, lead, sens] = load_headshape(info, subj);
+end
 %---------------------------%
 
 %-------------------------------------%
@@ -82,6 +85,7 @@ tic_t = tic;
 for k = 1:numel(opt.cond)
   cond = opt.cond{k};
   condname = regexprep(cond, '*', '');
+  output = [output sprintf('\n------------------\n%s\n', condname)];
   
   %---------------------------%
   %-read data
@@ -95,27 +99,37 @@ for k = 1:numel(opt.cond)
       output, cond);
     continue
   end
-  
   outputfile = sprintf('conn_%04d_%s', subj, condname);
   %---------------------------%
   
   switch opt.conn.type
     
     case 'ft'
-
+      
       if opt.conn.mvar
         
         %-----------------%
         %-mvar
-        cfg = [];
-        cfg.order = opt.conn.order;
-        cfg.toolbox = opt.conn.toolbox;
-        cfg.feedback = 'none';
-        
-        cfg.toi = opt.conn.toi;
-        cfg.t_ftimwin = opt.conn.t_ftimwin;
-        
-        data = ft_mvaranalysis(cfg, data); % ft_mvaranalysis can do it on multiple time points, but freqanalysis does not handle it anymore
+        if strcmp(opt.conn.toolbox, 'statespace')
+          cfg = opt.conn.statespace;
+          cfg.vol = vol;
+          cfg.elec = sens;
+          cfg.order = opt.conn.order;
+          [data outtmp] = conn_statespace(cfg, data);
+          output = [output outtmp];
+          
+        else
+          cfg = [];
+          cfg.order = opt.conn.order;
+          cfg.toolbox = opt.conn.toolbox;
+          cfg.feedback = 'none';
+          
+          cfg.toi = opt.conn.toi;
+          cfg.t_ftimwin = opt.conn.t_ftimwin;
+          
+          data = ft_mvaranalysis(cfg, data); % ft_mvaranalysis can do it on multiple time points, but freqanalysis does not handle it anymore
+          
+        end
         %-----------------%
         
         %-----------------%

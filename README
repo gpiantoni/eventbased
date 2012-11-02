@@ -165,7 +165,7 @@ CFG.OPT
 .conn.toi: vector with time points to run connectivity on
   CONN_SUBJ, CONN_GRAND, 
 
-.conn.toolbox: 'biosig' or 'bsmart'
+.conn.toolbox: 'biosig' or 'bsmart' or 'statespace'
   CONN_SUBJ, 
 
 .conn.type: 'cca' or 'ft'
