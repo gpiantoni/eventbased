@@ -49,7 +49,7 @@ Q_out = (C(1:nroi,1:nroi) - B(1:nroi,:) / A' * B(1:nroi,:)') / cnt;
 if any(roi ~= 1) % TODO: use same implementation for patch and dipole
   
   phi = zeros(nsource, nroi);
-  invS = inv( (yy - yx / C(1:nroi, 1:nroi) * yx') / cnt);
+  invS = pinv( (yy - yx / C(1:nroi, 1:nroi) * yx') / cnt);
   C_interest = C(1:nroi, 1:nroi); % why this choice?
   
   A = [];
@@ -62,7 +62,7 @@ if any(roi ~= 1) % TODO: use same implementation for patch and dipole
     roi_end = sum(roi(1:i));
 
     psi_i = C_h(:,roi_beg:roi_end);
-    temp = inv(psi_i' * invS * psi_i) * psi_i' * invS;
+    temp = pinv(psi_i' * invS * psi_i) * psi_i' * invS;
         
     A_row_wise = [];
     for j = 1:nroi

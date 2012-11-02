@@ -1,8 +1,8 @@
 function [dataout output] = conn_statespace(cfg, data)
-% FT_CONNECTIVITYANALYSIS_STATESPACE calculate MVAR model at source space
+%CONN_STATESPACE calculate MVAR model at source space
 % using state-space models
 
-addpath ssm_em % to track
+addpath(fullfile(fileparts(mfilename('fullpath')), 'ssm_em'))
 
 %-------------------------------------%
 %-get the options
