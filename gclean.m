@@ -25,6 +25,9 @@ function gclean(info, opt, subj)
 %  .emg.correction = 30;
 %  .pwl.pca: if not empty, number of PC to work with in JADE
 %
+%  .resamplefs: downsample the data to this frequency
+%  .detrend: apply detrend or not (default 'yes', see FT_RESAMPLEDATA)
+%
 % IN
 %  data in /data1/projects/PROJ/subjects/SUBJ/MOD/NICK/
 %
@@ -48,6 +51,9 @@ ddir = sprintf('%s%04d/%s/%s/', info.data, subj, info.mod, info.nick); % data di
 allfile = dir([ddir '*_A.mat']); % files matching a preprocessing
 
 prepr_name = '_B'; % preprocessing name to append
+
+if ~isfield(opt, 'resamplefs'); opt.resamplefs = []; end
+if ~isfield(opt, 'detrend'); opt.detrend = 'yes'; end
 %---------------------------%
 
 %---------------------------%
@@ -107,6 +113,31 @@ for i = 1:numel(allfile)
   %--------------------------%
   
   %--------------------------%
+  %-downsample
+  if ~isempty(opt.resamplefs)
+    
+    load([ddir allfile(i).name], 'data', 'event')
+    
+    sampleinfo = data.sampleinfo;
+    fsample = data.fsample;
+    cfg = [];
+    cfg.resamplefs = opt.resamplefs;
+    cfg.detrend = opt.detrend;
+    data = ft_resampledata(cfg, data);
+    data.sampleinfo = sampleinfo * opt.resamplefs / fsample; % adjust sampleinfo to new time
+    
+    %------%
+    %-adjust events
+    for j = 1:numel(event)
+      event(j).sample = event(j).sample * opt.resamplefs / fsample;
+    end
+    %------%
+    
+    save([ddir allfile(i).name], 'data')
+  end
+  %--------------------------%
+  
+  %--------------------------%
   %  Construct the cleaning pipeline
   cleanpipe = pipeline(...
     ...
@@ -122,7 +153,7 @@ for i = 1:numel(allfile)
     bad_channels(... % Bad channel rejection: using raw data and HP-filtered data
     'MADs', opt.bad_channels.MADs, ...
     'Filter', {[], filter.hpfilt('fc', 0.5)}, ... % you can specify multiple filters
-    'verbose', true), ... 
+    'verbose', true), ...
     ...
     bad_samples(... % Bad sample rejection
     'MADs', opt.bad_samples.MADs, ...
@@ -218,7 +249,6 @@ for i = 1:numel(allfile)
   
   %--------------------------%
   %-save event
-  load([ddir allfile(i).name], 'event')
   save(cfg.outputfile, 'event', '-append')
   %--------------------------%
   
