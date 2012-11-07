@@ -1,5 +1,5 @@
 function [clpeak stat output] = report_cluster(cfg, gdat, gdat2, paired)
-%REPORTCLUSTER report which clusters are significant
+%REPORT_CLUSTER report which clusters are significant
 % It compares against zero or two conditions. The significant
 % time-(freq)-sensor points are clustered and then statistics is run on
 % these clusters. Significant clusters will be reported and can be used for
@@ -9,17 +9,18 @@ function [clpeak stat output] = report_cluster(cfg, gdat, gdat2, paired)
 % POW_GRAND and POWCORR_GRAND.
 %
 % Use as:
-%   [clpeak output] = reportcluster(cfg, gdat, gdat2, unpaired)
+%   [clpeak output] = report_cluster(cfg, gdat, gdat2, unpaired)
 %
-% CFG
+% CFG (pass these options using OPT in the top function)
 %  .sens.file: file with EEG sensors. It can be sfp or mat.
 %  .sens.dist: distance of two sensors to be considered neighbors
 %
 %  You can then specify the time window and frequency band to do statistics on:
 %  .stat.time: latency of interest (two scalar)
 %  .stat.freq: frequency of interest (two scalar)
-%  .clusterthr: threshold of cluster
+%  .clusterthr: threshold of cluster (default: 0.05)
 %  .numrandomization: number of randomization (default: 1e5)
+%  .minnbchan: minimum number of channels to create a cluster (default: 0)
 %
 % GDAT, GDAT2
 %  One or two datasets obtained from ft_timelockgrandaverage or
@@ -54,6 +55,7 @@ function [clpeak stat output] = report_cluster(cfg, gdat, gdat2, paired)
 %-check CFG
 if ~isfield(cfg, 'clusterthr'); cfg.clusterthr = 0.05; end
 if ~isfield(cfg, 'numrandomization'); cfg.numrandomization = 1e5; end
+if ~isfield(cfg, 'minnbchan'); cfg.minnbchan = 0; end
 
 if nargin < 4
   paired = true;
@@ -151,7 +153,6 @@ tmpcfg.neighbours = neigh;
 tmpcfg.feedback = 'etf';
 
 if iserp
-  % tmpcfg.minnbchan = 5; % to avoid huge clusters
   stat = ft_timelockstatistics(tmpcfg, gdat, gdat2); 
 else
   stat = ft_freqstatistics(tmpcfg, gdat, gdat2);
