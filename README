@@ -134,6 +134,9 @@ CFG.OPT
   
 .comp*: comparisons to test (cell within cell, e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}}), but you cannot have more than 2 conditions (it's always a t-test). If empty, not statistics and no plots.
   ERP_GRAND, POW_GRAND, POWCORR_GRAND, 
+
+.compstyle: 'logratio' or 'diff' (when comp contains two conditions, take log(x2/x1) or x2 - x1)
+  POW_GRAND, POW_GRP,
   
 .cond: cell with conditions (e.g. {'*cond1' '*cond2'})'
   ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, POW_SUBJ, POW_GRAND, POWCORR_GRAND, CONN_SUBJ,
