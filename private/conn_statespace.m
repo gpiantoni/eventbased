@@ -29,6 +29,14 @@ cfg.Q_range      = ft_getopt(cfg, 'Q_range', [0.1 0.9]);
 cfg.maxiter      = ft_getopt(cfg, 'maxiter', 20);
 cfg.tol          = ft_getopt(cfg, 'tol', 1e-5);
 %-----------------%
+
+%-----------------%
+%-remember random state
+stream = RandStream.getGlobalStream;
+output = sprintf('random stream: Type %s Seed %d\n', ...
+  stream.Type, stream.Seed);
+reset(stream); % go back to beginning of the seed (values are different because fexec initializes a new stream)
+%-----------------%
 %-------------------------------------%
 
 %-------------------------------------%
@@ -76,7 +84,7 @@ end
 %-----------------%
 %-scaling to prevent numerical inconsistency
 cat_data = [data.trial{:}];
-output = sprintf('data units: % 10.4f, lead units: % 10.4f\n', std(cat_data(:)), std(lf(:)));
+output = [output sprintf('data units: % 10.4f, lead units: % 10.4f\n', std(cat_data(:)), std(lf(:)))];
 if ~isempty(cfg.scaling)
   
   if ~isempty(cfg.scaling.lf)
