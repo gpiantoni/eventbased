@@ -15,6 +15,7 @@ cfg.scaling      = ft_getopt(cfg, 'scaling', []);
 cfg.scaling.data = ft_getopt(cfg.scaling, 'data', []);
 cfg.scaling.lf   = ft_getopt(cfg.scaling, 'lf', []);
 cfg.bases        = ft_getopt(cfg, 'bases', 1); % TODO
+cfg.nrpt         = ft_getopt(cfg, 'nrpt', 1); % number of tests to find highest LL
 %-----------------%
 
 %-----------------%
@@ -122,30 +123,49 @@ output = [output sprintf('number of channels % 3d, rank of covariance % 3d\n', .
 
 %-----------------%
 %-estimate activity in the sources, to initialize the values
-xhat = xhat_lcmv(data.trial, lf, timelock.cov); 
+xhat = xhat_lcmv(data.trial, lf, timelock.cov);
 %-----------------%
 
-%-----------------%
-%-initialize values
-tmpcfg = [];
-tmpcfg.roi = roi;
-tmpcfg.order = cfg.order;
-tmpcfg.A_range = cfg.A_range;
-tmpcfg.Q_range = cfg.Q_range;
-init = ssm_em_init(tmpcfg, xhat, lf, timelock.cov);
-%-----------------%
+%---------------------------%
+%-run multiple times
+EM = [];
+LL_all = zeros(1, cfg.nrpt);
+for i = 1:cfg.nrpt
+  
+  %-----------------%
+  %-initialize values
+  tmpcfg = [];
+  tmpcfg.roi = roi;
+  tmpcfg.order = cfg.order;
+  tmpcfg.A_range = cfg.A_range;
+  tmpcfg.Q_range = cfg.Q_range;
+  init = ssm_em_init(tmpcfg, xhat, lf, timelock.cov);
+  %-----------------%
+  
+  %-----------------%
+  %-learn the Kalman filter
+  tmpcfg = [];
+  tmpcfg.init = init;
+  tmpcfg.C = lf;
+  tmpcfg.tol = cfg.tol;
+  tmpcfg.maxiter = cfg.maxiter;
+  tmpcfg.order = cfg.order;
+  tmpcfg.roi = roi;
+  [EM{i}, LL] = ssm_em(tmpcfg, data.trial);
+  LL_all(i) = LL(end);
+  output = [output sprintf('nrpt % 3d: LL % 10.3f after% 4d iterations\n', ...
+    i, LL(end), numel(LL))];
+  %-----------------%
+  
+end
 
 %-----------------%
-%-learn the Kalman filter
-tmpcfg = [];
-tmpcfg.init = init;
-tmpcfg.C = lf;
-tmpcfg.tol = cfg.tol;
-tmpcfg.maxiter = cfg.maxiter;
-tmpcfg.order = cfg.order;
-tmpcfg.roi = roi;
-[EM, LL] = ssm_em(tmpcfg, data.trial);
+%-find highest LL
+LL_all(isinf(LL_all)) = 0; % remove Inf, take the highest value excluding NaN
+[~, imax] = max(LL_all);
+EM = EM{imax};
 %-----------------%
+%---------------------------%
 
 coeffs = reshape(EM.A, [nroi nroi cfg.order]);
 noisecov = EM.Q;
