@@ -19,6 +19,8 @@ function pow_grand(info, opt)
 %  .bl: Baseline correction at the single-subject level. If empty, no baseline.
 %  .bl.baseline: two scalars with baseline windows
 %  .bl.baselinetype: type of baseline ('relchange')
+%  .compstyle: 'logratio' or 'diff' (when comp contains two conditions,
+%              take log(x2/x1) or x2 - x1)
 %
 %  .plot.chan(1).name: 'name_of_channels'
 %  .plot.chan(1).chan: cell with labels of channels of interest
@@ -54,7 +56,8 @@ tic_t = tic;
 %---------------------------%
 
 %---------------------------%
-%-by default, no plot
+%-defaults
+if ~isfield(opt, 'compstyle'); opt.compstyle = 'logratio'; end
 if ~isfield(opt, 'plot'); opt.plot = []; end
 if ~isfield(opt.plot, 'chan'); opt.plot.chan = []; end
 if ~isfield(opt.plot, 'freq'); opt.plot.freq = []; end
@@ -242,9 +245,9 @@ if isfield(opt, 'comp')
       %-------%
       %-data for plot
       gplot = pow{2};
-      if 1
+      if strcmp(opt.compstyle, 'logratio')
         gplot.powspctrm = log(pow{2}.powspctrm ./ pow{1}.powspctrm);
-      else % TODO: with baseline correction, take the difference
+      else
         gplot.powspctrm = pow{2}.powspctrm - pow{1}.powspctrm;
       end
       %-------%
