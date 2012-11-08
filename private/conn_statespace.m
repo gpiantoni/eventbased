@@ -133,6 +133,11 @@ LL_all = zeros(1, cfg.nrpt);
 for i = 1:cfg.nrpt
   
   %-----------------%
+  %-report values
+  fprintf('\nRepetition% 4d/% 4d\n', i, cfg.nrpt)
+  %-----------------%
+  
+  %-----------------%
   %-initialize values
   tmpcfg = [];
   tmpcfg.roi = roi;

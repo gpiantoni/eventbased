@@ -109,35 +109,38 @@ for i = 1:cfg.maxiter
     
   end
   
-  fprintf('% 5g: log likelihood: %1.2f\n', i, LL(i))
+  fprintf('% 5g LL: % 15.2f', i, LL(i))
   %---------------------------%
   
   %---------------------------%
   %-check convergence
-  if i > 2
+  if i > 1
     
     LL_d = (LL(i) - LL(i-1)) / abs(LL(i-1));
-    if LL_d < 0
-      fprintf('log_likelihood decreases, diff = %5.4e, itr = %d \n', LL_d, i);
-    end
+    fprintf('      D = % 10.6f', LL_d);
     
-    if LL_d < cfg.tol
-      converged = i-1;
+    if LL_d < cfg.tol % If negative, it should use the A,Q of the previous iteration
+      fprintf(' CONVERGED \n')
       break
     end
     
   end
+  
+  fprintf('\n')
   %---------------------------%
   
   %---------------------------%
   %-estimate AR model
   [A, Q, R, phi] = ssm_em_ar(x_smooth, E_auto_1, E_auto_2, E_cross, y, cfg.roi, cfg.C);
-  C_zero = [cfg.C * phi zeros(nchan, nrest)]; 
-    
+  C_zero = [cfg.C * phi zeros(nchan, nrest)];
+  
   x0 = X0 / ntrl;
   P0 = E_auto0 / ntrl;
   %---------------------------%
   
+end
+if i == cfg.maxiter
+  fprintf('Reached Max Iterations\n')
 end
 
 LL = LL(1:find(LL, 1, 'last'));
