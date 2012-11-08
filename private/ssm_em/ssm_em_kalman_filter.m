@@ -1,5 +1,7 @@
 function  [x_smooth, e_auto, e_cross, LL] = ssm_em_kalman_filter(A, B, C_zero, Q, R, x0, P0, y) 
 %INCLUDE FILTERING AND SMOOTHING
+% C_zero, because it projects only the activity from the actual sources,
+% not from the previous time points
 
 %This function implements the Kalman filter based on the following state-space model
 %x[n] = Ax[n-1] + w[n], with w ~ N(0, Q)
@@ -36,7 +38,6 @@ function  [x_smooth, e_auto, e_cross, LL] = ssm_em_kalman_filter(A, B, C_zero, Q
 %-----------------%
 %-collect values
 modelorder_nsource = size(x0,1);
-nsource = size(x0,1); % TODO: to check
 nsmp = size(y,2);
 nchan = size(y,1);
 
@@ -93,9 +94,9 @@ end
 
 %-------------------------------------%
 %-Kalman Smoother
-x_smooth = zeros(nsource, nsmp+1); 
-e_auto = zeros(nsource, nsource, nsmp+1);
-e_cross = zeros(nsource, nsource, nsmp);
+x_smooth = zeros(modelorder_nsource, nsmp+1); 
+e_auto = zeros(modelorder_nsource, modelorder_nsource, nsmp+1);
+e_cross = zeros(modelorder_nsource, modelorder_nsource, nsmp);
 
 x_smooth(:,end) = x_k(:,end);
 e_auto(:,:,end) = P_k(:,:,end);

@@ -119,7 +119,8 @@ for i = 1:cfg.maxiter
     LL_d = (LL(i) - LL(i-1)) / abs(LL(i-1));
     fprintf(['      D = % 10.' num2str(unittol) 'f'], LL_d);
     
-    if LL_d < cfg.tol % TODO: If negative, it should use the A,Q of the previous iteration
+    if LL_d < cfg.tol ...% TODO: If negative, it should use the A,Q of the previous iteration
+        || isinf(LL_d) % if inf, it means that it matches perfectlY (it can happen in simulations)
       fprintf(' CONVERGED \n')
       break
     end
