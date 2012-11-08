@@ -69,7 +69,8 @@ warning off
 
 %-------------------------------------%
 %-iteration
-converged = false;
+unittol = floor(-1*log10(cfg.tol));
+
 LL = zeros(1, cfg.maxiter);
 
 for i = 1:cfg.maxiter
@@ -117,9 +118,9 @@ for i = 1:cfg.maxiter
   if i > 1
     
     LL_d = (LL(i) - LL(i-1)) / abs(LL(i-1));
-    fprintf('      D = % 10.6f', LL_d);
+    fprintf(['      D = % 10.' num2str(unittol) 'f'], LL_d);
     
-    if LL_d < cfg.tol % If negative, it should use the A,Q of the previous iteration
+    if LL_d < cfg.tol % TODO: If negative, it should use the A,Q of the previous iteration
       fprintf(' CONVERGED \n')
       break
     end
