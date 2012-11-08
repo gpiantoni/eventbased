@@ -1,31 +1,40 @@
-function [w, noise_cov, Rxx_n] = ssm_em_init_ar(x0, order, nroi)
+function [A, Q, R] = ssm_em_init_ar(x0, order, nroi)
+%SSM_EM_INIT_AR Yule-Walker on the "estimated" roi activity
 
+%-----------------%
+%-initialize
+ntrl = numel(x0);
+cnt = 0;
 
-Rxx_n = 0;
-Rxx_rhs = 0;
-Rxx_n_minus_1 = 0;
+R_aa = 0;
+R_ab = 0;
+R_bb = 0;
+%-----------------%
 
-n_trl = numel(x0);
-
-aa = 0;
-
-for e = 1:n_trl
+%-----------------%
+%-estimate covariance for lags
+for e = 1:ntrl
   
-  x_n_vec = [];
-  x_n_minus_1_vec = [];
+  modelorder_nroi = order * nroi;
+  x_a = zeros(modelorder_nroi, size(x0{e},2) - modelorder_nroi);
+  x_b = zeros(modelorder_nroi, size(x0{e},2) - modelorder_nroi);
   
   for i = 1:order
-    x_n_vec((i-1) * nroi + 1: i * nroi,:) = x0{e}(1:nroi, 2 * order + 1 - i + 1:end - i + 1);
-    x_n_minus_1_vec((i-1) * nroi + 1: i * nroi,:) = x0{e}(1:nroi, 2 * order + 1 - i:end - i);
+    x_a((i-1) * nroi + 1: i * nroi,:) = x0{e}(1:nroi, 2 * order + 1 - i + 1:end - i + 1);
+    x_b((i-1) * nroi + 1: i * nroi,:) = x0{e}(1:nroi, 2 * order + 1 - i    :end - i);
   end
   
-  Rxx_n = Rxx_n + x_n_vec * x_n_vec';
-  Rxx_rhs = Rxx_rhs + x_n_vec * x_n_minus_1_vec';
-  Rxx_n_minus_1 = Rxx_n_minus_1 + x_n_minus_1_vec * x_n_minus_1_vec';
-  aa = aa + size(x_n_vec,2);
+  R_aa = R_aa + x_a * x_a';
+  R_ab = R_ab + x_a * x_b';
+  R_bb = R_bb + x_b * x_b';
+  cnt = cnt + size(x_a,2);
 end
+%-----------------%
 
-w = Rxx_rhs(1:nroi,:) / Rxx_n_minus_1;
-noise_cov = 1 / aa * (Rxx_n(1:nroi,1:nroi) - (Rxx_rhs(1:nroi,:)/Rxx_n_minus_1) * Rxx_rhs(1:nroi,:)');
+%-----------------%
+%-output values
+A = R_ab(1:nroi,:) / R_bb;
+Q = 1 / cnt * (R_aa(1:nroi,1:nroi) - A * R_ab(1:nroi,:)');
 
-Rxx_n = Rxx_n / aa;
+R = R_aa / cnt;
+%-----------------%

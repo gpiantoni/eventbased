@@ -52,7 +52,6 @@ end
 
 n_trl = numel(xhat);
 n_smp = size(xhat{1},2); % make it more flexible, with different trial lengths
-
 xhat_r = mat2cell(xhat_r, nroi, repmat(n_smp, n_trl, 1)); % redefine it in trials
 %-----------------%
 
