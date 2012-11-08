@@ -94,8 +94,7 @@ for i = 1:cfg.maxiter
     
     %-----------------%
     %-Kalman filter
-    [x_p, x_k, P_p, P_k, P_cross, LL_e] = ssm_em_kalman_filter(A, B, C_zero, Q, R, x0, P0, y{e});
-    [x_smooth{e}, e_auto, e_cross] = ssm_em_kalman_smooth(A, x_p, x_k, P_p, P_k, P_cross);
+    [x_smooth{e}, e_auto, e_cross, LL_e] = ssm_em_kalman_filter(A, B, C_zero, Q, R, x0, P0, y{e});
     %-----------------%
     
     %-----------------%
