@@ -114,9 +114,10 @@ for i = 1:numel(allfile)
   
   %--------------------------%
   %-downsample
+  load([ddir allfile(i).name], 'data')
   if ~isempty(opt.resamplefs)
     
-    load([ddir allfile(i).name], 'data', 'event')
+    load([ddir allfile(i).name], 'data')
     
     sampleinfo = data.sampleinfo;
     fsample = data.fsample;
