@@ -114,7 +114,7 @@ for i = 1:numel(allfile)
   
   %--------------------------%
   %-downsample
-  load([ddir allfile(i).name], 'data')
+  load([ddir allfile(i).name], 'event')
   if ~isempty(opt.resamplefs)
     
     load([ddir allfile(i).name], 'data')
