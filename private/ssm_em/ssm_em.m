@@ -116,11 +116,18 @@ for i = 1:cfg.maxiter
   %-check convergence
   if i > 1
     
+    %-----------------%
+    %-when LL is NaN, it probably means that the fit was wrong
+    if isnan(LL(i))
+      LL(i) = LL(i-1) - 1; % negative, so that it uses previous values
+    end
+    %-----------------%
+    
     LL_d = (LL(i) - LL(i-1)) / abs(LL(i-1));
     fprintf(['      D = % 10.' num2str(unittol) 'f'], LL_d);
     
-    if LL_d < cfg.tol ...% TODO: If negative, it should use the A,Q of the previous iteration
-        || isinf(LL_d) % if inf, it means that it matches perfectlY (it can happen in simulations)
+    if LL_d < cfg.tol ...
+        || isinf(LL_d) % if inf, it means that it matches perfectly (it can happen in simulations)
       fprintf(' CONVERGED \n')
       break
     end
