@@ -15,6 +15,7 @@ function pow_subj(info, opt, subj)
 %  .bl: if empty, no baseline. Otherwise:
 %  .bl.baseline: two scalars with baseline windows
 %  .bl.baselinetype: type of baseline ('relchange')
+%  .bl.log: take the log BEFORE taking baseline (data becomes more normal)
 %
 % IN
 %  LOAD_DATA: data in /PROJ/subjects/SUBJ/MOD/NICK/
@@ -107,8 +108,15 @@ for k = 1:numel(opt.cond)
   %-----------------%
   %-baseline
   if isfield(opt, 'bl') && ~isempty(opt.bl)
+
+    if isfield(opt.bl, 'log')
+      pow_s.powspctrm = log(pow_s.powspctrm);
+      pow_s.powspctrm(isinf(pow_s.powspctrm)) = 0;
+    end
+    
     cfg = opt.bl;
     pow_s = ft_freqbaseline(cfg, pow_s);
+
   end
   %-----------------%
   
