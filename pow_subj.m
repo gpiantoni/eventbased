@@ -16,6 +16,7 @@ function pow_subj(info, opt, subj)
 %  .bl.baseline: two scalars with baseline windows
 %  .bl.baselinetype: type of baseline ('relchange')
 %  .bl.log: take the log BEFORE taking baseline (data becomes more normal) (logical)
+%  .bl.dB: take the decibel AFTER baseline (logical)
 %
 % IN
 %  LOAD_DATA: data in /PROJ/subjects/SUBJ/MOD/NICK/
@@ -116,6 +117,10 @@ for k = 1:numel(opt.cond)
     
     cfg = opt.bl;
     pow_s = ft_freqbaseline(cfg, pow_s);
+    
+    if isfield(opt.bl, 'dB') && opt.bl.dB
+      pow_s.powspctrm = 10 * log10(pow_s.powspctrm);
+    end
 
   end
   %-----------------%
