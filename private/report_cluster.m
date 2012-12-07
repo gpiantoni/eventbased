@@ -128,7 +128,8 @@ else
 end
 tmpcfg.alpha       = 0.05;
 tmpcfg.correctm    = 'cluster';
-tmpcfg.numrandomization = cfg.numrandomization; 
+tmpcfg.numrandomization = cfg.numrandomization;
+tmpcfg.minnbchan = cfg.minnbchan;
 
 if paired
   tmpcfg.design = [ones(1,nsubj1) ones(1,nsubj2)*2; 1:nsubj1 1:nsubj2];
