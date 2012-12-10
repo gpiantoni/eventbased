@@ -18,6 +18,8 @@ function [clpeak stat output] = report_cluster(cfg, gdat, gdat2, paired)
 %  You can then specify the time window and frequency band to do statistics on:
 %  .stat.time: latency of interest (two scalar)
 %  .stat.freq: frequency of interest (two scalar)
+%  .stat.bl.time: if one dataset, compare it against the average of this
+%                 time-window, instead of zero
 %  .clusterthr: threshold of cluster (default: 0.05)
 %  .numrandomization: number of randomization (default: 1e5)
 %  .minnbchan: minimum number of channels to create a cluster (default: 0)
@@ -25,7 +27,8 @@ function [clpeak stat output] = report_cluster(cfg, gdat, gdat2, paired)
 % GDAT, GDAT2
 %  One or two datasets obtained from ft_timelockgrandaverage or
 %  ft_freqgrandaverage.
-%  If one dataset, the dataset is compared against zero
+%  If one dataset, the dataset is compared against zero or, if
+%     .stat.bl.time is specified, the average of the baseline.
 %  If two datasets, the two datasets are compared against each other in a
 %  PAIRED or UNPAIRED t-test.
 %  More complicated designs are not possible.
@@ -83,7 +86,19 @@ end
 
 if nargin == 2
   gdat2 = gdat;
-  gdat2.(param) = zeros(size(gdat.(param)));
+  
+  if isfield(cfg, 'stat') && isfield(cfg.stat, 'bl')
+    
+    %-compare against the average value of the baseline
+    gdat2 = ft_selectdata(gdat, 'toilim', cfg.stat.bl.time, 'avgovertime', 'yes');
+    gdat2.(param) = repmat(gdat2.(param), [1 1 1 size(gdat.(param),4)]);
+    gdat2.time = gdat.time;
+    
+  else
+    %-compare against zero
+    gdat2.(param) = zeros(size(gdat.(param))); 
+    
+  end
 end
 %-----------------%
 
