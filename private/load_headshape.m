@@ -26,7 +26,7 @@ else
   mod = 'smri';
   cond = 't1';
   mdir = sprintf('%s%04d/%s/%s/', info.data, subj, mod, cond); % mridata dir
-  mfile = sprintf('%s_%04d_', info.rec, subj, info.sourcespace); % mridata
+  mfile = sprintf('%s_%04d_%s', info.rec, subj, info.sourcespace); % mridata
   
   load([mdir mfile '_elec.mat'], 'elec')
   sens = elec;
