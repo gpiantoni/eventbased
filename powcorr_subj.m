@@ -108,8 +108,8 @@ for k = 1:numel(opt.cond)
   for i2 = 1:s2
     for i3 = 1:s3
       for i4 = 1:s4
-        regr = [ones(size(powcorr_s.trialinfo,1),1) powcorr_s.powspctrm(:,i2,i3,i4)];
-        beta = regr \ powcorr_s.trialinfo(:, opt.powcorr);
+        regr = [ones(size(powcorr_s.trialinfo,1),1) powcorr_s.trialinfo(:, opt.powcorr)];
+        beta = regr \ powcorr_s.powspctrm(:,i2,i3,i4);
         powspctrm(i2,i3,i4) = beta(2);
       end
     end
