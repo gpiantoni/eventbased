@@ -1,5 +1,5 @@
 function erpsource_subj(info, opt, subj)
-%ERPSOURCE_SUBJ: sources of ERP using LCMV for each subject
+%ERPSOURCE_SUBJ: identify sources of ERP using LCMV for each subject
 %
 % INFO
 %  .log: name of the file and directory to save log
@@ -43,7 +43,7 @@ tic_t = tic;
 %---------------------------%
 
 %---------------------------%
-%-default cfg
+%-default opt
 if ~isfield(opt, 'lmcv'); opt.lmcv = []; end
 if ~isfield(opt, 'keepfilter'); opt.keepfilter = false; end
 %---------------------------%

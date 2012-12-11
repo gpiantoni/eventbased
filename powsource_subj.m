@@ -1,48 +1,21 @@
 function powsource_subj(info, opt, subj)
-%POWSOURCE_SUBJ: identify sources from pow peaks using DICS
+%POWSOURCE_SUBJ: identify sources of POW using DICS for each subject
 %
-% CFG
-%  .data: path of /data1/projects/PROJ/subjects/
-%  .rec: REC in /data1/projects/PROJ/recordings/REC/
-%  .nick: NICK in /data1/projects/PROJ/subjects/0001/MOD/NICK/
-%  .mod: modality, MOD in /data1/projects/PROJ/subjects/0001/MOD/NICK/
-%  .endname: includes preprocessing steps (e.g. '_seldata_gclean_redef')
-%
+% INFO
 %  .log: name of the file and directory to save log
 %  .dpow: directory for POW data
-%  .powsource.cond: cell with conditions (e.g. {'*cond1' '*cond2'})'
 %
-%  .vol.type: 'template' or subject-specific ('dipoli' or 'openmeeg' or 'bemcp')
-%  (if cfg.vol.type == 'template')
-%      .vol.template: file with template containing vol, lead, sens
-%
-%  .sourcespace: 'surface' 'volume' 'volume_warp'
-%  (if cfg.sourcespace == 'surface')
-%  .SUBJECTS_DIR: where the Freesurfer data is stored (like the environmental variable)
-%
-%  .powsource.areas: how to specify peaks to analyze, 'manual' or 'pow_peak'
-%          (peaks from grandpow) or 'powcorr_peak' (peaks from grandpowcorr)
-%    if 'manual'
-%      .powsource.pow_peak(1).name: string ('name_of_the_time_window')
-%      .powsource.pow_peak(1).time: scalar (center of the time window in s)
-%      .powsource.pow_peak(1).wndw: scalar (length of the time window in s)
-%      .powsource.pow_peak(1).freq = 10; % center of the frequency
-%      .powsource.pow_peak(1).band = 4; % width of the frequency band
-%    if 'pow_peak' or 'powcorr_peak'
-%      .powsource.refcomp: cell of string(s) of the comparison whose peaks
-%                    will be localized (one of the cells of cfg.gpow.comp or cfg.gpowcorr.comp))
-%
-%  .powsource.bline: one number in s, the center of the covariance window
-%                    of the baseline (the window length depends on pow_peak)
-%                    If empty, no baseline.
-%
-%  .powsource.dics: options that will be passed to beamformer. Examples:
+% OPT
+%  .cond*: cell with conditions (e.g. {'*cond1' '*cond2'})
+%  .bline*: one number in s, the center of the covariance window of the
+%          baseline (the window length depends on pow_peak). If empty, no
+%          baseline.
+%  .dics: options that will be passed to beamformer. Examples:
 %     .lambda: regularization parameter of beamformer ('25%')
 %     .powmethod: power method of beamformer ('trace' or 'lambda1')
 %     .refdip: location of the dipole for computing coherence to.
-%
-%  .powsource.keepfilter: logical, to keep filters or not (keep them only
-%                          if you plan to use powstat or conn analyses)
+%  .keepfilter: keep filters or not, keep them only if you plan to use
+%               powstat or conn analyses (logical) 
 %
 % IN:
 %  data in /PROJ/subjects/SUBJ/MOD/NICK/
@@ -50,6 +23,8 @@ function powsource_subj(info, opt, subj)
 % OUT
 %  [info.dpow 'powsource_SUBJ_COND'] 'powsource_s_A': source data for period of interest for each subject
 %  [info.dpow 'powsource_SUBJ_COND'] 'powsource_s_B': source data for baseline for each subject
+%
+% * indicates obligatory parameter
 %
 % Part of EVENTBASED single-subject
 % see also ERP_SUBJ, ERP_GRAND, 
@@ -66,29 +41,27 @@ tic_t = tic;
 %---------------------------%
 
 %---------------------------%
-%-default cfg
-if ~isfield(cfg.powsource, 'dics'); cfg.powsource.dics = []; end
-if ~isfield(cfg.powsource, 'keepfilter')
-  cfg.powsource.keepfilter = false;
-end
+%-default opt
+if ~isfield(opt, 'dics'); opt.dics = []; end
+if ~isfield(opt, 'keepfilter'); opt.keepfilter = false; end
 %---------------------------%
 
 %---------------------------%
 %-dir and files
-[vol, lead, sens] = load_headshape(info, opt, subj);
+[vol, lead, sens] = load_headshape(info, subj);
 %---------------------------%
 
-pow_peak = get_peak(cfg, 'pow');
+pow_peak = get_peak(info, opt.peak, 'pow');
 
 %-------------------------------------%
 %-loop over conditions
-for k = 1:numel(cfg.powsource.cond)
-  cond     = cfg.powsource.cond{k};
+for k = 1:numel(opt.cond)
+  cond = opt.cond{k};
   condname = regexprep(cond, '*', '');
 
   %---------------------------%
   %-read data
-  [data badchan] = load_data(cfg, subj, cond);
+  [data badchan] = load_data(info, subj, cond);
   if isempty(data)
     output = sprintf('%sCould not find any file for condition %s\n', ...
       output, cond);
@@ -111,7 +84,7 @@ for k = 1:numel(cfg.powsource.cond)
     
     %---------------------------%
     %-more precise freq analysis reconstruction
-    [freqparam outtmp] = prepare_freqpeak(cfg, pow_peak(p), data.time{1}(1));
+    [freqparam outtmp] = prepare_freqpeak(opt, pow_peak(p), data.time{1}(1));
     output = [output outtmp];
     %---------------------------%
     
@@ -135,7 +108,7 @@ for k = 1:numel(cfg.powsource.cond)
     cfgpow.feedback = 'none';
     cfgpow.channel = datachan;
     
-    cfgpow.toi = [cfg.powsource.bline freqparam.time];
+    cfgpow.toi = [opt.bline freqparam.time];
     %-----------------%
     
     %-----------------%
@@ -146,13 +119,13 @@ for k = 1:numel(cfg.powsource.cond)
     
     cfgsou.method = 'dics';
     cfgsou.dics.feedback = 'none';
-    cfgsou.dics = cfg.powsource.dics;
+    cfgsou.dics = opt.dics;
     
     cfgsou.vol = vol;
     cfgsou.grid = leadchan;
     cfgsou.elec = sens;
     
-    if cfg.powsource.keepfilter
+    if opt.keepfilter
       cfgsou.dics.keepfilter = 'yes';
       if isfield(cfgpow.dics, 'refdip')
         cfgsou.dics = rmfield(cfgsou.dics, 'refdip');
@@ -168,17 +141,17 @@ for k = 1:numel(cfg.powsource.cond)
     
     %---------------------------%
     %-baseline
-    if ~isempty(cfg.powsource.bline)
+    if ~isempty(opt.bline)
       
       %-----------------%
-      cfgsou.latency = cfg.powsource.bline;
+      cfgsou.latency = opt.bline;
       source = ft_sourceanalysis(cfgsou, freq);
       source.cfg = [];
       %-----------------%
       
       %-----------------%
       %-realign source
-      powsource_s_B(p,:) = realign_source(cfg, subj, source);
+      powsource_s_B(p,:) = realign_source(info, subj, source);
       %-----------------%
       
     else
@@ -199,7 +172,7 @@ for k = 1:numel(cfg.powsource.cond)
     
     %-----------------%
     %-realign source
-    powsource_s_A(p,:) = realign_source(cfg, subj, source);
+    powsource_s_A(p,:) = realign_source(info, subj, source);
     %-----------------%
     %---------------------------%
     

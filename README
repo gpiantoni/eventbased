@@ -13,9 +13,10 @@ PREPROCESSING
 ANALYSIS
 - ERP_SUBJ: timelock-analysis for each subject
 - ERP_GRAND: timelock-analysis over subjects
-- ERP_SOURCE: sources of ERP using LCMV for each subject
+- ERPSOURCE_SUBJ: identify sources of ERP using LCMV for each subject
 - POW_SUBJ: power-analysis for each subject
 - POW_GRAND: power-analysis over subjects
+- POWSOURCE_SUBJ: identify sources of POW using DICS for each subject
 - POWCORR_SUBJ: power-trial correlation for each subject
 - POWCORR_GRAND: power-trial correlation over subjects
 -----------------------------
@@ -24,13 +25,13 @@ ANALYSIS
 -----------------------------------------------------------
 SUBFUNCTIONS
 - GET_PEAK: get the peaks for the source analysis
-  ERPSOURCE_SUBJ, 
+  ERPSOURCE_SUBJ, POWSOURCE_SUBJ, 
 
 - LOAD_DATA: load data, and optionally get bad channels
-  ERP_SUBJ, POW_SUBJ, POWCORR_SUBJ, 
+  ERP_SUBJ, POW_SUBJ, POWCORR_SUBJ, ERPSOURCE_SUBJ, POWSOURCE_SUBJ, 
   
 - LOAD_HEADSHAPE: load vol, lead, sens
-  ERPSOURCE_SUBJ, 
+  ERPSOURCE_SUBJ, POWSOURCE_SUBJ, 
 
 - LOAD_SUBJ: load single-subject data
   ERP_GRAND, POW_GRAND, POWCORR_GRAND,
@@ -39,7 +40,10 @@ SUBFUNCTIONS
   ERP_SUBJ, POW_SUBJ, POWCORR_SUBJ,
   
 - PREPARE_LEADCHAN: only use good channels in leadfield
-  ERPSOURCE_SUBJ,
+  ERPSOURCE_SUBJ, POWSOURCE_SUBJ, 
+  
+- PREPARE_FREQPEAK adjust frequency and time of interest for frequency data
+  POWSOURCE_SUBJ, 
   
 - REALIGN_SOURCE: realign to MNI space or to freesurfer sphere
   ERPSOURCE_SUBJ,
@@ -126,8 +130,8 @@ CFG.OPT
 .bl.baselinetype: type of baseline ('relchange')
   POW_SUBJ, POW_GRAND,
 
-.bline: one number in s, the center of the covariance window of the baseline (the window length depends on erp_peak). If empty, no baseline.  
-  ERPSOURCE_SUBJ,
+.bline: one number in s, the center of the covariance window of the baseline (the window length depends on erp_peak/pow_peak). If empty, no baseline.  
+  ERPSOURCE_SUBJ, POWSOURCE_SUBJ
   
 .clusterthr: threshold of the cluster
   REPORT_CLUSTER,
@@ -139,7 +143,7 @@ CFG.OPT
   POW_GRAND, POW_GRP,
   
 .cond: cell with conditions (e.g. {'*cond1' '*cond2'})'
-  ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, POW_SUBJ, POW_GRAND, POWCORR_GRAND, CONN_SUBJ,
+  ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, POW_SUBJ, POW_GRAND, POWCORR_GRAND, CONN_SUBJ, POWSOURCE_SUBJ,
 
 .conn.avgoverfreq: average power spectrum
   CONN_SUBJ, 

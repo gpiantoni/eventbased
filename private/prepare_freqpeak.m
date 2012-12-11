@@ -1,5 +1,5 @@
 function [param output] = prepare_freqpeak(cfg, powpeak, begtrl)
-%PREPARE_LEADCHAN only use good channels in leadfield
+%PREPARE_FREQPEAK adjust frequency and time of interest for frequency data
 % param has field
 %   - name
 %   - time
@@ -27,15 +27,15 @@ param.time = powpeak.time;
 param.wndw = powpeak.wndw;
 
 % if there is baseline at all
-if ~isempty(cfg.powsource.bline)
+if ~isempty(cfg.bline)
   
   %-----------------%
   %-check that baseline contains always data, otherwise shrink the time window
-  begbline = cfg.powsource.bline - powpeak.wndw/2; % beginning of baseline
+  begbline = cfg.bline - powpeak.wndw/2; % beginning of baseline
   if begbline < begtrl
     output = sprintf('%sPowpeak %s: window length was too long (% 3.2fs)\n', ...
       output, powpeak.name, powpeak.wndw);
-    param.wndw = (begtrl - cfg.powsource.bline) * -2;
+    param.wndw = (begtrl - cfg.bline) * -2;
   end
   %-----------------%
   
