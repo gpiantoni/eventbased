@@ -25,6 +25,7 @@ function powcorr_subj(info, opt, subj)
 %
 % OUT
 %  [info.dpow 'powcorr_SUBJ_COND'] 'powcorr_s': power correlation for single-subject
+%  Units are (power units) / (regressor units)
 %
 % * indicates obligatory parameter
 %
