@@ -1,50 +1,16 @@
 function powsource_grand(info, opt)
-%POWSOURCE_GRAND group-analysis of POW source data
+%POWSOURCE_GRAND group-level analysis of POW source data
 %
-% CFG
-%-Average
-%  .nick: NICK to save files specific to each NICK
-%  .log: name of the file and directory with analysis log
-%  .subjall: index of the number of subjects
-%
+% INFO
+%  .log: name of the file and directory to save log
 %  .dpow: directory with POW data
-%  .powsource.cond: cell to make averages
+%  .mri.template: template of the averaged MRI
 %
-%  .sourcespace: 'surface' 'volume' 'volume_warp'
-%  (if cfg.sourcespace == 'surface')
-%  .SUBJECTS_DIR: where the Freesurfer data is stored (like the environmental variable)
-%  .surfdownsample: ratio of downsampling of the surface
-%
-%-Statistics
-%  The comparison is always against baseline. If you want to compare
-%  conditions, use powstats_subj.
-%
-%  .powsource.peaks: how to speficy peaks to analyze, 'manual' or 'pow_peak'
-%          (peaks from grandpow) or 'powcorrpeak' (peaks from grandpowcorr)
-%    if 'manual'
-%      .powsource.pow_peak(1).name: string ('name_of_the_time_window')
-%      .powsource.pow_peak(1).time: scalar (center of the time window in s)
-%      .powsource.pow_peak(1).wndw: scalar (length of the time window in s)
-%      .powsource.pow_peak(1).freq = 10; % center of the frequency
-%      .powsource.pow_peak(1).band = 4; % width of the frequency band
-%    if 'pow_peak'
-%      .pow.refcomp: string of the comparison whose peaks will be localized
-%    if 'powcorrpeak'
-%      .powcorr.refcomp: string of the comparison whose peaks will be localized
-%
-% Options for reportsource:
-%  .powsource.clusterstatistics: 'maxsize' or 'max'
-%  .powsource.clusteralpha: level to select sensors (default 0.05)
-%                           it can be a string in format '5%' to take top 5 voxels and put them in a cluster.
-%  .powsource.maxvox: max number of significant voxels to be used in soupeak
-%  .powsource.clusterthr: threshold to report clusters in output
-%  .powsource.atlas: index of the atlas to report labels
-% 
-%-Plot
-%  .rslt: directory images are saved into
-%
-%  (if cfg.sourcespace == 'volume')
-%  .template.volume: absolute path to the reference mri 
+% CFG.OPT.
+%  .comp*: comparisons to test (cell within cell, e.g. {{'cond1'} {'cond2'}})
+%          You can only have one cell (while in POW_GRAND you can have 2),
+%          because statistics with different filters is not correct. Use POWSTAT_SUBJ to reuse filters
+%  .peak*: peak of interest (see GET_PEAK)
 %
 % IN
 %  [info.dpow 'powsource_SUBJ_COND'] 'powsource_subj_A': source data for period of interest for each subject
@@ -56,6 +22,8 @@ function powsource_grand(info, opt)
 %
 % FIGURES
 %  gpow_peak_COND_POWPEAK: 3d plot of the source for one peak
+%
+% * indicates obligatory parameter
 %
 % Part of EVENTBASED group-analysis
 % see also ERP_SUBJ, ERP_GRAND,
@@ -71,54 +39,18 @@ output = sprintf('%s began at %s on %s\n', ...
 tic_t = tic;
 %---------------------------%
 
-pow_peak = get_peak(cfg, 'pow');
+pow_peak = get_peak(info, opt.peak, 'pow');
 
 %---------------------------%
-%-prepare two hemisphere if surface
-if strcmp(cfg.sourcespace, 'surface')
-  hemi = {'lh' 'rh'};
-  if ~isfield(cfg, 'surfdownsample'); cfg.surfdownsample = 0.01; end
-  
-  %-----------------%
-  %-mesh for stats and plotting
-  sdir = sprintf('%s%s/%s', cfg.SUBJECTS_DIR, 'fsaverage', 'surf/');
-  [avgsphere, template] = read_avgsurf(sdir, cfg.surfdownsample);
-  %-----------------%
-  
-else
-  hemi = {''}; % no hemisphere
-  
-  %-----------------%
-  %-load template
-  template = ft_read_mri(cfg.template.volume);
-  %-----------------%
-  
-end
+%-load template
+template = ft_read_mri(info.mri.template);
 %---------------------------%
 
 %---------------------------------------------------------%
 %-statistics for main effects
 %-----------------------------------------------%
 %-loop over conditions
-for k = 1:numel(cfg.powsource.cond)
-  cond     = cfg.powsource.cond{k};
-  condname = regexprep(cond, '*', '');
-  
-  %-----------------%
-  %-file for each cond
-  [outtmp data] = load_subj(info, 'powsource', cond);
-  output = [output outtmp];
-  if isempty(data); continue; end
-  %-----------------%
-  
-  %-----------------%
-  %-pow or coh
-  if isfield(data{1}.avg, 'coh') % coh wins
-    cfg.powsource.parameter = 'coh';
-  else
-    cfg.powsource.parameter = 'pow';
-  end
-  %-----------------%
+for t = 1:numel(opt.comp)
   
   %-------------------------------------%
   %-loop over peaks
@@ -128,60 +60,63 @@ for k = 1:numel(cfg.powsource.cond)
     output = sprintf('%s\n%s:\n', output, pow_peak(p).name);
     
     %---------------------------%
-    %-loop over hemisphere
-    for h = 1:numel(hemi)
-      
-      output = [output hemi{h} ' '];
+    %-statistics for effects of interest
+    if numel(opt.comp{t}) == 1
       
       %-----------------%
-      %-interpolate to average sphere
-      if strcmp(cfg.sourcespace, 'surface')
-        tmpcfg = [];
-        %tmpcfg.method = TODO: it's possible to specify other interpolation methods
-        tmpcfg.parameter = ['avg.' cfg.powsource.parameter];
-        
-        for i1 = 1:size(data,1)
-          for i2 = 1:size(data,2)
-            data{i1,i2, p, h} = ft_sourceinterpolate(tmpcfg, data{i1,i2,p,h}, avgsphere{h});
-          end
-        end
+      %-compare against zero
+      cond = opt.comp{t}{1};
+      comp = regexprep(cond, '*', '');
+      output = sprintf('%s\n   COMPARISON %s\n', output, cond);
+      %-----------------%
+      
+      %-----------------%
+      %-file for each cond
+      [outtmp data] = load_subj(info, 'powsource', cond);
+      output = [output outtmp];
+      if isempty(data); continue; end
+      %-----------------%
+      
+      %-----------------%
+      %-pow or coh
+      if isfield(data{1}.avg, 'coh') % coh wins
+        opt.parameter = 'coh';
+      else
+        opt.parameter = 'pow';
       end
       %-----------------%
       
       %-----------------%
       %-grand average
-      tmpcfg = [];
-      tmpcfg.keepindividual = 'yes';
-      tmpcfg.parameter = cfg.powsource.parameter;
-      gpowsouPre = ft_sourcegrandaverage(tmpcfg, data{:,1,p,h});
-      gpowsource = ft_sourcegrandaverage(tmpcfg, data{:,2,p,h});
+      cfg = [];
+      cfg.keepindividual = 'yes';
+      cfg.parameter = opt.parameter;
+      gpowsouPre = ft_sourcegrandaverage(cfg, data{:,1,p});
+      gpowsource = ft_sourcegrandaverage(cfg, data{:,2,p});
       %-----------------%
       
       %-----------------%
       %-do stats
-      cfg.powsource.channeighbstructmat = avgsphere{h}.neigh;
-      [soupos powsource{p,h} outtmp] = report_source(cfg.powsource, gpowsource, gpowsouPre);
-      powsource_peak(p,h).pos = soupos;
-      powsource_peak(p,h).center = mean(soupos,1);
-      powsource_peak(p,h).name = pow_peak(p).name;
+      [soupos powsource{p} outtmp] = report_source(opt, gpowsource, gpowsouPre);
+      powsource_peak(p).pos = soupos;
+      powsource_peak(p).center = mean(soupos,1);
+      powsource_peak(p).name = pow_peak(p).name;
       output = [output outtmp];
       %-----------------%
+      
+    else
+      output = [output sprintf('It does not make sense to compare conditions using different filters\nPlease use powstat for comparisons\n')];
+      continue
       
     end
     
     %-----------------%
     %-plot source
-    h = figure;
-    if strcmp(cfg.sourcespace, 'surface')
-      plot_surface(powsource(p,:), template, 'stat')
-      
-    else
-      plot_volume(powsource(p, :), template, 'stat')
-      
-    end
+    h = figure('vis', 'off');
+    plot_volume(powsource(p, :), template, 'stat')
     
     %--------%
-    pngname = sprintf('gpow_peak_%s_%s', condname, pow_peak(p).name);
+    pngname = sprintf('gpow_peak_%s_%s', comp, pow_peak(p).name);
     saveas(h, [info.log filesep pngname '.png'])
     close(h); drawnow
     
@@ -194,15 +129,15 @@ for k = 1:numel(cfg.powsource.cond)
   end
   %-------------------------------------%
   
-  %-----------------%
+  %---------------------------%
   %-save
-  save([info.dpow 'powsource_peak_' condname], 'powsource_peak')
+  save([info.dpow 'powsource_peak_' comp], 'powsource_peak')
   
   for p = 1:numel(powsource)
     powsource{p}.cfg = []; % this is huge
   end
-  save([info.dpow 'powsource_' condname], 'powsource', '-v7.3')
-  %-----------------%
+  save([info.dpow 'powsource_' comp], 'powsource', '-v7.3')
+  %---------------------------%
   
 end
 %---------------------------%

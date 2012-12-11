@@ -17,6 +17,7 @@ ANALYSIS
 - POW_SUBJ: power-analysis for each subject
 - POW_GRAND: power-analysis over subjects
 - POWSOURCE_SUBJ: identify sources of POW using DICS for each subject
+- POWSOURCE_GRAND: group-level analysis of POW source data
 - POWCORR_SUBJ: power-trial correlation for each subject
 - POWCORR_GRAND: power-trial correlation over subjects
 -----------------------------
@@ -74,6 +75,9 @@ CONN_SUBJ, CONN_GRAND,
 
 .mod: modality, MOD in /data1/projects/PROJ/subjects/SUBJ/MOD/NICK/
   SELDATA, GCLEAN, REDEF, LOAD_DATA, 
+  
+.mri.template: template of the averaged MRI
+  POWSOURCE_GRAND, 
 
 .nick: NICK in /data1/projects/PROJ/subjects/SUBJ/MOD/NICK/
   SELDATA, GCLEAN, REDEF, LOAD_DATA, 
@@ -137,7 +141,7 @@ CFG.OPT
   REPORT_CLUSTER,
   
 .comp*: comparisons to test (cell within cell, e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}}), but you cannot have more than 2 conditions (it's always a t-test). If empty, not statistics and no plots.
-  ERP_GRAND, POW_GRAND, POWCORR_GRAND, 
+  ERP_GRAND, POW_GRAND, POWCORR_GRAND, POWSOURCE_GRAND, 
 
 .compstyle: 'logratio' or 'diff' (when comp contains two conditions, take log(x2/x1) or x2 - x1)
   POW_GRAND, POW_GRP,

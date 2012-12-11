@@ -11,11 +11,9 @@ tmpcfg = [];
 tmpcfg.method = 'slice';
 tmpcfg.funparameter = toplot;
 tmpcfg.funcolorlim = [-2.5 2.5];
-ft_sourceplot(tmpcfg, souinterp)
+ft_sourceplot(tmpcfg, souinterp);
 
 return
-
-
 
 
 %-------------------------------------%
@@ -29,7 +27,6 @@ xpos = unique(stat.pos(:,1));
 ypos = unique(stat.pos(:,2));
 zpos = unique(stat.pos(:,3));
 %-----------------%
-
 
 %-----------------%
 %-plot
