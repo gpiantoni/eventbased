@@ -97,7 +97,7 @@ for t = 1:numel(opt.comp)
       
       %-----------------%
       %-do stats
-      [soupos powsource{p} outtmp] = report_source(opt, gpowsource, gpowsouPre);
+      [soupos powsource{p,1} outtmp] = report_source(opt, gpowsource, gpowsouPre);
       powsource_peak(p).pos = soupos;
       powsource_peak(p).center = mean(soupos,1);
       powsource_peak(p).name = pow_peak(p).name;
