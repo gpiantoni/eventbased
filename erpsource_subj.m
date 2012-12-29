@@ -44,7 +44,7 @@ tic_t = tic;
 
 %---------------------------%
 %-default opt
-if ~isfield(opt, 'lmcv'); opt.lmcv = []; end
+if ~isfield(opt, 'lcmv'); opt.lcmv = []; end
 if ~isfield(opt, 'keepfilter'); opt.keepfilter = false; end
 %---------------------------%
 
