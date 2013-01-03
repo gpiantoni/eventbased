@@ -108,7 +108,7 @@ for k = 1:numel(opt.cond)
     cfgsou.feedback = 'none';
     
     cfgsou.lcmv.keepmom = 'no';
-    if cfg.erpsource.keepfilter
+    if opt.keepfilter
       cfgsou.lcmv.keepfilter   = 'yes';
       cfgsou.lcmv.realfilter   = 'yes';
     end
@@ -133,7 +133,7 @@ for k = 1:numel(opt.cond)
       
       %-----------------%
       %-realign source
-      erpsource_s_B(p,:) = realign_source(cfg, subj, source);
+      erpsource_s_B(p,:) = realign_source(info, subj, source);
       %-----------------%
       
     else
@@ -161,7 +161,7 @@ for k = 1:numel(opt.cond)
     
     %-----------------%
     %-realign source
-    erpsource_s_A(p,:) = realign_source(cfg, subj, source);
+    erpsource_s_A(p,:) = realign_source(info, subj, source);
     %-----------------%
     %---------------------------%
     
