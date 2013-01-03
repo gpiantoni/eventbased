@@ -1,22 +1,10 @@
 function source_subj(info, opt, subj)
 %SOURCE_SUBJ create virtual electrode, to be used for connectivity analysis
 %
-% Check that when you use freesurfer, you need to check which dipoles are
-% actually used
-% 
-% CFG
-%  .data: path of /data1/projects/PROJ/subjects/
-%  .rec: REC in /data1/projects/PROJ/recordings/REC/
-%  .nick: NICK in /data1/projects/PROJ/subjects/0001/MOD/NICK/
-%  .mod: modality, MOD in /data1/projects/PROJ/subjects/0001/MOD/NICK/
-%  .endname: includes preprocessing steps (e.g. '_seldata_gclean_redef')
-%
-%  .log: name of the file and directory to save log
-%  .dsou: directory for connectivity data
-%  .sou.cond: cell with conditions (e.g. {'*cond1' '*cond2'})'
-%
-%-ROI parameters
-%  .source.areas: 'channel', 'erp', 'dip', 'erppeak' or 'powpeak'
+% INFO
+
+% CFG.OPT
+%  .roi: 'channel', 'erp', 'dip', 'erppeak' or 'powpeak'
 %
 %    if 'channel'
 %      .source.chan: a struct with
@@ -53,6 +41,23 @@ function source_subj(info, opt, subj)
 %      .source.refcond: string of the condition used for source location
 %      .source.fixedmom: logical (use the same moment for source or change it every time)
 %
+
+% Check that when you use freesurfer, you need to check which dipoles are
+% actually used
+% 
+% CFG
+%  .data: path of /data1/projects/PROJ/subjects/
+%  .rec: REC in /data1/projects/PROJ/recordings/REC/
+%  .nick: NICK in /data1/projects/PROJ/subjects/0001/MOD/NICK/
+%  .mod: modality, MOD in /data1/projects/PROJ/subjects/0001/MOD/NICK/
+%  .endname: includes preprocessing steps (e.g. '_seldata_gclean_redef')
+%
+%  .log: name of the file and directory to save log
+%  .dsou: directory for connectivity data
+%  .sou.cond: cell with conditions (e.g. {'*cond1' '*cond2'})'
+%
+%-ROI parameters
+
 % IN:
 %  data in /PROJ/subjects/SUBJ/MOD/NICK/
 %  if .source.areas == 'erppeak' or ('dip' and .source.beamformer == 'erp')
@@ -81,10 +86,10 @@ tic_t = tic;
 
 %---------------------------%
 %-prepare montage
-switch cfg.source.areas
+switch opt.roi 
   
   case 'channel'
-    [mont outtmp] = prepare_montage(info, opt);
+    [mont outtmp] = prepare_montage(opt);
     
   case 'erp'
     condname = regexprep(cfg.source.refcond, '*', '');
@@ -172,6 +177,137 @@ fwrite(fid, output);
 fclose(fid);
 %-----------------%
 %---------------------------%
+
+%---------------------------------------------------------%
+%-SUBFUNCTION FOR MONTAGE---------------------------------%
+%---------------------------------------------------------%
+%-----------------------------------------------%
+%-PREPARE_MONTAGE_CHANNEL-----------------------%
+%-----------------------------------------------%
+function [mont output] = prepare_montage_channel(cfg)
+
+%-----------------%
+%-rename
+grpchan = cfg.source.chan;
+label = cfg.seldata.label;
+%-----------------%
+
+%-----------------%
+%-prepare TRA
+nnew = numel(grpchan);
+nold = numel(cfg.seldata.label);
+tra = zeros(nnew, nold);
+
+output = sprintf('%d sensor groups:', nnew);
+
+for i = 1:nnew
+  ism = ismember(label, grpchan(i).chan)';
+  tra(i,:) = ism / numel(find(ism));
+  output = [output sprintf(' %s (%d elec),', grpchan(i).name, numel(find(ism)))];
+end
+%-----------------%
+
+%-----------------%
+%-prepare MONT
+mont.labelorg = label;
+mont.labelnew = {grpchan.name}';
+mont.tra = tra;
+%-----------------%
+%-----------------------------------------------%
+
+
+%-----------------------------------------------%
+%-PREPARE_MONTAGE_PEAK--------------------------%
+%-----------------------------------------------%
+function [mont output] = prepare_montage_peak(source, peak)
+
+%---------------------------%
+%-check input
+if numel(source) == 1 % called from cfg.source.areas = 'dip'
+  source = repmat(source, size(peak));
+end
+
+if numel(source) ~= numel(peak)
+  error(sprintf('the number of sources (%1d) should be identical to the number of significant peaks (%1d)', numel(source), numel(peak)))
+end
+
+output = '';
+%---------------------------%
+
+%-------------------------------------%
+%-loop over sources
+%-----------------%
+%-alloc mont
+nvox = size(cat(1,peak.pos),1) * 3;
+nchan = size(source{1}.avg.filter{source{1}.inside(1)},2);
+tra = NaN(nvox, nchan);
+%-----------------%
+
+cnt = 1;
+for i = 1:numel(source)
+  %-----------------%
+  %-only inside dipole
+  sou = source{i};
+  sou.pos = source{i}.pos(source{i}.inside,:);
+  sou.avg.filter = source{i}.avg.filter(source{i}.inside);
+  %-----------------%
+  
+  [~, isou, ipeak] = intersect(sou.pos, peak(i).pos, 'rows');
+  
+  %-----------------%
+  %-output
+  maxpos = max(peak(i).pos(ipeak,:));
+  meanpos = mean(peak(i).pos(ipeak,:));
+  minpos = min(peak(i).pos(ipeak,:));
+  
+  outtmp = sprintf(['%s (defined at% 5d locations) has% 5d dipoles:\n' ...
+  '                         x = [% 6.1f % 6.1f % 6.1f]\n', ...
+  '                         y = [% 6.1f % 6.1f % 6.1f]\n', ...
+  '                         z = [% 6.1f % 6.1f % 6.1f]\n'], ...
+  peak(i).name, size(peak(i).pos,1), size(ipeak,1), ...
+  maxpos(1), meanpos(1), minpos(1), ...
+  maxpos(2), meanpos(2), minpos(2), ...
+  maxpos(3), meanpos(3), minpos(3));
+  output = [output outtmp];
+  %-----------------%
+  
+  %-----------------%
+  %-are all the voxels in the brain
+  if size(ipeak,1) ~= size(peak(i).pos,1)
+    outtmp = sprintf('warning: source %1d has % 3d voxels in the brain out of % 3d\n', i, size(ipeak,1), size(peak(i).pos,1));
+    output = [output outtmp];
+  end
+  %-----------------%
+  
+  %-----------------%
+  %-per voxel
+  for v = 1:numel(isou)
+    tra(cnt + (0:2),:) = sou.avg.filter{isou(v)};
+    
+    %-------%
+    %-per moment
+    labelnew{cnt,1} = sprintf('%s_%04d_a', peak(i).name, v);
+    labelnew{cnt+1,1} = sprintf('%s_%04d_b', peak(i).name, v);
+    labelnew{cnt+2,1} = sprintf('%s_%04d_c', peak(i).name, v);
+    %-------%
+    
+    cnt = cnt + 3;
+  end
+  %-----------------%
+  
+end
+
+%-----------------%
+%-clean up the tra
+tra = tra(1:cnt-1,:);
+%-----------------%
+%-------------------------------------%
+
+mont.labelorg = source{1}.cfg.channel;
+mont.labelnew = labelnew;
+mont.tra = tra;
+%-----------------------------------------------%
+%---------------------------------------------------------%
 
 %---------------------------------------------------------%
 %-SUBFUNCTION: pcadata
