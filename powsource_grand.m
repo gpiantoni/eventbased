@@ -18,7 +18,6 @@ function powsource_grand(info, opt)
 %
 % OUT
 %  [info.dpow 'powsource_COND'] 'powsource': source analysis for all subject
-%  [info.dpow 'powsource_peak_COND'] 'powsource_peak': significant source peaks in POW
 %
 % FIGURES
 %  gpow_peak_COND_POWPEAK: 3d plot of the source for one peak
@@ -54,7 +53,6 @@ for t = 1:numel(opt.comp)
   
   %-------------------------------------%
   %-loop over peaks
-  powsource_peak = [];
   powsource = [];
   for p = 1:numel(pow_peak)
     output = sprintf('%s\n%s:\n', output, pow_peak(p).name);
@@ -97,10 +95,8 @@ for t = 1:numel(opt.comp)
       
       %-----------------%
       %-do stats
-      [soupos powsource{p,1} outtmp] = report_source(opt, gpowsource, gpowsouPre);
-      powsource_peak(p).pos = soupos;
-      powsource_peak(p).center = mean(soupos,1);
-      powsource_peak(p).name = pow_peak(p).name;
+      [powsource{p,1} outtmp] = report_source(opt, gpowsource, gpowsouPre);
+      powsource{p}.name = pow_peak(p).name;
       output = [output outtmp];
       %-----------------%
       
@@ -131,8 +127,6 @@ for t = 1:numel(opt.comp)
   
   %---------------------------%
   %-save
-  save([info.dpow 'powsource_peak_' comp], 'powsource_peak')
-  
   for p = 1:numel(powsource)
     powsource{p}.cfg = []; % this is huge
   end

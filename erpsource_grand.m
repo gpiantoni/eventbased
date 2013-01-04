@@ -43,7 +43,6 @@ function erpsource_grand(info, opt)
 %
 % OUT
 %  [info.derp 'erpsource_COND'] 'erpsource': source analysis for all subject
-%  [info.derp 'erpsource_peak_COND'] 'erpsource_peak': significant source peaks in the ERP
 %
 % FIGURES
 %  gerp_peak_COND_ERPPEAK: 3d plot of the source for one peak
@@ -113,7 +112,6 @@ for k = 1:numel(cfg.erpsource.cond)
   
   %-------------------------------------%
   %-loop over peaks
-  erpsource_peak = [];
   erpsource = [];
   for p = 1:numel(erp_peak)
     output = sprintf('%s\n%s:\n', output, erp_peak(p).name);
@@ -149,10 +147,8 @@ for k = 1:numel(cfg.erpsource.cond)
       %-----------------%
       %-do stats
       cfg.erpsource.channeighbstructmat = avgsphere{h}.neigh;
-      [soupos erpsource{p,h} outtmp] = report_source(cfg.erpsource, gerpsource, gerpsouPre);
-      erpsource_peak(p,h).pos = soupos;
-      erpsource_peak(p,h).center = mean(soupos,1);
-      erpsource_peak(p,h).name = erp_peak(p).name;
+      [erpsource{p,h} outtmp] = report_source(cfg.erpsource, gerpsource, gerpsouPre);
+      erpsource{p,h}.name = erp_peak(p).name;
       output = [output outtmp];
       %-----------------%
       
@@ -185,8 +181,6 @@ for k = 1:numel(cfg.erpsource.cond)
   
   %-----------------%
   %-save
-  save([info.derp 'erpsource_peak_' condname], 'erpsource_peak')
-  
   for p = 1:numel(erpsource)
     erpsource{p}.cfg = []; % this is huge
   end

@@ -1,4 +1,4 @@
-function [soupeak stat output] = report_source(cfg, gdat1, gdat2)
+function [stat output] = report_source(cfg, gdat1, gdat2)
 %REPORT_SOURCE get clusters in the comparison between two conditions or against baseline
 %
 % It only reports either positive or negative clusters. It does not make
@@ -6,7 +6,7 @@ function [soupeak stat output] = report_source(cfg, gdat1, gdat2)
 % and disactivation from baseline?)  
 % 
 % Use as:
-%   [soupeak stat output] = report_source(cfg, gdat1, gdat2)
+%   [stat output] = report_source(cfg, gdat1, gdat2)
 %
 % CFG
 %  .clusterstatistics: 'maxsize' or 'max'
@@ -14,7 +14,6 @@ function [soupeak stat output] = report_source(cfg, gdat1, gdat2)
 %                   it can be a string in format '5%' to take top 5 voxels
 %                   and put them in a cluster. 
 %  .numrandomization: n of randomizations (default 1e5)
-%  .maxvox: max number of significant voxels to be used in soupeak
 %  .clusterthr: threshold to report clusters in output (default 0.5)
 %
 % GDAT1/GDAT2
@@ -31,7 +30,6 @@ function [soupeak stat output] = report_source(cfg, gdat1, gdat2)
 if ~isfield(cfg, 'clusterstatistics'); cfg.clusterstatistics = 'maxsize'; end
 if ~isfield(cfg, 'numrandomization'); cfg.numrandomization = 1e5; end
 if ~isfield(cfg, 'clusteralpha'); cfg.clusteralpha = 0.05; end
-if ~isfield(cfg, 'maxvox'); cfg.maxvox = 50; end
 if ~isfield(cfg, 'clusterthr'); cfg.clusterthr = .5; end
 if ~isfield(cfg, 'minnbchan'); cfg.minnbchan = 0; end
 if ~isfield(cfg, 'atlas'); cfg.atlas = 1; end
@@ -205,28 +203,6 @@ end
 %-------------------------------------%
 
 %-------------------------------------%
-%-show only first source for connectivity analysis
-cl = find(clusterslabelmat == 1);
-
-if posneg
-  [~, sstat] = sort(stat.stat(cl), 'descend');
-else
-  [~, sstat] = sort(stat.stat(cl), 'ascend');
-end
-
-if numel(sstat) <= cfg.maxvox
-  selvox = cl(sstat);
-else
-  selvox = cl(sstat(1:cfg.maxvox));
-  output = sprintf('%s     Too many voxels in main cluster (% 4.f), reduced to largest % 3.f (lowest t-stat:% 6.3f)\n', ...
-    output, numel(sstat), cfg.maxvox, stat.stat(selvox(end)));
-end
-
-soupeak = stat.pos(selvox, :);
-clmat = zeros(size(clusterslabelmat));
-clmat(cl(sstat)) = 1; % in cluster, but not first cfg.maxvox
-clmat(selvox) = 2; % largest t-score
-
-stat.image = zeros(size(clusterslabelmat));
-stat.image(selvox) = 1;
+%-simplify the output
+stat = ft_checkdata(stat, 'datatype', 'source'); % from volume into source
 %-------------------------------------%
