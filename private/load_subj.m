@@ -139,17 +139,17 @@ for i = 1:numel(info.subjall)
     case 'erpsource'
       for p = 1:numel(erpsource_s_A) % n of peaks
         if ~isempty(erpsource_s_B) % TODO: not very elegant, but erpsource_s_B can be empty
-          dataout(i,1,p,:) = erpsource_s_B; % baseline
+          dataout{i,1,p} = erpsource_s_B{p}; % baseline
         end
-        dataout(i,2,p,:) = erpsource_s_A; % of interest
+        dataout{i,2,p} = erpsource_s_A{p}; % of interest
       end
       
     case 'powsource'
       for p = 1:size(powsource_s_A,1) % n of peaks
         if ~isempty(powsource_s_B)
-          dataout(i,1,p,:) = powsource_s_B; % baseline
+          dataout{i,1,p} = powsource_s_B{p}; % baseline
         end
-        dataout(i,2,p,:) = powsource_s_A; % of interest
+        dataout{i,2,p} = powsource_s_A{p}; % of interest
       end
       
     case 'erpstat'
