@@ -2,80 +2,42 @@ function source_subj(info, opt, subj)
 %SOURCE_SUBJ create virtual electrode, to be used for connectivity analysis
 %
 % INFO
-
-% CFG.OPT
-%  .roi: 'channel', 'erp', 'dip', 'erppeak' or 'powpeak'
-%
-%    if 'channel'
-%      .source.chan: a struct with
-%        .name: 'name of group elec'
-%        .chan: cell with electrode labels for each group
-%
-%    if 'erp'
-%      .source.dip: a struct with
-%        .name: 'name of dipole'
-%        .time: time window of the ERP activity of interest (two scalars)
-%      .derp: directory with ERP data
-%      .source.refcond: condition with ERP used for reference topography (string)
-%
-%    if 'dip' (use dipoles of interest):
-%      .source.beamformer: 'erp' or 'pow' (time-domain, lcmv, or freq-domain, dics)
-%                        you need to have run 'erpsource_subj' or 'powsource_subj' respectively
-%                        don't forget to keepfilter
-%      .source.refcond: string of the condition used for source location
-%      .source.fixedmom: logical (use the same moment for source or change it every time)
-%      .source.dip(1).name: name of the dipole
-%      .source.dip(1).pos: position of the dipole (X x 3, it'll do PCA on it)
-%      (this function only works with beamforming, NOT with simple inversion of leadfield)
-%
-%    if 'erppeak' (use beamformer to construct virtual electrode):
-%      .derp: directory with ERP data (you need 'erpsource_subj' with keepfilder)
-%      .source.refcond: string of the condition used for source location
-%      .source.fixedmom: logical (use the same moment for source or change it every time)
-%
-%    if 'powpeak' (use beamformer to construct virtual electrode):
-%      Because this function returns the activity at the source in
-%      time-domain, we need to use the beamformer in time-domain, i.e. LCMV
-%      .dpow: directory with POW data
-%      .derp: you need 'erpsource_subj' with keepfilder
-%      .source.refcond: string of the condition used for source location
-%      .source.fixedmom: logical (use the same moment for source or change it every time)
-%
-
-% Check that when you use freesurfer, you need to check which dipoles are
-% actually used
-% 
-% CFG
-%  .data: path of /data1/projects/PROJ/subjects/
-%  .rec: REC in /data1/projects/PROJ/recordings/REC/
-%  .nick: NICK in /data1/projects/PROJ/subjects/0001/MOD/NICK/
-%  .mod: modality, MOD in /data1/projects/PROJ/subjects/0001/MOD/NICK/
-%  .endname: includes preprocessing steps (e.g. '_seldata_gclean_redef')
-%
 %  .log: name of the file and directory to save log
-%  .dsou: directory for connectivity data
-%  .sou.cond: cell with conditions (e.g. {'*cond1' '*cond2'})'
+%  .dsou: directory with SOURCE data
 %
-%-ROI parameters
-
+% CFG.OPT
+%  .cond: cell with conditions (e.g. {'*cond1' '*cond2'})
+%  .mont.type: type of montage to compute source activity
+%  if 'channel'
+%    .mont.chan: a struct with
+%      .name: 'name of group elec'
+%      .chan: cell with electrode labels for each group
+%    .label: labels of electrodes in the data
+%
+%  if 'roi'
+%    .roi: see GET_ROI
+%
+%    .mont.forward: forward model
+%    if 'leadfield'
+%      TODO
+%    if 'lcmv'
+%      .mont.refcond: reference condition, in which you estimated
+%                     erpsource_subj with keepfilter (as cell)
+%    .fixedmom: logical (use the same moment for source at every trial)
+%
 % IN:
 %  data in /PROJ/subjects/SUBJ/MOD/NICK/
-%  if .source.areas == 'erppeak' or ('dip' and .source.beamformer == 'erp')
-%     [info.derp 'erpsource_SUBJ_COND']: source data for period of interest for each subject
-%     [info.derp 'NICK_COND_soupeak']: significant source peaks in the ERP
-%  if .source.areas == 'powpeak'  or ('dip' and .source.beamformer == 'pow')
-%     [info.derp 'erpsource_SUBJ_COND']: source data for period of interest for each subject
-%     [info.dpow 'NICK_COND_soupeak']: significant source peaks in the POW
 %
 % OUT
-%  [cfg.dsou 'conn_SUBJ_COND']: virtual electrode for each channel
+%  [cfg.dsou 'conn_SUBJ_COND'] 'source': virtual electrode for each channel
 %
-% Part of EVENTBASED single-subject
-% see also ERP_SUBJ, ERP_GRAND,
+% Part of EVENTBASED group-analysis
+% see also ERP_SUBJ, ERP_GRAND, 
 % ERPSOURCE_SUBJ, ERPSOURCE_GRAND, ERPSTAT_SUBJ, ERPSTAT_GRAND,
 % POW_SUBJ, POW_GRAND, POW_GRP, POWCORR_SUBJ, POWCORR_GRAND,
 % POWSOURCE_SUBJ, POWSOURCE_GRAND, POWSTAT_SUBJ, POWSTAT_GRAND,
-% SOURCE_SUBJ, CONN_SUBJ, CONN_GRAND, CONN_STAT
+% SOURCE_SUBJ, CONN_SUBJ, CONN_GRAND, CONN_STAT,
+% R_GRAND
 
 %---------------------------%
 %-start log
@@ -84,39 +46,26 @@ output = sprintf('%s (%04d) began at %s on %s\n', ...
 tic_t = tic;
 %---------------------------%
 
+if ~isfield(opt, 'fixedmom'); opt.fixedmom = false; end
+
 %---------------------------%
 %-prepare montage
-switch opt.roi 
+switch opt.mont.type
   
   case 'channel'
-    [mont outtmp] = prepare_montage(opt);
+    [mont outtmp] = prepare_montage_channel(opt);
+        
+  case 'roi'
     
-  case 'erp'
-    condname = regexprep(cfg.source.refcond, '*', '');
-    load([info.derp 'erp_' condname], 'erp')
+    roi = get_roi(info, opt.mont.roi);
     
-    [mont outtmp] = prepare_montage(cfg, erp);
-    
-  case 'dip'
-    condname = regexprep(cfg.source.refcond, '*', '');
-    sourcename = sprintf('%ssource_s_A', cfg.source.beamformer);
-    load(sprintf('%s%ssource_%04d_%s', info.derp, cfg.source.beamformer, subj, condname), sourcename) % source of interest
-    
-    [mont outtmp] = prepare_montage(cfg, eval(sourcename), cfg.source.dip);
-    
-  case 'erppeak'
-    condname = regexprep(cfg.source.refcond, '*', '');
-    load(sprintf('%serpsource_%04d_%s', info.derp, subj, condname), 'erpsource_s_A') % source of interest
-    load(sprintf('%serpsource_peak_%s', info.derp, condname), 'erpsource_peak') % peaks in ERP
-    
-    [mont outtmp] = prepare_montage(cfg, erpsource_s_A, erpsource_peak);
-    
-  case 'powpeak'
-    condname = regexprep(cfg.source.refcond, '*', '');
-    load(sprintf('%serpsource_%04d_%s', info.derp, subj, condname), 'erpsource_s_A') % source of interest
-    load(sprintf('%spowsource_peak_%s', info.dpow, condname), 'powsource_peak') % peaks in POW
-    
-    [mont outtmp] = prepare_montage(cfg, erpsource_s_A, powsource_peak);
+    switch opt.mont.forward
+      case 'lcmv'
+        info.subjall = subj;
+        [~, fwd] = load_subj(info, 'erpsource', opt.mont.refcond{1});
+        
+    end
+    [mont outtmp] = prepare_montage_roi(roi, fwd{1});
     
 end
 output = [output outtmp];
@@ -124,13 +73,13 @@ output = [output outtmp];
 
 %-------------------------------------%
 %-loop over conditions
-for k = 1:numel(cfg.source.cond)
-  cond     = cfg.source.cond{k};
+for k = 1:numel(opt.cond)
+  cond     = opt.cond{k};
   condname = regexprep(cond, '*', '');
   
   %---------------------------%
   %-read data
-  [data badchan] = load_data(cfg, subj, cond);
+  [data] = load_data(info, subj, cond);
   if isempty(data)
     output = sprintf('%sCould not find any file for condition %s\n', ...
       output, cond);
@@ -141,23 +90,14 @@ for k = 1:numel(cfg.source.cond)
   %---------------------------%
   
   %---------------------------%
-  %-apply montage (if using two-step procedure)
-  data = ft_apply_montage(data, mont, 'feedback', 'none');
-  
-  if strcmp(cfg.source.areas, 'dip')
-    data = pcadata(data, cfg.source.dip, cfg.source.fixedmom);
+  %-apply montage
+  source = ft_apply_montage(data, mont, 'feedback', 'none');
+  if strcmp(opt.mont.type, 'roi')
+    source = pcadata(source, roi, opt.fixedmom);
   end
-  if strcmp(cfg.source.areas, 'erppeak')
-    data = pcadata(data, erpsource_peak, cfg.source.fixedmom);
-  end
-  if strcmp(cfg.source.areas, 'powpeak')
-    data = pcadata(data, powsource_peak, cfg.source.fixedmom);
-  end
-  
-  source = ft_checkdata(data, 'hassampleinfo', 'yes'); % recreate sampleinfo which got lost (necessary for selfromraw)
   %---------------------------%
   
-  save([cfg.dsou outputfile], 'source')
+  save([info.dsou outputfile], 'source')
   
 end
 %-------------------------------------%
@@ -188,14 +128,14 @@ function [mont output] = prepare_montage_channel(cfg)
 
 %-----------------%
 %-rename
-grpchan = cfg.source.chan;
-label = cfg.seldata.label;
+grpchan = cfg.mont.chan;
+label = cfg.label;
 %-----------------%
 
 %-----------------%
 %-prepare TRA
 nnew = numel(grpchan);
-nold = numel(cfg.seldata.label);
+nold = numel(label);
 tra = zeros(nnew, nold);
 
 output = sprintf('%d sensor groups:', nnew);
@@ -215,56 +155,59 @@ mont.tra = tra;
 %-----------------%
 %-----------------------------------------------%
 
-
 %-----------------------------------------------%
 %-PREPARE_MONTAGE_PEAK--------------------------%
 %-----------------------------------------------%
-function [mont output] = prepare_montage_peak(source, peak)
+function [mont output] = prepare_montage_roi(roi, fwd)
 
+%-------------------------------------%
+%-forward model
 %---------------------------%
-%-check input
-if numel(source) == 1 % called from cfg.source.areas = 'dip'
-  source = repmat(source, size(peak));
-end
-
-if numel(source) ~= numel(peak)
-  error(sprintf('the number of sources (%1d) should be identical to the number of significant peaks (%1d)', numel(source), numel(peak)))
-end
-
-output = '';
+%-based on LCMV
+%-----------------%
+%-only inside dipole
+pos = fwd.pos(fwd.inside,:);
+filter = fwd.avg.filter(fwd.inside);
+label = fwd.cfg.channel;
+%-----------------%
 %---------------------------%
+%-------------------------------------%
 
 %-------------------------------------%
 %-loop over sources
 %-----------------%
 %-alloc mont
-nvox = size(cat(1,peak.pos),1) * 3;
-nchan = size(source{1}.avg.filter{source{1}.inside(1)},2);
+nvox = size(cat(1, roi.pos),1) * 3;
+nchan = size(fwd.avg.filter{fwd.inside(1)},2);
 tra = NaN(nvox, nchan);
 %-----------------%
 
+output = '';
 cnt = 1;
-for i = 1:numel(source)
-  %-----------------%
-  %-only inside dipole
-  sou = source{i};
-  sou.pos = source{i}.pos(source{i}.inside,:);
-  sou.avg.filter = source{i}.avg.filter(source{i}.inside);
-  %-----------------%
+
+for i = 1:numel(roi)
   
-  [~, isou, ipeak] = intersect(sou.pos, peak(i).pos, 'rows');
+  [~, isou, iroi] = intersect(pos, roi(i).pos, 'rows');
+  
+  %-----------------%
+  %-ERROR if regions of interest is not in the brain
+  if isempty(isou)
+    output = [output sprintf('ROI %s is not in the brain, check the position of the dipoles\n', roi(i).name)];
+    continue
+  end
+  %-----------------%
   
   %-----------------%
   %-output
-  maxpos = max(peak(i).pos(ipeak,:));
-  meanpos = mean(peak(i).pos(ipeak,:));
-  minpos = min(peak(i).pos(ipeak,:));
+  maxpos = max(roi(i).pos(iroi,:), [], 1);
+  meanpos = mean(roi(i).pos(iroi,:), 1);
+  minpos = min(roi(i).pos(iroi,:), [], 1);
   
   outtmp = sprintf(['%s (defined at% 5d locations) has% 5d dipoles:\n' ...
   '                         x = [% 6.1f % 6.1f % 6.1f]\n', ...
   '                         y = [% 6.1f % 6.1f % 6.1f]\n', ...
   '                         z = [% 6.1f % 6.1f % 6.1f]\n'], ...
-  peak(i).name, size(peak(i).pos,1), size(ipeak,1), ...
+  roi(i).name, size(roi(i).pos,1), size(iroi,1), ...
   maxpos(1), meanpos(1), minpos(1), ...
   maxpos(2), meanpos(2), minpos(2), ...
   maxpos(3), meanpos(3), minpos(3));
@@ -273,8 +216,8 @@ for i = 1:numel(source)
   
   %-----------------%
   %-are all the voxels in the brain
-  if size(ipeak,1) ~= size(peak(i).pos,1)
-    outtmp = sprintf('warning: source %1d has % 3d voxels in the brain out of % 3d\n', i, size(ipeak,1), size(peak(i).pos,1));
+  if size(iroi,1) ~= size(roi(i).pos,1)
+    outtmp = sprintf('warning: source %1d has % 3d voxels in the brain out of % 3d\n', i, size(iroi,1), size(roi(i).pos,1));
     output = [output outtmp];
   end
   %-----------------%
@@ -282,13 +225,13 @@ for i = 1:numel(source)
   %-----------------%
   %-per voxel
   for v = 1:numel(isou)
-    tra(cnt + (0:2),:) = sou.avg.filter{isou(v)};
+    tra(cnt + (0:2),:) = filter{isou(v)};
     
     %-------%
     %-per moment
-    labelnew{cnt,1} = sprintf('%s_%04d_a', peak(i).name, v);
-    labelnew{cnt+1,1} = sprintf('%s_%04d_b', peak(i).name, v);
-    labelnew{cnt+2,1} = sprintf('%s_%04d_c', peak(i).name, v);
+    labelnew{cnt,1} = sprintf('%s_%04d_a', roi(i).name, v);
+    labelnew{cnt+1,1} = sprintf('%s_%04d_b', roi(i).name, v);
+    labelnew{cnt+2,1} = sprintf('%s_%04d_c', roi(i).name, v);
     %-------%
     
     cnt = cnt + 3;
@@ -303,7 +246,7 @@ tra = tra(1:cnt-1,:);
 %-----------------%
 %-------------------------------------%
 
-mont.labelorg = source{1}.cfg.channel;
+mont.labelorg = label;
 mont.labelnew = labelnew;
 mont.tra = tra;
 %-----------------------------------------------%
@@ -312,18 +255,18 @@ mont.tra = tra;
 %---------------------------------------------------------%
 %-SUBFUNCTION: pcadata
 %---------------------------------------------------------%
-function [data] = pcadata(data, soupeak, fixedmom)
+function [data] = pcadata(data, roi, fixedmom)
 %PCADATA simplify data using pca on each region of interest
 % keep only the first component
 
 %-------------------------------------%
 %-loop over regions of interest
 trial = [];
-for i1 = 1:numel(soupeak)
+for i1 = 1:numel(roi)
   
   %-----------------%
   %-find channels belonging to region of interest
-  newname = sprintf('%s', soupeak(i1).name);
+  newname = sprintf('%s', roi(i1).name);
   label{i1,1} = newname;
   ivox = ~cellfun(@isempty, strfind(data.label, newname));
   %-----------------%

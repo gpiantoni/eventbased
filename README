@@ -20,22 +20,27 @@ ANALYSIS
 - POWSOURCE_GRAND: group-level analysis of POW source data
 - POWCORR_SUBJ: power-trial correlation for each subject
 - POWCORR_GRAND: power-trial correlation over subjects
+- SOURCE_SUBJ: create virtual electrode, to be used for connectivity analysis
+- R_GRAND: call R subfunctions
 -----------------------------
 -----------------------------------------------------------
 
 -----------------------------------------------------------
 SUBFUNCTIONS
 - GET_PEAK: get the peaks for the source analysis
-  ERPSOURCE_SUBJ, POWSOURCE_SUBJ, 
+  ERPSOURCE_SUBJ, POWSOURCE_SUBJ,
+  
+- GET_ROI: get the regions of interest
+  SOURCE_SUBJ,
 
 - LOAD_DATA: load data, and optionally get bad channels
-  ERP_SUBJ, POW_SUBJ, POWCORR_SUBJ, ERPSOURCE_SUBJ, POWSOURCE_SUBJ, 
+  ERP_SUBJ, POW_SUBJ, POWCORR_SUBJ, ERPSOURCE_SUBJ, POWSOURCE_SUBJ, SOURCE_SUBJ,
   
 - LOAD_HEADSHAPE: load vol, lead, sens
   ERPSOURCE_SUBJ, POWSOURCE_SUBJ, 
 
 - LOAD_SUBJ: load single-subject data
-  ERP_GRAND, POW_GRAND, POWCORR_GRAND,
+  ERP_GRAND, POW_GRAND, POWCORR_GRAND, SOURCE_SUBJ,
   
 - LOAD_SOURCE: load source data from virtual electrode
   ERP_SUBJ, POW_SUBJ, POWCORR_SUBJ,
@@ -68,10 +73,10 @@ CONN_SUBJ, CONN_GRAND,
   POW_SUBJ, POW_GRAND, POWCORR_SUBJ, POWCORR_GRAND, LOAD_SUBJ, GET_PEAK
   
 .dsou: directory with SOURCE data
-  LOAD_SOURCE,
+  LOAD_SOURCE, SOURCE_SUBJ,
 
 .log: name of the file and directory to save log
-  SELDATA, GCLEAN, REDEF, ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, POW_SUBJ, POW_GRAND, POWCORR_SUBJ, POWCORR_GRAND, CONN_SUBJ, CONN_GRAND, R_GRAND,
+  SELDATA, GCLEAN, REDEF, ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, POW_SUBJ, POW_GRAND, POWCORR_SUBJ, POWCORR_GRAND, CONN_SUBJ, CONN_GRAND, R_GRAND, 
 
 .mod: modality, MOD in /data1/projects/PROJ/subjects/SUBJ/MOD/NICK/
   SELDATA, GCLEAN, REDEF, LOAD_DATA, 
@@ -140,13 +145,13 @@ CFG.OPT
 .clusterthr: threshold of the cluster
   REPORT_CLUSTER,
   
-.comp*: comparisons to test (cell within cell, e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}}), but you cannot have more than 2 conditions (it's always a t-test). If empty, not statistics and no plots.
+.comp: comparisons to test (cell within cell, e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}}), but you cannot have more than 2 conditions (it's always a t-test). If empty, not statistics and no plots.
   ERP_GRAND, POW_GRAND, POWCORR_GRAND, POWSOURCE_GRAND, 
 
 .compstyle: 'logratio' or 'diff' (when comp contains two conditions, take log(x2/x1) or x2 - x1)
   POW_GRAND, POW_GRP,
   
-.cond: cell with conditions (e.g. {'*cond1' '*cond2'})'
+.cond: cell with conditions (e.g. {'*cond1' '*cond2'})
   ERP_SUBJ, ERP_GRAND, ERPSOURCE_SUBJ, POW_SUBJ, POW_GRAND, POWCORR_GRAND, CONN_SUBJ, POWSOURCE_SUBJ,
 
 .conn.avgoverfreq: average power spectrum
@@ -207,13 +212,19 @@ CFG.OPT
   ERPSOURCE_SUBJ,  
   
 .label: if not empty, labels of electrodes to rename (same length as seldata.selchan) 
-  SELDATA, 
+  SELDATA, SOURCE_SUBJ, 
   
 .lcmv: options that will be passed to beamformer.
   ERPSOURCE_SUBJ, 
 
 .lpfreqn = [.3 / (cfg.gclean.fsample/2)]; % normalized by half of the sampling frequency!
   GCLEAN,
+  
+.mont.chan: a struct with .name ('name of group elec') and .chan (cell with electrode labels for each group)
+  SOURCE_SUBJ,
+  
+.mont.type: type of montage to compute source activity
+  SOURCE_SUBJ,
 
 .numrandomization: number of randomization
   REPORT_CLUSTER, 
