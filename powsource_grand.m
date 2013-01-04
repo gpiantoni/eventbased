@@ -51,6 +51,40 @@ template = ft_read_mri(info.mri.template);
 %-loop over conditions
 for t = 1:numel(opt.comp)
   
+  %---------------------------%
+  %-statistics for effects of interest
+  if numel(opt.comp{t}) == 1
+    
+    %-----------------%
+    %-compare against zero
+    cond = opt.comp{t}{1};
+    comp = regexprep(cond, '*', '');
+    output = sprintf('%s\n   COMPARISON %s\n', output, cond);
+    %-----------------%
+    
+    %-----------------%
+    %-file for each cond
+    [outtmp data] = load_subj(info, 'powsource', cond);
+    output = [output outtmp];
+    if isempty(data); continue; end
+    %-----------------%
+    
+    %-----------------%
+    %-pow or coh
+    if isfield(data{1}.avg, 'coh') % coh wins
+      opt.parameter = 'coh';
+    else
+      opt.parameter = 'pow';
+    end
+    %-----------------%
+    
+  else
+    output = [output sprintf('It does not make sense to compare conditions using different filters\nPlease use powstat for comparisons\n')];
+    continue
+    
+  end
+  %---------------------------%
+  
   %-------------------------------------%
   %-loop over peaks
   powsource = [];
@@ -58,53 +92,21 @@ for t = 1:numel(opt.comp)
     output = sprintf('%s\n%s:\n', output, pow_peak(p).name);
     
     %---------------------------%
-    %-statistics for effects of interest
-    if numel(opt.comp{t}) == 1
-      
-      %-----------------%
-      %-compare against zero
-      cond = opt.comp{t}{1};
-      comp = regexprep(cond, '*', '');
-      output = sprintf('%s\n   COMPARISON %s\n', output, cond);
-      %-----------------%
-      
-      %-----------------%
-      %-file for each cond
-      [outtmp data] = load_subj(info, 'powsource', cond);
-      output = [output outtmp];
-      if isempty(data); continue; end
-      %-----------------%
-      
-      %-----------------%
-      %-pow or coh
-      if isfield(data{1}.avg, 'coh') % coh wins
-        opt.parameter = 'coh';
-      else
-        opt.parameter = 'pow';
-      end
-      %-----------------%
-      
-      %-----------------%
-      %-grand average
-      cfg = [];
-      cfg.keepindividual = 'yes';
-      cfg.parameter = opt.parameter;
-      gpowsouPre = ft_sourcegrandaverage(cfg, data{:,1,p});
-      gpowsource = ft_sourcegrandaverage(cfg, data{:,2,p});
-      %-----------------%
-      
-      %-----------------%
-      %-do stats
-      [powsource{p,1} outtmp] = report_source(opt, gpowsource, gpowsouPre);
-      powsource{p}.name = pow_peak(p).name;
-      output = [output outtmp];
-      %-----------------%
-      
-    else
-      output = [output sprintf('It does not make sense to compare conditions using different filters\nPlease use powstat for comparisons\n')];
-      continue
-      
-    end
+    %-----------------%
+    %-grand average
+    cfg = [];
+    cfg.keepindividual = 'yes';
+    cfg.parameter = opt.parameter;
+    gpowsouPre = ft_sourcegrandaverage(cfg, data{:,1,p});
+    gpowsource = ft_sourcegrandaverage(cfg, data{:,2,p});
+    %-----------------%
+    
+    %-----------------%
+    %-do stats
+    [powsource{p,1} outtmp] = report_source(opt, gpowsource, gpowsouPre);
+    powsource{p}.name = pow_peak(p).name;
+    output = [output outtmp];
+    %-----------------%
     
     %-----------------%
     %-plot source
