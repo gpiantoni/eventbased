@@ -96,6 +96,7 @@ for k = 1:numel(opt.cond)
     source = pcadata(source, roi, opt.fixedmom);
   end
   %---------------------------%
+  source.cfg = [];
   
   save([info.dsou outputfile], 'source')
   
