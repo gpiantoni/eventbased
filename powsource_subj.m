@@ -155,7 +155,7 @@ for k = 1:numel(opt.cond)
       %-----------------%
       
     else
-      powsource_s_B = [];
+      powsource_s_B = {};
       
     end
     %---------------------------%

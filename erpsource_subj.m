@@ -137,7 +137,7 @@ for k = 1:numel(opt.cond)
       %-----------------%
       
     else
-      erpsource_s_B = [];
+      erpsource_s_B = {};
       
     end
     %---------------------------%
