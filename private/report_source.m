@@ -205,4 +205,5 @@ end
 %-------------------------------------%
 %-simplify the output
 stat = ft_checkdata(stat, 'datatype', 'source'); % from volume into source
+stat.posneg = posneg;
 %-------------------------------------%
