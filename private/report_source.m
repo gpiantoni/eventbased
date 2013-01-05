@@ -150,7 +150,7 @@ if isempty(stat.posclusters)
 elseif isempty(stat.negclusters)
   posneg = true;
 else
-  posneg = stat.posclusters(1).prob <= stat.negclusters(1).prob;
+  posneg = max(stat.stat(:)) >= -1*min(stat.stat(:));
 end
 
 if posneg
