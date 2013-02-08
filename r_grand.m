@@ -78,6 +78,7 @@ if isfield(opt.rfun, 'tolog') && any([opt.rfun.tolog])
   fclose(fid);
   
   output = [output sprintf('\n%s\n', outtmp)];
+  delete(routput)
 end
 %---------------------------%
 
