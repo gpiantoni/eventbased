@@ -84,7 +84,7 @@ clear erp
 %-stats and plots
 %---------------------------%
 %-sensors
-if ~isempty(info.sens.layout) %TODO: check that data is not source
+if ~isempty(info.sens.layout)
   haslay = true;
   load(info.sens.layout, 'layout');
   
