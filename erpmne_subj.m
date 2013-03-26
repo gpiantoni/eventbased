@@ -51,7 +51,8 @@ for k = 1:numel(opt.cond)
   end
   
   outputfile = sprintf('mne_%04d_%s', subj, condname);
-  outputfile_cov = [outputfile '_cov'];
+  outputfile_cov = [outputfile '_cov.fif'];
+  outputfile_elec = [outputfile '_elec.txt'];
   %---------------------------%
   
   %TODO only use non-interpolated channels
@@ -75,10 +76,40 @@ for k = 1:numel(opt.cond)
   cfg.covariancewindow = opt.cov;
   
   erp_s = ft_timelockanalysis(cfg, data);
+  ft2fiff([info.dmne outputfile], erp_s)
   %---------------------------%
   
-  fieldtrip2fiff([info.dmne outputfile], erp_s)
-  % mne_write_cov_file([info.dmne outputfile_cov], erp_s.cov) % does not work
+  %---------------------------%
+  %-covariance
+  cov = [];
+  cov.diag = 1; % if only eeg
+  cov.data = erp_s.cov;
+  cov.names = data.label';
+  cov.bads = {}; % you can specify bad channels
+  cov.kind = 1; % I think this is the type of channel (FIFF.FIFFV_EEG_CH)
+  cov.dim = size(cov.data,1);
+  cov.nfree = numel(erp_s.cov)/2; % this is probably degrees of freedom, or non-zero elements, or something like that TODO
+  cov.eig = [];
+  cov.eigvec = [];
+  cov.projs = [];
+  mne_write_cov_file([info.dmne outputfile_cov], cov)
+  %---------------------------%
+  
+%   %---------------------------%
+%   %-elec location (maybe not necessary)
+%   electxt = sprintf('%s,', erp_s.elec.label{:});
+%   electxt = [electxt(1:end-1) '\n'];
+%   electxt = [electxt sprintf('%8.3f,', erp_s.elec.chanpos(:,1))];
+%   electxt = [electxt(1:end-1) '\n'];
+%   electxt = [electxt sprintf('%8.3f,', erp_s.elec.chanpos(:,2))];
+%   electxt = [electxt(1:end-1) '\n'];
+%   electxt = [electxt sprintf('%8.3f,', erp_s.elec.chanpos(:,3))];
+%   electxt = [electxt(1:end-1) '\n'];
+% 
+%   fid = fopen([info.dmne outputfile_elec], 'w');
+%   fprintf(fid, electxt);
+%   fclose(fid);
+%   %---------------------------%
   
 end
 %-------------------------------------%
