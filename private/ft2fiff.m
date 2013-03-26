@@ -61,6 +61,8 @@ fiff_write_evoked(filename, fiffdata);
 % subfunction
 function [chs] = elec2fiff(elec, label)
 
+elec = ft_convert_units(elec, 'cm'); % I think that MNE uses cm
+
 FIFF = fiff_define_constants;
 
 for i = 1:numel(label)
