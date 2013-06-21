@@ -151,25 +151,25 @@ for i = 1:numel(allfile)
       
       %-----------------%
       %-preprocessing on the full file
-      if isfield(cfg, 'preproc2') && ~isempty(cfg.preproc2)
-        cfg1 = cfg.preproc2;
-        cfg1.feedback = 'none';
-        cfg1.inputfile = [ddir outputfile]; % it rewrites the same file
-        cfg1.outputfile = [ddir outputfile];
-        ft_preprocessing(cfg1);
+      if isfield(opt, 'preproc2') && ~isempty(opt.preproc2)
+        cfg = opt.preproc2;
+        cfg.feedback = 'none';
+        cfg.inputfile = [ddir outputfile]; % it rewrites the same file
+        cfg.outputfile = [ddir outputfile];
+        ft_preprocessing(cfg);
       end
       %-----------------%
       
       %-----------------%
       %-scalp current density
-      if isfield(cfg, 'csd') && isfield(cfg.csd, 'method') && ~isempty(cfg.csd.method)
-        cfg1 = [];
-        cfg1.method = cfg.csd.method;
-        cfg1.elec = sens;
-        cfg1.feedback = 'none';
-        cfg1.inputfile = [ddir outputfile]; % it rewrites the same file
-        cfg1.outputfile = [ddir outputfile];
-        ft_scalpcurrentdensity(cfg1);
+      if isfield(opt, 'csd') && isfield(opt.csd, 'method') && ~isempty(opt.csd.method)
+        cfg = [];
+        cfg.method = cfg.csd.method;
+        cfg.elec = sens;
+        cfg.feedback = 'none';
+        cfg.inputfile = [ddir outputfile]; % it rewrites the same file
+        cfg.outputfile = [ddir outputfile];
+        ft_scalpcurrentdensity(cfg);
       end
       %-----------------%
       
