@@ -121,7 +121,7 @@ for k = 1:numel(opt.cond)
       
       %-----------------%
       %-covariance window
-      cfgerp.covariancewindow = cfg.erpsource.bline  + erp_peak(p).wndw * [-.5 .5];
+      cfgerp.covariancewindow = opt.bline  + erp_peak(p).wndw * [-.5 .5];
       avgPre = ft_timelockanalysis(cfgerp, data);
       %-----------------%
       
