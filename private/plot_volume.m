@@ -15,7 +15,6 @@ ft_sourceplot(tmpcfg, souinterp);
 
 return
 
-
 %-------------------------------------%
 %-----------------%
 %-plot main cluster

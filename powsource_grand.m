@@ -112,8 +112,8 @@ for t = 1:numel(opt.comp)
     
     %-----------------%
     %-plot source
-    h = figure('vis', 'off');
     plot_volume(powsource(p, :), template, 'stat')
+    h = gcf;
     
     %--------%
     pngname = sprintf('gpow_peak_%s_%s', comp, pow_peak(p).name);

@@ -112,8 +112,8 @@ for t = 1:numel(opt.comp)
     
     %-----------------%
     %-plot source
-    h = figure('vis', 'off');
     plot_volume(erpsource(p, :), template, 'stat')
+    h = gcf;
     
     %--------%
     pngname = sprintf('gerp_peak_%s_%s', comp, erp_peak(p).name);
