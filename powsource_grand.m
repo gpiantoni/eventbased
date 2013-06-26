@@ -41,8 +41,10 @@ tic_t = tic;
 pow_peak = get_peak(info, opt.peak, 'pow');
 
 %---------------------------%
-%-load template
-template = ft_read_mri(info.mri.template);
+%-load template TODO: find elegant solution for this
+load(info.mri.template)
+template = mri;
+% template = ft_read_mri(info.mri.template);
 %---------------------------%
 
 %---------------------------------------------------------%
