@@ -87,6 +87,8 @@ for t = 1:numel(opt.comp)
   end
   %---------------------------%
   
+  fid = fopen([info.log filesep 'mainfocus.txt'], 'w');
+  
   %-------------------------------------%
   %-loop over peaks
   powsource = [];
@@ -111,6 +113,48 @@ for t = 1:numel(opt.comp)
     %-----------------%
     
     %-----------------%
+    %-best voxels
+    if powsource{p}.posneg
+      sorting = 'descend';
+      n_nan = numel(powsource{p}.outside);
+    else
+      sorting = 'ascend';
+      n_nan = 0;
+    end
+    
+    str = [pow_peak(p).name ','];
+    [a, i_vox] = sort(powsource{p}.stat, sorting);
+    goodthr = round(numel(powsource{p}.inside) * 5 / 100); % 5% best
+    bestpos = powsource{p}.pos(i_vox(n_nan + (1:goodthr)),:);
+    
+    str = [str 'max,' sprintf('%d,', bestpos(1, :))];
+    str = [str 'best (mean),' sprintf('%.2f,', mean(bestpos, 1))];
+    %-------%
+    
+    cfg.atlas = 8;
+    atlas = mni2ba(mean(bestpos, 1), cfg.atlas);
+    atlasname = fieldnames(atlas);
+    atlas = {atlas.(atlasname{1})};
+    atlas = atlas(~strcmp(atlas, ''));
+    
+    if isempty(atlas)
+      s_atlas = '';
+    else
+      [atlas, ~, i_atl] = unique(atlas);
+      s_atlas = atlas{mode(i_atl)};
+    end
+    %-------%
+    str = [str s_atlas ','];
+    str = [str 'best (std),' sprintf('%.2f,', std(bestpos, [], 1))];
+    %-----------------%
+    
+    %-----------------%
+    %-stats to file
+    str = [str sprintf('\n')];
+    fwrite(fid, str);
+    %-----------------%
+    
+    %-----------------%
     %-plot source
     plot_volume(powsource(p, :), template, 'stat')
     h = gcf;
@@ -127,6 +171,7 @@ for t = 1:numel(opt.comp)
     %---------------------------%
     
   end
+      fclose(fid);
   %-------------------------------------%
   
   %---------------------------%
@@ -134,7 +179,7 @@ for t = 1:numel(opt.comp)
   for p = 1:numel(powsource)
     powsource{p}.cfg = []; % this is huge
   end
-  save([info.dpow 'powsource_' comp], 'powsource', '-v7.3')
+  save([info.dpow 'powsource_' comp], 'powsource', '-v7.3')  
   %---------------------------%
   
 end
