@@ -15,11 +15,12 @@ function conn_grand(info, opt)
 %  .cond*: cell with conditions (e.g. {'*cond1' '*cond2'})'
 %  .comp*: comparisons to test (cell within cell, e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}})
 %        but you cannot have more than 2 conditions (it's always a t-test). If empty, not statistics and no plots
-%  .avgfreq*: how you want to average frequency bands
+%  .avgfreq: how you want to average frequency bands
 %    if 'all': it takes all the frequency in the data (one value)
 %    if 'any': it takes each frequency in the data (can be alot alot)
 %    if two scalar: it takes each frequency between the extremes ([8 12], means each frequency between 8 and 12, so 8 9 10 11 12, five values)
 %    if a cell with scalar: it takes the average between the two limits ({[8 12]}, means average of all the frequencies between 8 and 12, one value)
+%    (necessary only for conn.method = 'ft')
 %  .conn.toi*: vector with time points to run connectivity on
 %
 %  Baseline correction at the single-subject level:
@@ -82,6 +83,7 @@ switch opt.conn.method
   case 'gc'
     %-cca toolbox
     spctrm = 'gc';
+    opt.avgfreq = 'all';
 end
 %-----------------%
 
