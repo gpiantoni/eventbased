@@ -189,7 +189,9 @@ if isfield(opt, 'comp')
       %-plot
       cfg = [];
       cfg.channel = opt.plot.chan(c).chan;
-      cfg.baseline = opt.plot.bline;
+      if isfield(opt.plot, 'bline')
+        cfg.baseline = opt.plot.bline;
+      end
       cfg.ylim = 'maxabs';
       ft_singleplotER(cfg, gerp{:});
       
@@ -214,7 +216,7 @@ if isfield(opt, 'comp')
     
     %---------------------------%
     %-topoplotTFR (loop over tests)
-    if haslay
+    if haslay && ~isempty(intersect(gplot.label, layout.label))
       
       %-----------------%
       %-figure
