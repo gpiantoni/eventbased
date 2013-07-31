@@ -10,7 +10,7 @@ souinterp = ft_sourceinterpolate(tmpcfg, stat{1}, template);
 tmpcfg = [];
 tmpcfg.method = 'slice';
 tmpcfg.funparameter = toplot;
-tmpcfg.funcolorlim = [-2.5 2.5];
+tmpcfg.funcolorlim = [-5 5];
 ft_sourceplot(tmpcfg, souinterp);
 
 return
