@@ -15,6 +15,8 @@ function conn_plot_time(info, opt)
 %  .comp*: comparisons to test (cell within cell, e.g. {{'cond1' 'cond2'} {'cond1'} {'cond2'}})
 %          you can have as many conditions as you want.
 %  .conn.toi*: vector with time points to run connectivity on
+%  .stat: if not empty, plot the significant/not-significant parts
+%       .pvalue: pvalue for significance (default: 0.025)
 %
 %  Baseline correction at the single-subject level:
 %  .conn.bl: if empty, no baseline. Otherwise:
@@ -40,6 +42,17 @@ output = sprintf('%s began at %s on %s\n', ...
 tic_t = tic;
 %---------------------------%
 
+%---------------------------%
+%-check input
+stat = false;
+if isfield(opt, 'stat') && ~isempty(opt.stat)
+  stat = true;
+  if ~isfield(opt.stat, 'pvalue')
+    opt.stat.pvalue = 0.05 / 2;
+  end
+end
+%---------------------------%
+
 %-----------------------------------------------%
 %-compare conditions
 sem = @(x) std(x,[],3) / sqrt(size(x,3));
@@ -59,7 +72,7 @@ if isfield(opt, 'comp')
       %-----------------%
       %-conditions
       cond = regexprep(opt.comp{t}{c}, '*', '');
-      comp = ['_' cond];
+      comp = [comp '_' cond];
       output = sprintf('%s %s', output, cond);
       load([info.dcon 'conn_' cond], 'conn')
       
@@ -103,6 +116,16 @@ if isfield(opt, 'comp')
     h = figure('vis', 'off');
     h_subplot = [];
     maxy = 0;
+    
+    if stat
+      df = size(conn.mat,5) - 1; % always tested against zero
+      t_thresh = abs(tinv(opt.stat.pvalue, df));
+      
+      Sh = figure('vis', 'off');
+      Sh_subplot = [];
+      Smaxy = 0;
+    end
+    
     for chan1 = 1:nchan
       
       %-----------------%
@@ -117,6 +140,7 @@ if isfield(opt, 'comp')
       for chan2 = nextchan:nchan
         if chan1 ~= chan2 % for asymm, use all but this combination
           
+          figure(h)
           h_subplot = [h_subplot; subplot(nchan, nchan, (chan1 - 1) * nchan + chan2)];
           hold on
           dat = shiftdim(conn.mat(chan1, chan2, :, :, :, :), 2);
@@ -138,7 +162,7 @@ if isfield(opt, 'comp')
           
           maxy = max(maxy, nanmax(abs(m_dat(:))));
           %-----------------%
-          
+
           %-----------------%
           %-title
           title([conn.label{chan1} ' -> ' conn.label{chan2}])
@@ -147,22 +171,50 @@ if isfield(opt, 'comp')
             xlabel('time (s)')
           end
           %-----------------%
+
+          %-----------------%
+          if stat
+            figure(Sh)
+            Sh_subplot = [Sh_subplot; subplot(nchan, nchan, (chan1 - 1) * nchan + chan2)];
+          
+            signplot = sign(m_dat) .* (abs(m_dat ./ sem_dat) > t_thresh);
+            plot(conntime, signplot, 'o')
+            title([conn.label{chan1} ' -> ' conn.label{chan2}])
+
+          end
+          %-----------------%
           
         end % chan1 ~= chan2
       end % chan2
     end % chan1
     
     set(h_subplot, 'ylim', [-1 1] * maxy)
+    
+    if stat
+      set(Sh_subplot, 'ylim', [-1.5 1.5])
+    end
     %-------------------------------------%
     
     %-----------------%
     %-save and link
-    pngname = sprintf('gtrs_time_%s_%s', opt.conn.method, cond);
+    pngname = sprintf('gtrs_time_%s_%s', opt.conn.method, comp);
     saveas(h, [info.log filesep pngname '.png'])
     close(h); drawnow
     
     [~, logfile] = fileparts(info.log);
     system(['ln ' info.log filesep pngname '.png ' info.rslt pngname '_' logfile '.png']);
+    %-----------------%
+    
+    %-----------------%
+    %-save and link
+    if stat
+      pngname = sprintf('gtrs_time_%s_%s_pvalue', opt.conn.method, comp);
+      saveas(Sh, [info.log filesep pngname '.png'])
+      close(Sh); drawnow
+      
+      [~, logfile] = fileparts(info.log);
+      system(['ln ' info.log filesep pngname '.png ' info.rslt pngname '_' logfile '.png']);
+    end
     %-----------------%
     
   end % numel(gcomp)
