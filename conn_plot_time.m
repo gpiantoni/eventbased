@@ -55,6 +55,7 @@ end
 
 %-----------------------------------------------%
 %-compare conditions
+set(0,'DefaultFigureVisible','off')
 sem = @(x) std(x,[],3) / sqrt(size(x,3));
 
 if isfield(opt, 'comp')
@@ -141,6 +142,7 @@ if isfield(opt, 'comp')
         if chan1 ~= chan2 % for asymm, use all but this combination
           
           figure(h)
+          set(h, 'vis', 'off')
           h_subplot = [h_subplot; subplot(nchan, nchan, (chan1 - 1) * nchan + chan2)];
           hold on
           dat = shiftdim(conn.mat(chan1, chan2, :, :, :, :), 2);
@@ -175,10 +177,12 @@ if isfield(opt, 'comp')
           %-----------------%
           if stat
             figure(Sh)
+            set(Sh, 'vis', 'off')
             Sh_subplot = [Sh_subplot; subplot(nchan, nchan, (chan1 - 1) * nchan + chan2)];
           
             signplot = sign(m_dat) .* (abs(m_dat ./ sem_dat) > t_thresh);
-            plot(conntime, signplot, 'o')
+            shiftplot = repmat((0:size(m_dat,2)-1) / 10, size(m_dat,1), 1);
+            plot(conntime, signplot + shiftplot, 'o')
             title([conn.label{chan1} ' -> ' conn.label{chan2}])
 
           end
@@ -221,6 +225,7 @@ if isfield(opt, 'comp')
   %-------------------------------------%
   
 end
+set(0,'DefaultFigureVisible','on')
 %-----------------------------------------------%
 
 %---------------------------%
