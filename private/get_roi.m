@@ -74,7 +74,7 @@ else
     
     %-----------------%
     %-cluster
-    if isfield(roi, 'cluster')
+    if isfield(roi, 'cluster') && ~isempty(roi.cluster)
       
       x = stat{i}.pos(:,1);
       y = stat{i}.pos(:,2);
