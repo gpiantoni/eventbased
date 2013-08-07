@@ -22,7 +22,7 @@ function ROI = get_roi(info, roi)
 %      - 'sum': cluster with higher summed stat
 %      - 'largest': largest cluster
 %    .expand: use neighbors of one voxel (it only works with one voxel),
-%             possible values are 6, 18, 26
+%             possible values are 0, 6, 18, 26
 %
 
 if isfield(roi, 'pos')
