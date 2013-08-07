@@ -15,7 +15,8 @@ function ROI = get_roi(info, roi)
 %          all the info in "stat", plus .posneg which tells you if the
 %          activity is mostly positive or negative
 %      Examples:
-%      -PEAK VOX: @(x)abs(x.stat)==max(abs(x.stat))
+%      -PEAK VOX: @(x)x == max(x)
+%      -ABOVE UNCORRECTED THRESHOLD: @(x)x >= abs(norminv(0.05/2))
 %    .cluster: select only one cluster
 %      - 'peak': cluster with peak
 %      - 'sum': cluster with higher summed stat
