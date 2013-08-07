@@ -182,7 +182,7 @@ if isfield(opt, 'comp')
           
             signplot = sign(m_dat) .* (abs(m_dat ./ sem_dat) > t_thresh);
             shiftplot = repmat((0:size(m_dat,2)-1) / 10, size(m_dat,1), 1);
-            plot(conntime, signplot + shiftplot, 'o')
+            plot(conntime, signplot - shiftplot, 'o')
             title([conn.label{chan1} ' -> ' conn.label{chan2}])
 
           end
