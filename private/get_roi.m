@@ -21,6 +21,8 @@ function ROI = get_roi(info, roi)
 %      - 'peak': cluster with peak
 %      - 'sum': cluster with higher summed stat
 %      - 'largest': largest cluster
+%    .expand: use neighbors of one voxel (it only works with one voxel),
+%             possible values are 6, 18, 26
 %
 
 if isfield(roi, 'pos')
@@ -140,6 +142,75 @@ else
         ROI(i).pos(r, 3) = z_grid(z_roi);
       end
       
+    end
+    %-----------------%
+    
+    %-----------------%
+    %-expand
+    if isfield(roi, 'expand') && ~isempty(roi.expand)
+      if size(ROI(i).pos,1) ~= 1
+        error('You can only use the neighbors of a single voxel by expanding it, not a cluster')
+      end
+      
+      x = unique(stat{i}.pos(:,1));
+      y = unique(stat{i}.pos(:,2));
+      z = unique(stat{i}.pos(:,3));
+
+      x_up = x(find(x > ROI(i).pos(1,1),1));
+      x_down = x(find(x < ROI(i).pos(1,1),1,'last'));
+      y_up = y(find(y > ROI(i).pos(1,2),1));
+      y_down = y(find(y < ROI(i).pos(1,2),1,'last'));
+      z_up = z(find(z > ROI(i).pos(1,3),1));
+      z_down = z(find(z < ROI(i).pos(1,3),1,'last'));
+
+      %-if empty, create duplicate values, they'll be removed using
+      %"unique" at the end
+      if isempty(x_up); x_up = ROI(i).pos(1,1); end
+      if isempty(x_down); x_down = ROI(i).pos(1,1); end
+      if isempty(y_up); y_up = ROI(i).pos(1,2); end
+      if isempty(y_down); y_down = ROI(i).pos(1,2); end
+      if isempty(z_up); z_up = ROI(i).pos(1,3); end
+      if isempty(z_down); z_down = ROI(i).pos(1,3); end
+      
+      if roi.expand >= 6
+         ROI(i).pos(2:7,:) = repmat(ROI(i).pos(1,:), 6, 1);
+         ROI(i).pos(2,1) = x_up;
+         ROI(i).pos(3,1) = x_down;
+         ROI(i).pos(4,2) = y_up;
+         ROI(i).pos(5,2) = y_down;
+         ROI(i).pos(6,3) = z_up;
+         ROI(i).pos(7,3) = z_down;
+      end
+      
+      if roi.expand >= 18
+         ROI(i).pos(8:19,:) = repmat(ROI(i).pos(1,:), 12, 1);
+         ROI(i).pos(8, [1 2]) = [x_up y_up];
+         ROI(i).pos(9, [1 2]) = [x_up y_down];
+         ROI(i).pos(10, [1 2]) = [x_down y_up];
+         ROI(i).pos(11, [1 2]) = [x_down y_down];
+         ROI(i).pos(12, [1 3]) = [x_up z_up];
+         ROI(i).pos(13, [1 3]) = [x_up z_down];
+         ROI(i).pos(14, [1 3]) = [x_down z_up];
+         ROI(i).pos(15, [1 3]) = [x_down z_down];
+         ROI(i).pos(16, [2 3]) = [y_up z_up];
+         ROI(i).pos(17, [2 3]) = [y_up z_down];
+         ROI(i).pos(18, [2 3]) = [y_down z_up];
+         ROI(i).pos(19, [2 3]) = [y_down z_down];
+      end
+      
+      if roi.expand >= 26
+         ROI(i).pos(20, :) = [x_up y_up z_up];
+         ROI(i).pos(21, :) = [x_up y_up z_down];
+         ROI(i).pos(22, :) = [x_up y_down z_up];
+         ROI(i).pos(23, :) = [x_up y_down z_down];
+         ROI(i).pos(24, :) = [x_down y_up z_up];
+         ROI(i).pos(25, :) = [x_down y_up z_down];
+         ROI(i).pos(26, :) = [x_down y_down z_up];
+         ROI(i).pos(27, :) = [x_down y_down z_down];
+      end
+      
+      % remove duplicated rows
+      ROI(i).pos = unique(ROI(i).pos, 'rows');
     end
     %-----------------%
     
