@@ -125,6 +125,7 @@ if isfield(opt, 'comp')
       Sh = figure('vis', 'off');
       Sh_subplot = [];
       Smaxy = 0;
+      signsign = zeros(nchan, nchan, numel(conn.time), size(conn.mat,6));
     end
     
     for chan1 = 1:nchan
@@ -181,10 +182,11 @@ if isfield(opt, 'comp')
             Sh_subplot = [Sh_subplot; subplot(nchan, nchan, (chan1 - 1) * nchan + chan2)];
           
             signplot = sign(m_dat) .* (abs(m_dat ./ sem_dat) > t_thresh);
+            signsign(chan1, chan2, :, :) = signplot;
             shiftplot = repmat((0:size(m_dat,2)-1) / 10, size(m_dat,1), 1);
             plot(conntime, signplot - shiftplot, 'o')
             title([conn.label{chan1} ' -> ' conn.label{chan2}])
-
+            
           end
           %-----------------%
           
@@ -218,6 +220,10 @@ if isfield(opt, 'comp')
       
       [~, logfile] = fileparts(info.log);
       system(['ln ' info.log filesep pngname '.png ' info.rslt pngname '_' logfile '.png']);
+      
+      % save signsign
+      save([info.log filesep 'signsign'], 'signsign')
+      
     end
     %-----------------%
     
