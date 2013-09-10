@@ -164,7 +164,7 @@ for i = 1:numel(allfile)
       %-scalp current density
       if isfield(opt, 'csd') && isfield(opt.csd, 'method') && ~isempty(opt.csd.method)
         cfg = [];
-        cfg.method = cfg.csd.method;
+        cfg.method = opt.csd.method;
         cfg.elec = sens;
         cfg.feedback = 'none';
         cfg.inputfile = [ddir outputfile]; % it rewrites the same file
