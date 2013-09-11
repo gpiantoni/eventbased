@@ -45,7 +45,7 @@ tic_t = tic;
 %---------------------------%
 %-check input
 stat = false;
-if isfield(opt, 'stat') && ~isempty(opt.stat)
+if isfield(opt, 'stat') && ~isempty(opt.stat) && opt.stat
   stat = true;
   if ~isfield(opt.stat, 'pvalue')
     opt.stat.pvalue = 0.05 / 2;
@@ -117,6 +117,7 @@ if isfield(opt, 'comp')
     h = figure('vis', 'off');
     h_subplot = [];
     maxy = 0;
+    posy = true;
     
     if stat
       df = size(conn.mat,5) - 1; % always tested against zero
@@ -164,6 +165,7 @@ if isfield(opt, 'comp')
           ylabel(opt.conn.method);
           
           maxy = max(maxy, nanmax(abs(m_dat(:))));
+          posy = posy & all(m_dat(:) >= 0);
           %-----------------%
 
           %-----------------%
@@ -194,7 +196,12 @@ if isfield(opt, 'comp')
       end % chan2
     end % chan1
     
-    set(h_subplot, 'ylim', [-1 1] * maxy)
+    if posy 
+      limy = [0 1];
+    else
+      limy = [-1 1];
+    end
+    set(h_subplot, 'ylim', limy * maxy)
     
     if stat
       set(Sh_subplot, 'ylim', [-1.5 1.5])
