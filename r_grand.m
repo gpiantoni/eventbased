@@ -66,7 +66,7 @@ for i = 1:numel(opt.rfun)
   end
   %-----------------%
   
-  system(['Rscript ' opt.rdir opt.rfun(i).name ' ' args]);
+  system(['source ~/.bashrc; Rscript ' opt.rdir opt.rfun(i).name ' ' args]);
 end
 %---------------------------%
 
