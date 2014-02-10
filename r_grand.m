@@ -66,7 +66,12 @@ for i = 1:numel(opt.rfun)
   end
   %-----------------%
   
-  system(['source ~/.bashrc; Rscript ' opt.rdir opt.rfun(i).name ' ' args]);
+  % Use system libraries
+  MatlabPath = getenv('LD_LIBRARY_PATH');
+  setenv('LD_LIBRARY_PATH', getenv('PATH'))
+  system(['Rscript ' opt.rdir opt.rfun(i).name ' ' args]);
+  setenv('LD_LIBRARY_PATH', MatlabPath)
+
 end
 %---------------------------%
 
